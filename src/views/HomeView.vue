@@ -1,9 +1,3 @@
-<script>
-export default {
-  name: 'Home',
-}
-</script>
-
 <template>
   <div class="container">
     <div class="text-section">
@@ -37,21 +31,63 @@ export default {
 
   <div class="stats">
     <div id="claimed">
-      <h1>9</h1>
+      <h1>{{ claimed }}</h1>
       <h3>Items Claimed</h3>
     </div>
 
     <div id="found">
-      <h1>15</h1>
+      <h1>{{ found }}</h1>
       <h3>Items Found</h3>
     </div>
 
     <div id="yet">
-      <h1>6</h1>
+      <h1>{{ yetToBeClaimed }}</h1>
       <h3>Items Yet to be Claimed</h3>
     </div>
   </div>
 </template>
+
+<script>
+import firebaseApp from '../firebase.js'
+import { getFirestore } from 'firebase/firestore'
+import { getDocs, collection, query, where, onSnapshot } from 'firebase/firestore'
+const db = getFirestore(firebaseApp)
+
+export default {
+  name: 'Home',
+  data() {
+    return {
+      claimed: 0,
+      found: 0,
+      yetToBeClaimed: 0,
+    }
+  },
+  mounted() {
+    const claimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', true))
+
+    onSnapshot(claimedQuery, (snapshot) => {
+      this.claimed = snapshot.size
+    })
+
+    const foundQuery = query(collection(db, 'Lost Item'), where('claimed_status', '==', true))
+
+    onSnapshot(foundQuery, (snapshot) => {
+      this.found = snapshot.size
+    })
+
+    const yetToBeClaimedQuery = query(
+      collection(db, 'Found Item'),
+      where('claimed_status', '==', false),
+    )
+
+    onSnapshot(yetToBeClaimedQuery, (snapshot) => {
+      this.yetToBeClaimed = snapshot.size
+    })
+  },
+
+  methods: {},
+}
+</script>
 
 <style scoped>
 * {
