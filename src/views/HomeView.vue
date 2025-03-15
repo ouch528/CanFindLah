@@ -1,5 +1,8 @@
 <script setup>
-import TheWelcome from '../components/TheWelcome.vue'
+import MessageList from '../components/MessageList.vue'
+import MessageDetail from '../components/MessageDetail.vue'
+import HeaderBar from '../components/HeaderBar.vue'
+
 </script>
 
 <template>
