@@ -1,7 +1,7 @@
 <template>
     <div class="main-container">
         <div class="left-panel">
-            <img src="@/assets/CFL_signup.png" alt="illustration">
+            <img src="../assets/CFL_signup.png" alt="illustration">
         </div>
         <div class="right-panel">
             <div class="instructions">
@@ -40,32 +40,30 @@
     </div>
 </template>
 
-<script>
-export default {
-    data() {
-        return {
-            password: "",
-            showPassword: false,
-            cfmpassword: "",
-            showCfmPassword: false,
-        };
-    }, 
-    methods: {
-        togglePassword() {
-            this.showPassword = !this.showPassword;
-        },
-        toggleCfmPassword() {
-            this.showCfmPassword = !this.showCfmPassword;
-        }
-    }
-}
+<script setup>
+import { ref } from "vue";
+
+const name = ref("");
+const email = ref("");
+const password = ref("");
+const cfmpassword = ref("");
+
+const showPassword = ref(false);
+const showCfmPassword = ref(false);
+
+const togglePassword = () => {
+    showPassword.value = !showPassword.value;
+};
+
+const toggleCfmPassword = () => {
+    showCfmPassword.value = !showCfmPassword.value;
+};
 </script>
 
 <style scoped>
 .main-container {
     display: flex;
     height: 100vh;
-    font-family: "Arial";
 }
 
 .left-panel {
@@ -86,6 +84,7 @@ img {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    background-color: white;
 }
 
 .instructions {
@@ -130,6 +129,7 @@ input {
     font-size: 1em;
     padding: 0% 1.5%;
     margin-bottom: 15px;
+    background-color: white;
 }
 
 .password-input {

@@ -1,7 +1,7 @@
 <template>
     <div class="main-container">
         <div class="left-panel">
-            <img src="@/assets/CFL_signup.png" alt="illustration">
+            <img src="../assets/CFL_signup.png" alt="illustration">
         </div>
         <div class="right-panel">
             <div class="instructions">
@@ -31,20 +31,17 @@
     </div>
 </template>
 
-<script>
-export default {
-    data() {
-        return {
-            password: "",
-            showPassword: false
-        };
-    }, 
-    methods: {
-        togglePassword() {
-            this.showPassword = !this.showPassword;
-        }
-    }
-}
+<script setup>
+import { ref } from "vue";
+
+const email = ref("");
+const password = ref("");
+
+const showPassword = ref(false);
+
+const togglePassword = () => {
+    showPassword.value = !showPassword.value;
+};
 </script>
 
 <style scoped>
@@ -72,6 +69,7 @@ img {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    background-color: white;
 }
 
 .instructions {
@@ -116,6 +114,7 @@ input {
     font-size: 1em;
     padding: 0% 1.5%;
     margin-bottom: 15px;
+    background-color: white;
 }
 
 .password-input {
