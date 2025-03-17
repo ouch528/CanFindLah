@@ -3,13 +3,13 @@
     <!-- Header -->
     <HeaderBar />
 
-    <!-- Main Content Layout -->
     <div class="main-layout">
       <!-- Left: Message List -->
       <MessageList
         :conversations="conversations"
         :selectedIndex="selectedIndex"
         @select="handleSelect"
+        @delete="handleDelete"
       />
 
       <!-- Right: Message Detail -->
@@ -82,6 +82,13 @@ export default {
     handleSelect(index) {
       this.selectedIndex = index;
     },
+    handleDelete(index) {
+      this.conversations.splice(index, 1);
+      // Reset the selected index if it was the deleted conversation.
+      if (this.selectedIndex === index) {
+        this.selectedIndex = null;
+      }
+    },
   },
 };
 </script>
@@ -89,19 +96,16 @@ export default {
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  height: 100vh;
-  width: 100vh;
   display: flex;
   flex-direction: column;
+  min-height: 100vh;
 }
 
 /* Layout for the main content */
 .main-layout {
-  display: flex;
-  /* flex: 1; */
-  /* height: calc(100vh - 60px); subtract header height */
+  flex: 1;
+  display: flex;         /* enable flex layout for side-by-side columns */
+  align-items: stretch;  /* ensures child elements stretch vertically */
 }
 </style>
 
