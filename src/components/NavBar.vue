@@ -22,15 +22,15 @@
 }
 
 .logo {
-  display: flex;
-  align-items: center;
-  font-size: 20px;
-  font-weight: bold;
+    display: flex;
+    align-items: center;
+    font-size: 1.25rem;
+    font-weight: bold;
 }
 
 .logo img {
-  height: 35px;
-  margin-right: 10px;
+    height: 35px;
+    margin-right: 5px;
 }
 
 ul {
@@ -49,6 +49,6 @@ ul li a {
 }
 
 .active-link {
-  color: #808080;
+    color: #808080;
 }
 </style>

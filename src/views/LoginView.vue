@@ -1,4 +1,8 @@
 <template>
+    <div class="logo-container">
+        <img src="@/assets/CFL_logo.png" alt="CanFindLah">
+        <span>CanFindLah</span>
+    </div>
     <div class="main-container">
         <div class="left-panel">
             <img src="../assets/CFL_signup.png" alt="illustration">
@@ -51,6 +55,23 @@ const togglePassword = () => {
     font-family: "Arial";
 }
 
+.logo-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0;
+    position: absolute;
+    top: 30px;
+    left: 40px;
+    font-size: 1.25em;
+    font-weight: bold;
+}
+
+.logo-container img {
+    height: 35px;
+    margin-right: 5px;
+}
+
 .left-panel {
     flex: 1;
     display: flex;
@@ -77,8 +98,8 @@ img {
 }
 
 h1 {
-  font-size: 30px;
-  margin-bottom: 0px;
+    font-size: 1.875rem;
+    margin-bottom: 0px;
 }
 
 p {
@@ -100,7 +121,7 @@ input {
     height: 40px;
     border: 0.5px solid #8692A6;
     border-radius: 5px;
-    font-size: 1em;
+    font-size: 1rem;
     padding: 0% 1.5%;
 }
 
@@ -111,7 +132,7 @@ input {
     height: 40px;
     border: 0.5px solid #8692A6;
     border-radius: 5px;
-    font-size: 1em;
+    font-size: 1rem;
     padding: 0% 1.5%;
     margin-bottom: 15px;
     background-color: white;
@@ -139,7 +160,7 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 1em;
+    font-size: 1rem;
     color: white;
 }
 
