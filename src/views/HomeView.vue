@@ -94,6 +94,10 @@ export default {
   font-family: Arial;
 }
 
+a {
+  text-decoration: none;
+}
+
 #main-msg {
   line-height: 1.25;
   font-weight: 700;
@@ -112,11 +116,13 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
+  margin-top: 76px;
 }
 
 .text-section {
   margin-left: 194px;
-  margin-top: 30px;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 .nav-section {
@@ -163,14 +169,21 @@ export default {
   justify-content: space-between;
   margin-left: 160px;
   margin-right: 160px;
+  margin-top: 125px;
 }
 
 .stats h1 {
+  font-size: 84px;
   text-align: center;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .stats h3 {
   color: #747373;
+  font-size: 30px;
+  width: 266px;
+  margin-top: 56px;
 }
 
 #claimed h1 {

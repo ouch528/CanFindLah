@@ -1,13 +1,15 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
+import NavBar from './components/NavBar.vue'
 </script>
 
 <template>
   <header>
     <nav>
-      <RouterLink to="/">Home</RouterLink>
+      <RouterLink to="/"></RouterLink>
     </nav>
   </header>
 
+  <NavBar />
   <RouterView />
 </template>

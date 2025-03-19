@@ -43,6 +43,7 @@
           v-model="formData.datetime"
           id="datetime"
           required
+          :max="maxDateTime"
           placeholder="Enter Date & Time Lost"
         />
         <br /><br />
@@ -86,6 +87,7 @@ export default {
         description: '',
         image: null,
       },
+      maxDateTime: new Date().toISOString().slice(0, 16),
     }
   },
   methods: {
@@ -112,6 +114,7 @@ export default {
             datetime_found: this.formData.datetime,
             description: this.formData.description,
             name: `${this.formData.color} ${this.formData.category}`,
+            claimed_status: false,
             // imageUrl: imageUrl,
           })
 
@@ -145,6 +148,15 @@ export default {
         alert('Please fill all required fields.')
         return false
       }
+
+      const selectedDateTime = new Date(this.formData.datetime)
+      const now = new Date()
+
+      if (selectedDateTime > now) {
+        alert('Date & Time must be in the past.')
+        return false
+      }
+
       return true
     },
   },
