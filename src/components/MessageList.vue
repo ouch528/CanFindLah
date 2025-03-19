@@ -107,6 +107,7 @@
     width: 250px;
     border-right: 1px solid #ccc;
     padding: 10px;
+    background-color: #fff;
   }
   
   .message-list ul {

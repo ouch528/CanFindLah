@@ -106,6 +106,7 @@ export default {
   flex: 1;
   display: flex;         /* enable flex layout for side-by-side columns */
   align-items: stretch;  /* ensures child elements stretch vertically */
+  background-color: #e0f2ff; 
 }
 </style>
 

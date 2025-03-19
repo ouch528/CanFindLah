@@ -30,8 +30,12 @@
   
   <style scoped>
   .message-detail {
-    flex: 1;
+    flex: 1;         /* fill remaining space */
+    margin: 20px;    
+    background-color: #e0f2ff; 
+    border-radius: 8px;     
     padding: 20px;
+
   }
   
   .message-detail h2 {
