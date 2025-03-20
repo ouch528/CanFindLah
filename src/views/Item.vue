@@ -33,7 +33,11 @@
             </div>
             <div class = "you-are founder" v-if = "status == 'founder'">Founder </div>
             <div class = "you-are searcher" v-if = "status == 'searcher'">Searcher</div>
+            <div>
+                <i class = "pi pi-pencil" id = "pencil"></i>
+            </div>
         </div>
+        
         
     </div>
 
@@ -47,6 +51,7 @@
     import { getFirestore } from "firebase/firestore"
     import { ref, getDownloadURL } from 'firebase/storage';
     import {collection, getDoc, doc, deleteDoc} from "firebase/firestore"
+    import 'primeicons/primeicons.css'
 
 
     const db = getFirestore(firebaseApp);
@@ -231,10 +236,10 @@
     }
 
     .boxes {
-        display: flex; /* Arrange boxes horizontally */
+        display: inline-flex; /* Arrange boxes horizontally */
         align-items: center; /* Vertically align items */
         gap: 10px; /* Space between boxes */
-        margin-left: 10px;
+
     }
 
     
@@ -278,6 +283,12 @@
         max-width: 50%; /* Make image responsive */
         height: 120%;
         border-radius: 5px; /* Rounded corners for image */
+    }
+
+    #pencil {
+        position: absolute;
+        right: 0.5em;;
+        transform: translateY(-50%);
     }
 
 

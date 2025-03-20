@@ -64,7 +64,7 @@ export default {
         History <br>
     </h1>
 
-    <div>
+    <div id = "select-bar">
         <select v-model = "status">
             <option value = "all">Status: All</option>
             <option value = "founder">Status: Founder</option>
@@ -137,7 +137,7 @@ export default {
 } */
 
     h1{
-        color: brown;
+        color: #685545;
         text-align: center;
         
     }
@@ -156,6 +156,13 @@ export default {
 
     #item-display {
         display: flex;
-    flex-wrap: wrap;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    #select-bar {
+        justify-content: center;
+        display: flex;
+        flex-wrap: wrap;
     }
 </style>
