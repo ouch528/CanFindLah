@@ -107,6 +107,7 @@
     width: 250px;
     border-right: 1px solid #ccc;
     padding: 10px;
+    overflow-y: auto
   }
   
   .message-list ul {
@@ -181,19 +182,3 @@
   }
   </style>
   
-
-  <!-- /* .delete-btn {
-    margin-top: 5px;
-    padding: 4px 8px;
-    font-size: 0.5rem;
-    background-color: red;
-    color: white;
-    border: none;
-    border-radius: 3px;
-    cursor: pointer;
-    } */
-  /* 
-     .delete-btn:hover {
-      opacity: 0.8;
-     } */ -->
-    
