@@ -2,7 +2,6 @@
     <div class="message-list">
       <!-- Header Row: "Messages" + Trash Button -->
       <div class="header-row">
-        <h2>Messages</h2>
         <!-- Button that toggles delete mode -->
         <button class="toggle-delete" @click="toggleDeleteMode">
           <!-- Show a trash icon or text. You can swap icons based on mode if you want. -->
@@ -107,7 +106,6 @@
     width: 250px;
     border-right: 1px solid #ccc;
     padding: 10px;
-    background-color: #fff;
   }
   
   .message-list ul {

@@ -58,7 +58,13 @@
   font-weight: normal;
 }
 
-body {
+.body {
+  background: linear-gradient(to bottom, white, #F1C39C);
+  font-family: 'Inter';
+  min-height: 100vh;
+}
+
+/* body {
   min-height: 100vh;
   color: var(--color-text);
   background: var(--color-background);
@@ -83,4 +89,4 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
+} */

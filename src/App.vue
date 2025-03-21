@@ -1,19 +1,22 @@
 <template>
   <div id="app">
-    <!-- Header -->
     <HeaderBar />
 
-    <div class="main-layout">
-      <!-- Left: Message List -->
-      <MessageList
-        :conversations="conversations"
-        :selectedIndex="selectedIndex"
-        @select="handleSelect"
-        @delete="handleDelete"
-      />
+    <h2 class="messages-title">Messages</h2>
 
-      <!-- Right: Message Detail -->
-      <MessageDetail :selectedConversation="selectedConversation" />
+    <div class="messages-panel">
+      <div class="main-layout">
+        <!-- Left: Message List -->
+        <MessageList
+          :conversations="conversations"
+          :selectedIndex="selectedIndex"
+          @select="handleSelect"
+          @delete="handleDelete"
+        />
+
+        <!-- Right: Message Detail -->
+        <MessageDetail :selectedConversation="selectedConversation" />
+      </div>
     </div>
   </div>
 </template>
@@ -84,7 +87,6 @@ export default {
     },
     handleDelete(index) {
       this.conversations.splice(index, 1);
-      // Reset the selected index if it was the deleted conversation.
       if (this.selectedIndex === index) {
         this.selectedIndex = null;
       }
@@ -94,19 +96,51 @@ export default {
 </script>
 
 <style>
+/* 1) Root container with peach gradient background */
 #app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  background: linear-gradient(to bottom, #fff, #F1C39C);
 }
 
-/* Layout for the main content */
+/* 2) Optional heading for "Messages" at the top, centered */
+.messages-title {
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 48px;              /* or 3rem, if you prefer responsive units */
+  color: rgba(104, 69, 69, 1);
+  margin: 20px 0;               /* optional spacing */
+}
+
+/* 3) The container that encloses your main-layout and centers it */
+.messages-panel {
+  /* Center horizontally */
+  margin: 0 auto;
+  /* Control width (either a percentage or fixed px) */
+  width: 80%;
+  max-width: 1200px;
+
+  /* Add a border around the entire panel */
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background-color: #fff;
+
+  /* Some vertical spacing if you like */
+  margin-bottom: 20px;
+  /* If you want a minimum height, you can set it here:
+     min-height: 600px;
+  */
+  /* For layouts that have a header or extra space, you can also add margin-top if desired */
+}
+
+/* 4) The existing .main-layout that holds the left & right columns */
 .main-layout {
-  flex: 1;
-  display: flex;         /* enable flex layout for side-by-side columns */
-  align-items: stretch;  /* ensures child elements stretch vertically */
-  background-color: #e0f2ff; 
+  display: flex;
+  flex: 1; /* fill the container's vertical space */
+  overflow: hidden; /* no horizontal overflow */
 }
 </style>
 
