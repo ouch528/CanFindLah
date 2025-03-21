@@ -204,6 +204,7 @@ input {
 .password-input {
     all: unset;
     flex-grow: 1;
+    color: black;
 }
 
 .toggle-icon {

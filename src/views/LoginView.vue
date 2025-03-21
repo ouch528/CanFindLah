@@ -12,13 +12,13 @@
                 <h1>Account Login</h1>
                 <p>If you already signup, you can login with your NUS email address and password.</p>
 
-                <form @submit.prevent>
+                <form @submit.prevent="loginUser">
                     <label for="email">NUS Email Address</label>
-                    <input type="email">
+                    <input type="email" v-model="email" required>
                     
                     <label for="password">Password</label>
                     <div class="password-container">
-                        <input class="password-input" :type="showPassword ? 'text' : 'password'">
+                        <input class="password-input" :type="showPassword ? 'text' : 'password'" v-model="password" required>
                         <span class="toggle-icon" @click="togglePassword">
                             <i :class="showPassword ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
                         </span>
@@ -28,6 +28,7 @@
                     <button type="submit">Login</button>
                     <br>
 
+                    <p class="error-message">{{ errorMessage }}</p>
                     <p id="directToSignup">Don't have an account? <router-link style="text-decoration: none; color: #2C73EB" to="/signup">Sign up here</router-link></p>
                 </form>
             </div>
@@ -36,16 +37,30 @@
 </template>
 
 <script>
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
+
 export default {
     data() {
         return {
+            email: "", 
             password: "",
-            showPassword: false
+            showPassword: false,
+            errorMessage: ""
         };
     }, 
     methods: {
         togglePassword() {
             this.showPassword = !this.showPassword;
+        }, 
+        async loginUser() {
+            try {
+                await signInWithEmailAndPassword(auth, this.email, this.password);
+                alert("Login successful! Redirecting to home page.");
+                this.$router.push("/");
+            } catch(error) {
+                this.errorMessage = "Invalid email or password. Please try again.";
+            }
         }
     }
 }
@@ -109,6 +124,12 @@ p {
     color: #8692A6;
 }
 
+.error-message {
+    margin-top: 0px;
+    margin-bottom: 5px;
+    color: red;
+}
+
 form {
     display: flex;
     flex-direction: column;
@@ -144,6 +165,7 @@ input {
 .password-input {
     all: unset;
     flex-grow: 1;
+    color: black;
 }
 
 .toggle-icon {

@@ -8,13 +8,13 @@ const isAuthPage = computed(() => route.path === "/login" || route.path === "/si
 </script>
 
 <template>
-  <header>
+  <!-- <header>
     <nav>
       <RouterLink to="/">Home</RouterLink>
       <RouterLink to="/signup">Signup</RouterLink>
       <RouterLink to="/login">Login</RouterLink>
     </nav>
-  </header>
+  </header> -->
 
   <NavBar v-if="!isAuthPage" />
 
