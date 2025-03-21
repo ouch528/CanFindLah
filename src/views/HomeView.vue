@@ -1,50 +1,50 @@
 <template>
-  <div class="container">
-    <div class="text-section">
-      <h3 id="welcome-msg">Welcome, Jane Doe.</h3>
+    <div class="container">
+        <div class="text-section">
+            <h3 id="welcome-msg">Welcome, Jane Doe.</h3>
 
-      <h1 id="main-msg">
-        Find and <br />
-        Recover with <br />
-        Ease.
-      </h1>
-    </div>
-
-    <div class="nav-section">
-      <RouterLink to="/report_lost">
-        <div id="lost-item-nav">
-          <img src="@/assets/lost_item_icon.png" />
-          Report Lost Item
+            <h1 id="main-msg">
+                Find and <br />
+                Recover with <br />
+                Ease.
+            </h1>
         </div>
-      </RouterLink>
 
-      <br />
+        <div class="nav-section">
+            <RouterLink to="/report_lost">
+                <div id="lost-item-nav">
+                    <img src="@/assets/lost_item_icon.png" />
+                    Report Lost Item
+                </div>
+            </RouterLink>
 
-      <RouterLink to="/report_found">
-        <div id="found-item-nav">
-          <img src="@/assets/found_item_icon.png" />
-          Report Found Item
+            <br />
+
+            <RouterLink to="/report_found">
+                <div id="found-item-nav">
+                    <img src="@/assets/found_item_icon.png" />
+                    Report Found Item
+                </div>
+            </RouterLink>
         </div>
-      </RouterLink>
-    </div>
-  </div>
-
-  <div class="stats">
-    <div id="claimed">
-      <h1>{{ claimed }}</h1>
-      <h3>Items Claimed</h3>
     </div>
 
-    <div id="found">
-      <h1>{{ found }}</h1>
-      <h3>Items Found</h3>
-    </div>
+    <div class="stats">
+        <div id="claimed">
+            <h1>{{ claimed }}</h1>
+            <h3>Items Claimed</h3>
+        </div>
 
-    <div id="yet">
-      <h1>{{ yetToBeClaimed }}</h1>
-      <h3>Items Yet to be Claimed</h3>
+        <div id="found">
+            <h1>{{ found }}</h1>
+            <h3>Items Found</h3>
+        </div>
+
+        <div id="yet">
+            <h1>{{ yetToBeClaimed }}</h1>
+            <h3>Items Yet to be Claimed</h3>
+        </div>
     </div>
-  </div>
 </template>
 
 <script>
@@ -54,147 +54,144 @@ import { getDocs, collection, query, where, onSnapshot } from 'firebase/firestor
 const db = getFirestore(firebaseApp)
 
 export default {
-  name: 'Home',
-  data() {
-    return {
-      claimed: 0,
-      found: 0,
-      yetToBeClaimed: 0,
-    }
-  },
-  mounted() {
-    const claimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', true))
+    name: 'Home',
+    data() {
+        return {
+            claimed: 0,
+            found: 0,
+            yetToBeClaimed: 0,
+        }
+    },
+    mounted() {
+        const claimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', true))
 
-    onSnapshot(claimedQuery, (snapshot) => {
-      this.claimed = snapshot.size
-    })
+        onSnapshot(claimedQuery, (snapshot) => {
+            this.claimed = snapshot.size
+        })
 
-    const foundQuery = query(collection(db, 'Lost Item'), where('claimed_status', '==', true))
+        const foundQuery = query(collection(db, 'Lost Item'), where('claimed_status', '==', true))
 
-    onSnapshot(foundQuery, (snapshot) => {
-      this.found = snapshot.size
-    })
+        onSnapshot(foundQuery, (snapshot) => {
+            this.found = snapshot.size
+        })
 
-    const yetToBeClaimedQuery = query(
-      collection(db, 'Found Item'),
-      where('claimed_status', '==', false),
-    )
+        const yetToBeClaimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', false))
 
-    onSnapshot(yetToBeClaimedQuery, (snapshot) => {
-      this.yetToBeClaimed = snapshot.size
-    })
-  },
+        onSnapshot(yetToBeClaimedQuery, (snapshot) => {
+            this.yetToBeClaimed = snapshot.size
+        })
+    },
 
-  methods: {},
+    methods: {},
 }
 </script>
 
 <style scoped>
 * {
-  font-family: Arial;
+    font-family: Arial;
 }
 
 a {
-  text-decoration: none;
+    text-decoration: none;
 }
 
 #main-msg {
-  line-height: 1.25;
-  font-weight: 700;
-  text-align: left;
-  font-size: 70px;
+    line-height: 1.25;
+    font-weight: 700;
+    text-align: left;
+    font-size: 4.375rem;
 }
 
 #welcome-msg {
-  font-weight: 400;
-  text-align: left;
-  font-size: 24px;
+    font-weight: 400;
+    text-align: left;
+    font-size: 1.5rem;
 }
 
 .container {
-  text-align: center;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-top: 76px;
+    text-align: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-top: 4.75rem;
 }
 
 .text-section {
-  margin-left: 194px;
-  margin-top: auto;
-  margin-bottom: auto;
+    margin-left: 12.125rem;
+    margin-top: auto;
+    margin-bottom: auto;
 }
 
 .nav-section {
-  margin-right: 194px;
+    margin-right: 12.125rem;
 }
 
 #lost-item-nav,
 #found-item-nav {
-  color: white;
-  font-size: 2rem;
-  font-weight: 700;
-  border-radius: 20px;
-  height: 200px;
-  width: 444px;
-  margin-left: auto;
-  margin-right: auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
+    color: white;
+    font-size: 2rem;
+    font-weight: 700;
+    border-radius: 1.25rem;
+    height: 12.5rem;
+    width: 27.75rem;
+    margin-left: auto;
+    margin-right: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
 }
 
 #lost-item-nav {
-  background-color: #ff8844;
-  font-size: 40px;
+    background-color: #ff8844;
+    font-size: 2.5rem;
 }
 
 #found-item-nav {
-  background-color: #4a95df;
-  font-size: 40px;
+    background-color: #4a95df;
+    font-size: 2.5rem;
 }
 
 #found-item-nav img,
 #lost-item-nav img {
-  width: 72px;
-  height: 72px;
+    width: 4.5rem;
+    height: 4.5rem;
 }
 
 .stats {
-  text-align: center;
-  justify-content: space-between;
-  display: flex;
-  justify-content: space-between;
-  margin-left: 160px;
-  margin-right: 160px;
-  margin-top: 125px;
+    text-align: center;
+    justify-content: space-between;
+    display: flex;
+    justify-content: space-between;
+    margin-left: 10rem;
+    margin-right: 10rem;
+    margin-top: 7.81rem;
 }
 
 .stats h1 {
-  font-size: 84px;
-  text-align: center;
-  margin-top: 0;
-  margin-bottom: 0;
+    font-size: 5.25rem;
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 0;
 }
 
 .stats h3 {
-  color: #747373;
-  font-size: 30px;
-  width: 266px;
-  margin-top: 56px;
+    color: #747373;
+    font-size: 1.875rem;
+    width: 16.625rem;
+    margin-top: 3.5rem;
 }
 
 #claimed h1 {
-  color: #0b8b1c;
+    color: #0b8b1c;
 }
 
 #found h1 {
-  color: #3f61c7;
+    color: #3f61c7;
 }
 
 #yet {
-  color: #af2c2c;
+    color: #af2c2c;
 }
 </style>
