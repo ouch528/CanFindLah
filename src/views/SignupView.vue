@@ -12,25 +12,25 @@
                 <h1>Account Signup</h1>
                 <p>Join the CanFindLah Network - Helping Each Other, One Item at a Time!</p>
 
-                <form @submit.prevent>
+                <form @submit.prevent="registerUser">
                     <label for="name">Name</label>
-                    <input type="text">
+                    <input type="text" v-model="name" required>
 
                     <label for="email">NUS Email Address</label>
-                    <input type="email">
+                    <input type="email" v-model="email" required>
                     
                     <label for="password">Password</label>
                     <div class="password-container">
-                        <input class="password-input" :type="showPassword ? 'text' : 'password'">
+                        <input class="password-input" :type="showPassword ? 'text' : 'password'" v-model="password" required>
                         <span class="toggle-icon" @click="togglePassword">
                             <i :class="showPassword ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
                         </span>
                     </div>
                     
                     
-                    <label for="cfmpassword">Confirm Password</label>
+                    <label for="cfmPassword">Confirm Password</label>
                     <div class="password-container">
-                        <input class="password-input" :type="showCfmPassword ? 'text' : 'password'">
+                        <input class="password-input" :type="showCfmPassword ? 'text' : 'password'" v-model="cfmPassword" required>
                         <span class="toggle-icon" @click="toggleCfmPassword">
                             <i :class="showCfmPassword ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
                         </span>
@@ -38,6 +38,9 @@
                     <br>
                     
                     <button type="submit">Continue</button>
+                    
+                    <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
+                    <p v-if="emailInUse" class="error-message">Email is already in use. Please <RouterLink style="text-decoration: none; color: #2C73EB" to="/login">login</RouterLink> instead.</p>
                 </form>
             </div>
         </div>
@@ -45,24 +48,68 @@
     
 </template>
 
-<script setup>
-import { ref } from "vue";
+<script>
+import { auth, createUserWithEmailAndPassword, db } from "../firebase";
+import { doc, setDoc } from "firebase/firestore";
 
-const name = ref("");
-const email = ref("");
-const password = ref("");
-const cfmpassword = ref("");
+export default {
+    data() {
+        return {
+            name: "",
+            email: "",
+            password: "",
+            cfmPassword: "",
+            showPassword: false,
+            showCfmPassword: false,
+            errorMessage: "",
+            emailInUse: false
+        };
+    }, 
+    methods: {
+        togglePassword() {
+            this.showPassword = !this.showPassword;
+        },
+        toggleCfmPassword() {
+            this.showCfmPassword = !this.showCfmPassword;
+        },
+        isStrongPassword(password) {
+            return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!"#$%&'()*+,-.\/:;<=>?\\@[\]^_`{|}~])[A-Za-z\d!"#$%&'()*+,-.\/:;<=>?\\@[\]^_`{|}~]{10,}$/.test(password);
+        },
+        async registerUser() {
+            if (!this.email.endsWith("nus.edu")) {
+                this.errorMessage = "Please sign up with NUS Email.";
+                return;
+            }
+            if (this.password !== this.cfmPassword) {
+                this.errorMessage = "Passwords do not match.";
+                return;
+            }
+            if (!this.isStrongPassword(this.password)) {
+                this.errorMessage = "Password must be at least 10 characters with uppercase, lowercase, numbers, and special characters."
+                return;
+            }
 
-const showPassword = ref(false);
-const showCfmPassword = ref(false);
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, this.email, this.password);
+                const user = userCredential.user;
+                await setDoc(doc(db, "users", user.uid), {
+                    name: this.name,
+                    email: this.email,
+                    createdAt: new Date()
+                });
+                alert("Signup sucessful! Redirecting to login.");
+                this.$router.push("/login");
 
-const togglePassword = () => {
-    showPassword.value = !showPassword.value;
-};
-
-const toggleCfmPassword = () => {
-    showCfmPassword.value = !showCfmPassword.value;
-};
+            } catch(error) {
+                if (error.code == "auth/email-already-in-use") {
+                    this.emailInUse = true;
+                } else {
+                    this.errorMessage = error.message;
+                }
+            }
+        }
+    }
+}
 </script>
 
 <style scoped>
@@ -178,5 +225,10 @@ button {
     cursor: pointer;
     font-size: 1rem;
     color: white;
+}
+
+.error-message {
+    color: red;
+    margin-top: 10px;
 }
 </style>

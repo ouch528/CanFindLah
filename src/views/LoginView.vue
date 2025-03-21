@@ -35,17 +35,20 @@
     </div>
 </template>
 
-<script setup>
-import { ref } from "vue";
-
-const email = ref("");
-const password = ref("");
-
-const showPassword = ref(false);
-
-const togglePassword = () => {
-    showPassword.value = !showPassword.value;
-};
+<script>
+export default {
+    data() {
+        return {
+            password: "",
+            showPassword: false
+        };
+    }, 
+    methods: {
+        togglePassword() {
+            this.showPassword = !this.showPassword;
+        }
+    }
+}
 </script>
 
 <style scoped>
