@@ -7,7 +7,7 @@
         <ul>
             <li><router-link to="/" active-class="active-link">Home</router-link></li>
             <li>History</li>
-            <li>Messages</li>
+            <li><router-link to="/Messages" active-class="active-link">Messages</router-link></li>
             <li>Logout</li>
         </ul>
     </nav>
@@ -19,6 +19,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 15px 30px;
+    font-size: 1.25rem;
 }
 
 .logo {

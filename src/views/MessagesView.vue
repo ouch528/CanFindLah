@@ -35,8 +35,10 @@
             :partnerName="partnerName"
           />
         </div>
-        <div v-else>
-          <p>Please select a user to start chatting.</p>
+        <div v-else class="no-chat-selected">
+          <div class="no-chat-message">
+            Select a chat to start messaging
+          </div>
         </div>
       </div>
     </div>
@@ -86,6 +88,7 @@ export default {
 .messages-header {
   text-align: center;
   margin-top: 1rem;
+  font-family: 'Inter';
 }
 
 .messages-header h1 {
@@ -115,6 +118,36 @@ export default {
 
 /* Container for the chat area */
 .chat-container {
+  /* Make sure the container can fill available space */
+  display: flex;
+  flex-direction: column;
   flex: 1;
+  position: relative;
+}
+
+/* The main container for "no chat selected" state */
+.no-chat-selected {
+  /* Fill up space so content can be centered both vertically & horizontally */
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  /* Optionally, use a background gradient or image like Telegram */
+  background: #F2FAFF;
+  background-size: cover;
+  background-position: center;
+}
+
+/* The rounded message in the center */
+.no-chat-message {
+  background-color: rgba(0, 0, 0, 0.4); /* black with 50% transparency */
+  padding: 0.5rem 0.5rem;
+  border-radius: 2rem;
+  font-size: 1.2rem;
+  font-weight: 500;
+  text-align: center;
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 </style>

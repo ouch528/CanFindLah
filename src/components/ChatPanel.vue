@@ -3,8 +3,7 @@
     <!-- Top bar showing the partner's name and optional subtitle -->
     <div class="chat-header">
       <h2>{{ partnerName }}</h2>
-      <!-- Optionally, if you want a subtitle line like "Searcher of Green Water Bottle": -->
-      <!-- <span class="partner-subtitle">Searcher of Green Water Bottle</span> -->
+      <span class="partner-subtitle">Searcher of Green Water Bottle</span>
     </div>
 
     <!-- Scrollable message list -->
@@ -30,11 +29,6 @@
             </div>
           </div>
 
-          <!-- Timestamp -->
-          <div class="message-info">
-            <span class="timestamp">{{ formatTimestamp(message.timestamp) }}</span>
-          </div>
-
           <!-- "X" delete button for your own messages -->
           <button
             v-if="message.sender === currentUser"
@@ -43,6 +37,10 @@
           >
             ×
           </button>
+        </div>
+          <!-- Timestamp -->
+        <div class="message-info">
+          <span class="timestamp">{{ formatTimestamp(message.timestamp) }}</span>
         </div>
       </div>
     </div>
@@ -69,14 +67,14 @@
           style="display: none;"
         />
         <!-- Paperclip icon label -->
-        <label for="file-input" class="file-label">📎</label>
+        <label for="file-input" class="file-label"><img src="@/assets/icon.png" alt="Icon" /></label>
         <input
           v-model="newMessage"
           type="text"
-          placeholder="Type something..."
+          placeholder="Write a message..."
         />
         <button type="submit" class="send-button">
-          ➤
+          <img src="@/assets/send.png" alt="Send">
         </button>
       </div>
     </form>
@@ -264,15 +262,16 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  font-family: "Inter";
 }
 .chat-header h2 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   color: #333;
   font-weight: 600;
 }
 .partner-subtitle {
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: #666;
 }
 
@@ -288,14 +287,19 @@ export default {
 /* Individual message */
 .message {
   display: flex;
+  flex-direction: column; /* stacks message-bubble and message-info vertically */
   margin-bottom: 0.75rem;
   position: relative;
 }
+
+/* For sent messages, align the column to the right */
 .message.sent {
-  justify-content: flex-end;
+  align-items: flex-end;
 }
+
+/* For received messages, align the column to the left */
 .message.received {
-  justify-content: flex-start;
+  align-items: flex-start;
 }
 
 /* Chat bubble styling */
@@ -307,7 +311,7 @@ export default {
   box-shadow: 0 1px 2px rgba(0,0,0,0.1);
   position: relative;
   word-wrap: break-word;
-  font-size: 0.95rem;
+  font-size: 1rem;
   line-height: 1.4;
 }
 
@@ -331,7 +335,8 @@ export default {
   text-align: right;
   font-size: 0.75rem;
   opacity: 0.7;
-  margin-top: 0.5rem;
+  margin-top: 0.2rem;
+  font-size: 0.625rem;
 }
 
 /* "X" delete icon */
