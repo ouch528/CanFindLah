@@ -126,10 +126,11 @@ export default {
   /* Add a border around the entire panel */
   border: 2px solid #ccc;
   border-radius: 8px;
-  background-color: #fff;
+  background-color: rgba(255, 250, 239, 1);
 
   /* Some vertical spacing if you like */
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+  min-height: 600px;
   /* If you want a minimum height, you can set it here:
      min-height: 600px;
   */

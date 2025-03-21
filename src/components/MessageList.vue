@@ -26,6 +26,7 @@
   
           <!-- Timestamp and preview -->
           <div class="timestamp">{{ conversation.time }}</div>
+          
           <div class="preview">{{ conversation.preview }}</div>
   
           <!-- Red minus circle at the bottom-left, visible only if isDeleteMode is true -->
@@ -126,13 +127,12 @@
   }
   
   .sender {
-    font-weight: bold;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 5px;
   }
-  
+
   /* Founder/Searcher badges */
   .founder {
     background-color: orangered;
@@ -153,6 +153,7 @@
   .timestamp {
     font-size: 0.8rem;
     color: #999;
+    text-align: right;
   }
   
   .preview {

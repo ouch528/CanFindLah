@@ -31,7 +31,7 @@
   <style scoped>
   .message-detail {
     flex: 1;         /* fill remaining space */
-    margin: 20px;    
+    margin: 0px;    
     background-color: #e0f2ff; 
     border-radius: 8px;     
     padding: 20px;
