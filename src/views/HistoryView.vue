@@ -2,7 +2,7 @@
 
 // import HelloWorld from './components/HelloWorld.vue'
 // import TheWelcome from './components/TheWelcome.vue'
-import Item from "./Item.vue";
+import Item from "@/components/Item.vue";
 import firebaseApp, {storage} from "../../firebase.js";
 import { getFirestore } from "firebase/firestore"
 import {collection, getDoc, doc, deleteDoc} from "firebase/firestore"
@@ -30,7 +30,10 @@ export default {
         return {
         found_item_Ids: [], // Your list of item IDs
         lost_item_Ids: [],
-        status : "all"
+        status : "all",
+        // isOpen: false,
+        // selectedOption: this.value || this.options[0],
+        // option: ["all", "founder", "searcher"]
         // itemIdsDb: db.collection("History").get()
         };
     },
@@ -52,7 +55,28 @@ export default {
             } catch (error) {
                 console.error("Error fetching Firestore data:", error);
             }
-        }
+        },
+
+        toggleDropdown() {
+            this.isOpen = !this.isOpen;
+        },
+
+        selectOption(option) {
+            this.status = option; // Update the status
+            this.isOpen = false; // Close the dropdown
+        },
+
+        mounted() {
+            document.addEventListener('click', this.closeDropdown);
+        },
+
+        beforeDestroy() {
+            document.removeEventListener('click', this.closeDropdown);
+        },
+
+
+
+
     }
 };
 
@@ -147,11 +171,11 @@ export default {
     }
 
     select {
-    padding: 5px 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    background-color: white;
-    cursor: pointer;
+        padding: 5px 6px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        background-color: white;
+        cursor: pointer;
     }
 
     #item-display {

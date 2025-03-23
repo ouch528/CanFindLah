@@ -34,7 +34,12 @@
             <div class = "you-are founder" v-if = "status == 'founder'">Founder </div>
             <div class = "you-are searcher" v-if = "status == 'searcher'">Searcher</div>
             <div>
-                <i class = "pi pi-pencil" id = "pencil"></i>
+                <i class = "pi pi-pencil" id = "pencil" @click="toggleMenu"></i>
+
+                <div v-if="showMenu" class="action-menu">
+                    <button @click="updateItem">Update</button>
+                    <button @click="deleteItem">Delete</button>
+                </div>
             </div>
         </div>
         
@@ -67,7 +72,9 @@
             return {
                 item: 1,
                 status : "",
-                imageUrl: ""
+                imageUrl: "",
+                showMenu : false,
+                item_id: ""
                 // lost_item: 1,// Will store item details, set as 1 if null will wrong idk why
             };
         },
@@ -88,7 +95,7 @@
 
         methods: {
             async fetchItemDetails() {
-                // console.log("hmm")
+                console.log("hmm")
                 if (!this.found_item_Id) return; // Ensure itemId is valid
 
                 try {
@@ -98,6 +105,7 @@
                     if (docSnap.exists()) {
                         this.item = docSnap.data(); // Update item details
                         this.status = "founder"
+                        this.item_id = this.item.found_item_id
                         console.log("Fetched Item Details:", this.item);
                     } else {
                         console.log("No item found for ID:", this.itemId);
@@ -108,7 +116,6 @@
             },
 
             async fetchItemDetails_lost() {
-               
                 if (!this.lost_item_Id) return; // Ensure itemId is valid
 
                 try {
@@ -118,6 +125,7 @@
                     if (docSnap.exists()) {
                         this.item = docSnap.data(); // Update item details
                         this.status = "searcher"
+                        this.item_id = this.item.lost_item_id
                         console.log("Fetched Item Details:", this.item);
                     } else {
                         console.log("No item found for ID:", this.itemId);
@@ -135,6 +143,42 @@
                 } catch (error) {
                     console.error('Error fetching image:', error);
                 }
+            },
+
+            updateItem() {
+                // Implement your update logic here
+                
+                alert('Update item clicked');
+                this.showMenu = false; // Close menu after action
+                if (this.status == "searcher") {
+                    this.$router.push({
+                    name: "edit_item",
+                    query: { 
+                        status_edit_item: this.status,
+                        edit_item_id: this.item_id,
+                    }
+                    });
+                } else {
+                    this.$router.push({
+                    name: "edit_item",
+                    query: {
+                        status_edit_item: this.status,
+                        edit_item_id: this.item_id,
+                    }
+                    });
+                }
+                console.log(this.found_item_Id)
+
+                },
+
+            deleteItem() {
+                // Implement your delete logic here
+                alert('Delete item clicked');
+                this.showMenu = false; // Close menu after action
+            },
+
+            toggleMenu() {
+                this.showMenu = !this.showMenu;
             },
 
 
@@ -287,8 +331,42 @@
 
     #pencil {
         position: absolute;
-        right: 0.5em;;
+        right: 0.7em;
         transform: translateY(-50%);
+        border-radius: 50%;
+        padding: 8px;
+    }
+
+    #pencil:hover{
+        background-color: #e0e0e0; /* Slightly darker on hover */
+    }
+
+    .action-menu {
+        position: absolute;
+        top: 100%; /* Position below the icon */
+        right: 0; /* Align to the right */
+        background-color: white;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 8px;
+        z-index: 10;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Add shadow for depth */
+    }
+
+    .action-menu button {
+        display: block;
+        width: 100%;
+        padding: 6px 10px;
+        margin-bottom: 4px;
+        border: none;
+        background-color: #f0f0f0;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+    .action-menu button:hover {
+        background-color: #e0e0e0; /* Slightly darker on hover */
     }
 
 

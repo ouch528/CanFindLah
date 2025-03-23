@@ -1,6 +1,6 @@
 <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import History from "./views/History.vue";
+import History from "./views/HistoryView.vue";
 
 </script>
 
@@ -13,5 +13,5 @@ import History from "./views/History.vue";
   <NavBar />
 
   <RouterView />
-  <History />
+  <!-- <History /> -->
 </template>
