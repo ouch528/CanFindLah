@@ -148,8 +148,19 @@
             updateItem() {
                 // Implement your update logic here
                 
-                alert('Update item clicked');
+                
                 this.showMenu = false; // Close menu after action
+
+                if (this.item.claimed_status == "Returned") {
+                    alert("You cannot edit a returned item");
+                    return
+                }
+
+                if (this.item.claimed_status == "Matched") {
+                    alert("You cannot edit a matched item");
+                    return
+                }
+                alert('Update item clicked');
                 if (this.status == "searcher") {
                     this.$router.push({
                     name: "edit_item",

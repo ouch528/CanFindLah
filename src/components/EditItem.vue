@@ -20,13 +20,12 @@
         <!-- <p>{{ $route.params.edit_item.name }}</p> -->
 
         <h3> {{ item.name }}</h3>
-        <p>Category: {{ item.category }}</p>
-        <p>Colour: {{ item.colour }}</p>
-        <p>Brand: {{ item.brand }}</p>
-        <p>Location: {{ item.location }}</p>
-        <p>Date & Time: {{ item.date_time_lost }}</p>
-        <p>Description: {{ item.description }}</p>
-        <br>
+        <p>Category: <input type = "text" id = "item" v-model="item.category"  @input="markAsChanged"/></p>
+        <p>Colour: <input type = "text" id = "item" v-model="item.colour"  @input="markAsChanged"/></p>
+        <p>Brand: <input type = "text" id = "item" v-model="item.brand"  @input="markAsChanged"/></p>
+        <p>Location: <input type = "text" id = "item" v-model="item.location"  @input="markAsChanged"/></p>
+        <p>Date & Time: <input type = "text" id = "item" v-model="item.date_time_lost"  @input="markAsChanged"/></p>
+        <p>Description: <input type = "text" id = "item" v-model="item.description"  @input="markAsChanged"/></p>
         <!-- <p>{{ itemId }}</p> -->
         
         
@@ -125,12 +124,30 @@
                 } catch (error) {
                     console.error('Error fetching image:', error);
                 }
-            }
+            },
+
+            markAsChanged() {
+                this.$emit("changeMade", { ...this.item }); // Emit a copy of the updated data
+            },
         }
     }
 
 </script>
 
 <style>
+
+.item{
+    position: relative;
+    background-color: white;
+    /* right: 500px; */
+    border : 1px;
+    max-width: 250px;
+    margin: 7px;
+    background-color: #fff;
+    padding: 30px;
+    border: 1px solid #ccc;
+    /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
+
+    }
 
 </style>
