@@ -14,13 +14,26 @@
                     <option value="">--Please choose the category--</option>
                     <option value="card">Card</option>
                     <option value="waterbottle">Waterbottle</option>
-                    <option value="adapter">Adapter</option>
+                    <option value="electronics">Electronics</option>
                     <option value="stationary">Stationary</option>
+                    <option value="toys">Toys</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="others">Others</option>
                 </select>
                 <br /><br />
 
                 <label for="col">Colour </label> <br />
-                <input type="color" v-model="formData.color" id="col" required /> <br /><br />
+                <select v-model="formData.color" id="col" required>
+                    <option value="">--Please choose the colour--</option>
+                    <option value="red">Red</option>
+                    <option value="green">Green</option>
+                    <option value="blue">Blue</option>
+                    <option value="yellow">Yellow</option>
+                    <option value="black">Black</option>
+                    <option value="white">White</option>
+                    <option value=" ">Others</option>
+                </select>
+                <br /><br />
 
                 <label for="brand">Brand </label> <br />
                 <input type="text" v-model="formData.brand" id="brand" required placeholder="Enter Brand" />
@@ -40,18 +53,13 @@
 
                 <label for="img">Upload Image </label> <br />
                 <div id="upload-img">
-                    <img src="@/assets/upload.png" alt="Upload Icon" id="upload-icon" />
-                    <span id="instruction">Please attach photo of the item</span>
                     <input type="file" @change="handleFileUpload" id="default-upload" accept="image/*" />
-                    <!-- <textarea rows="1" cols="20" placeholder="Please attach photo of the item"></textarea> -->
+                    <label for="default-upload">
+                        <img src="@/assets/upload.png" alt="Upload Icon" id="upload-icon" />
+                        <span id="instruction">Please attach photo of the item</span>
+                    </label>
                     <br /><br />
                 </div>
-                <!-- <input type="file" @change="handleFileUpload" id="img" accept="image/*" /> <br /><br /> -->
-
-                <!-- <label for="img" class="custom-file-upload">
-                    <img src="@/assets/upload.png" alt="Upload Icon" width="40px" />
-                </label>
-                <input type="file" @change="handleFileUpload" id="img" accept="image/*" /> -->
 
                 <div class="save">
                     <button id="savebutton" type="button" v-on:click="saveFoundItem">Submit</button>
@@ -72,7 +80,7 @@ export default {
         return {
             formData: {
                 category: '',
-                color: '#000000',
+                color: '',
                 brand: '',
                 location: '',
                 datetime: '',
@@ -112,7 +120,7 @@ export default {
 
                     this.formData = {
                         category: '',
-                        color: '#000000',
+                        color: '',
                         brand: '',
                         location: '',
                         datetime: '',
@@ -149,6 +157,10 @@ export default {
 </script>
 
 <style scoped>
+input[type='file'] {
+    display: none;
+}
+
 #header {
     font-size: 3rem;
     color: #684545;
@@ -197,25 +209,12 @@ form {
 
 .formli textarea {
     height: 6.0625rem;
+    font-family: Arial;
+    padding-left: 0.75rem;
 }
 
-#upload-img {
-    background-color: rgba(251, 240, 230, 1);
-    margin-left: 5.8125rem;
-    margin-right: 5.8125rem;
-    border-radius: 0.625rem;
-    height: 2rem;
-}
-
-#upload-icon,
-#instruction {
-    line-height: 2rem;
-}
-
-#instruction,
 select,
-input,
-textarea::placeholder {
+input {
     color: #888;
     font-size: 0.875rem;
     font-family: Arial;
@@ -223,9 +222,16 @@ textarea::placeholder {
     padding-left: 0.75rem;
 }
 
+textarea::placeholder {
+    color: #888;
+    font-size: 0.875rem;
+    font-family: Arial;
+    text-align: left;
+}
+
 .save {
     text-align: center;
-    margin-top: 1rem;
+    margin-top: 1.5rem;
     border-radius: 2rem;
 }
 
@@ -246,11 +252,29 @@ textarea::placeholder {
     margin-top: 1rem;
 }
 
-#default-upload {
-    /* opacity: 0; */
+#upload-img {
+    background-color: rgba(251, 240, 230, 1);
+    margin-left: 5.8125rem;
+    margin-right: 5.8125rem;
+    border-radius: 0.625rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
 }
 
-#upload-img img {
-    margin-left: 5.8125rem;
+#upload-icon {
+    margin-left: -5.0625rem;
+}
+
+#instruction {
+    line-height: 2rem;
+    color: #888;
+    font-size: 0.875rem;
+    padding-left: 0.75rem;
+    opacity: 0.7;
+    font-weight: 400;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    align-items: center;
 }
 </style>

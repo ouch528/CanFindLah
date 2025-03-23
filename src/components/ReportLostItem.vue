@@ -14,14 +14,28 @@
                     <option value="">--Please choose the category--</option>
                     <option value="card">Card</option>
                     <option value="waterbottle">Waterbottle</option>
-                    <option value="adapter">Adapter</option>
+                    <option value="electronics">Electronics</option>
                     <option value="stationary">Stationary</option>
+                    <option value="toys">Toys</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="others">Others</option>
                 </select>
+
                 <br />
                 <br />
 
                 <label for="col">Colour </label> <br />
-                <input type="color" id="col" v-model="formData.color" required /> <br /><br />
+                <select v-model="formData.color" id="col" required>
+                    <option value="">--Please choose the colour--</option>
+                    <option value="red">Red</option>
+                    <option value="green">Green</option>
+                    <option value="blue">Blue</option>
+                    <option value="yellow">Yellow</option>
+                    <option value="black">Black</option>
+                    <option value="white">White</option>
+                    <option value=" ">Others</option>
+                </select>
+                <br /><br />
 
                 <label for="brand">Brand </label> <br />
                 <input type="text" id="brand" v-model="formData.brand" required placeholder="Enter Brand" />
@@ -58,7 +72,7 @@ export default {
         return {
             formData: {
                 category: '',
-                color: '#000000',
+                color: '',
                 brand: '',
                 location: '',
                 datetime: '',
@@ -68,41 +82,23 @@ export default {
         }
     },
     methods: {
-        hexToColorName(hex) {
-            const colorMap = {
-                '#000000': 'Black',
-                '#FFFFFF': 'White',
-                '#FF0000': 'Red',
-                '#00FF00': 'Green',
-                '#0000FF': 'Blue',
-                '#FFFF00': 'Yellow',
-                '#FFA500': 'Orange',
-                '#800080': 'Purple',
-                '#FFC0CB': 'Pink',
-            }
-
-            return colorMap[hex] || 'Unknown'
-        },
-
         async saveLostItem() {
             if (this.validateForm()) {
                 try {
-                    const colorName = this.hexToColorName(this.formData.color)
-
                     await addDoc(collection(db, 'Lost Item'), {
                         category: this.formData.category,
-                        color: colorName,
+                        color: this.formData.color,
                         brand: this.formData.brand,
                         location_found: this.formData.location,
                         datetime_found: this.formData.datetime,
                         description: this.formData.description,
                         claimed_status: false,
-                        name: `${colorName} ${this.formData.category}`,
+                        name: `${this.formData.color} ${this.formData.category}`,
                     })
 
                     this.formData = {
                         category: '',
-                        color: '#000000',
+                        color: '',
                         brand: '',
                         location: '',
                         datetime: '',
@@ -184,16 +180,24 @@ form {
 
 .formli textarea {
     height: 6.0625rem;
+    font-family: Arial;
+    padding-left: 0.75rem;
 }
 
 select,
-input,
-textarea::placeholder {
+input {
     color: #888;
     font-size: 0.875rem;
     font-family: Arial;
     text-align: left;
     padding-left: 0.75rem;
+}
+
+textarea::placeholder {
+    color: #888;
+    font-size: 0.875rem;
+    font-family: Arial;
+    text-align: left;
 }
 
 .save {
