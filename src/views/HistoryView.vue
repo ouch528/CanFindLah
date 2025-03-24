@@ -104,6 +104,7 @@ export default {
             :key="found_item_Id"
             :found_item_Id="found_item_Id"
             v-if = "status == 'all' || status == 'founder'"
+            @item-deleted="fetchItems"
         />
 
         <Item
@@ -111,6 +112,7 @@ export default {
             :key = "lost_item_Id"
             :lost_item_Id = "lost_item_Id"
             v-if = "status == 'all' || status == 'searcher'"
+            @item-deleted="fetchItems"
         />
         <!-- <Item /> -->
 

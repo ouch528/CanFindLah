@@ -55,7 +55,7 @@
     import firebaseApp, {storage} from "../../firebase.js";
     import { getFirestore } from "firebase/firestore"
     import { ref, getDownloadURL } from 'firebase/storage';
-    import {collection, getDoc, doc, deleteDoc} from "firebase/firestore"
+    import {collection, getDoc, doc, deleteDoc, updateDoc, arrayRemove} from "firebase/firestore"
     import 'primeicons/primeicons.css'
 
 
@@ -182,9 +182,32 @@
 
                 },
 
-            deleteItem() {
-                // Implement your delete logic here
-                alert('Delete item clicked');
+            async deleteItem() {
+                try {
+                    alert('Delete item clicked');
+                    if (this.status == "searcher") {
+                        console.log(this.item)
+                        const docRef = doc(db, 'Lost_Item', this.lost_item_Id)
+                        const userRef = doc(db, 'History', "123456")
+                        await updateDoc(userRef, {
+                            lost_item_id_list: arrayRemove(this.lost_item_Id) // Remove the item ID from the array
+                        });
+                        await deleteDoc(docRef);
+                    } else {
+                        console.log(this.found_item_Id)
+                        const docRef = doc(db, 'Found_Item', this.found_item_Id)
+                        const userRef = doc(db, 'History', "123456")
+                        await updateDoc(userRef, {
+                            found_item_id_list: arrayRemove(this.found_item_Id) // Remove the item ID from the array
+                        });
+                        await deleteDoc(docRef);
+                    }
+                    this.$emit('item-deleted');
+                } catch (error) {
+                    console.error("Error deleting document: ", error);
+                }
+                
+                
                 this.showMenu = false; // Close menu after action
             },
 

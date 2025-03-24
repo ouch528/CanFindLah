@@ -68,7 +68,7 @@
 
                         this.hasChanges = false;
                         this.editedData = null;
-                        alert("Data edited successfully!")
+                        alert("Item edited successfully!")
                         this.$router.push('/history');
                     } catch (error) {
                         console.error("Error uploading data:", error);
@@ -80,7 +80,7 @@
 
                         this.hasChanges = false;
                         this.editedData = null;
-                        alert("Data edited successfully!")
+                        alert("Item edited successfully!")
                         this.$router.push('/history');
                     } catch (error) {
                         console.error("Error uploading data:", error);

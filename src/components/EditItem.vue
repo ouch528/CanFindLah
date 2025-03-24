@@ -23,7 +23,8 @@
         <p>Category: <input type = "text" id = "item" v-model="item.category"  @input="markAsChanged"/></p>
         <p>Colour: <input type = "text" id = "item" v-model="item.colour"  @input="markAsChanged"/></p>
         <p>Brand: <input type = "text" id = "item" v-model="item.brand"  @input="markAsChanged"/></p>
-        <p>Location: <input type = "text" id = "item" v-model="item.location"  @input="markAsChanged"/></p>
+        <p v-if ="this.status == 'founder'">Location: <input type = "text" id = "item" v-model="item.location"  @input="markAsChanged"/></p>
+        <p v-if ="this.status == 'searcher'">Location: <input type = "text" id = "item" v-model="item.location_lost"  @input="markAsChanged"/></p>
         <p>Date & Time: <input type = "text" id = "item" v-model="item.date_time_lost"  @input="markAsChanged"/></p>
         <p>Description: <input type = "text" id = "item" v-model="item.description"  @input="markAsChanged"/></p>
         <!-- <p>{{ itemId }}</p> -->
