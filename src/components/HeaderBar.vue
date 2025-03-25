@@ -1,9 +1,9 @@
 <template>
     <header class="header-bar">
-      <div class="brand">
+      <!-- <div class="brand">
         <img src="/Users/cheepheng/Documents/GitHub/l1-finaltermproject-2425s2l1_group_08/src/components/images/Magnifying Glass Tilted Right.png" alt="CanFindLah Logo" class="logo">
         <span>CanFindLah</span>
-      </div>
+      </div> -->
       <nav class="nav-links">
         <a href="#">Home</a>
         <a href="#">History</a>

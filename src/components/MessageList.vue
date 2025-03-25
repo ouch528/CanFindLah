@@ -146,17 +146,27 @@
   .founder {
     background-color: rgba(74, 149, 223, 1);
     color: #fff;
+    width: 89px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 2px 5px;
     border-radius: 5px;
-    font-size: 0.7rem;
+    font-size: 0.875rem;
   }
   
   .searcher {
     background-color: rgba(255, 136, 68, 1);
     color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 89px;
+    height: 32px;
     padding: 2px 5px;
     border-radius: 5px;
-    font-size: 0.7rem;
+    font-size: 0.875rem;
   }
   
   .timestamp {
@@ -197,6 +207,14 @@
       font-family: 'Inter', sans-serif;
       font-weight: 300; /* Inter Light is often weight 300 */
       font-size: 18px;
+    }
+
+    .preview-row .time {
+      position: relative;
+      color: rgba(128, 128, 128, 1);
+      font-size: 0.8125rem;
+      right: 20px;
+
     }
   </style>
   

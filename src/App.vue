@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <HeaderBar />
+    <NavBar />
 
     <h2 class="messages-title">Messages</h2>
 
@@ -26,16 +26,17 @@
 
 
 <script>
-import HeaderBar from "./components/HeaderBar.vue";
+// import HeaderBar from "./components/HeaderBar.vue";
 import MessageList from "./components/MessageList.vue";
 import MessageDetail from "./components/MessageDetail.vue";
+import NavBar from "./components/NavBar.vue";
 
 export default {
   name: "App",
   components: {
-    HeaderBar,
     MessageList,
     MessageDetail,
+    NavBar,
   },
   data() {
     return {
@@ -114,7 +115,7 @@ export default {
 .messages-title {   
   position: absolute;          
   left: 37.0625rem;
-  top: 8.25rem;
+  top: 7.25rem; /* based on figma is 8.25rem */
   text-align: center;
   font-family: 'Inter', sans-serif;
   font-size: 3rem;              /* or 3rem, if you prefer responsive units */
@@ -134,14 +135,6 @@ export default {
   border: 2px solid #ccc;
   border-radius: 8px;
   background-color: rgba(255, 250, 239, 1);
-  /* margin: 0 auto;
-  width: 100%;
-  max-width: 1948px;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  background-color: rgba(255, 250, 239, 1);
-  /* margin-bottom: 10px; */
-  /* padding: 0; optional, if you don’t want internal padding */ 
 }
 
 /* 4) The existing .main-layout that holds the left & right columns */

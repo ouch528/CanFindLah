@@ -31,11 +31,9 @@
   <style scoped>
   .message-detail {
     flex: 1;         /* fill remaining space */
-    margin: 0px;    
     background-color: #e0f2ff; 
-    border-radius: 8px;     
     padding: 20px;
-    width: 861px;
+    width: 860px;
   }
   
   .message-detail h2 {
@@ -43,18 +41,19 @@
   }
   
   .conversation-box {
-    border: 1px solid #ccc;
-    padding: 10px;
+    border: 2px solid #ccc;
     border-radius: 5px;
+    overflow: hidden;
   }
 
   .positioned-message {
     position: absolute;
+    color: rgba(38, 38, 38, 1);
     left: 731px;
     top: 250px;
     font-family: 'Inter', sans-serif;
     font-weight: 300; /* Inter Light typically uses a weight of 300 */
-    font-size: 20px;
+    font-size: 1.25rem;
   }
   </style>
   
