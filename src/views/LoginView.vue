@@ -5,12 +5,12 @@
     </div>
     <div class="main-container">
         <div class="left-panel">
-            <img src="../assets/CFL_signup.png" alt="illustration">
+            <img src="../assets/CFL_signup.png" id="illustration" alt="illustration">
         </div>
         <div class="right-panel">
             <div class="instructions">
                 <h1>Account Login</h1>
-                <p>If you already signup, you can login with your NUS email address and password.</p>
+                <p id="desc">If you already signup, you can login with your NUS email address and password.</p>
 
                 <form @submit.prevent="loginUser">
                     <label for="email">NUS Email Address</label>
@@ -80,7 +80,7 @@ export default {
     padding: 20px 0;
     position: absolute;
     top: 30px;
-    left: 40px;
+    left: 60px;
     font-size: 1.25em;
     font-weight: bold;
 }
@@ -98,8 +98,8 @@ export default {
     background-color: #FF8844;
 }
 
-img {
-    max-width: 60%;
+#illustration {
+    max-width: 75%;
 }
 
 .right-panel {
@@ -112,16 +112,19 @@ img {
 }
 
 .instructions {
-    max-width: 80%;
+    width: 70%;
 }
 
 h1 {
-    font-size: 1.875rem;
+    font-size: 2.25rem;
     margin-bottom: 0px;
 }
 
-p {
+#desc {
     color: #8692A6;
+    font-size: 1.375rem;
+    margin-top: 12px;
+    margin-bottom: 30px;
 }
 
 .error-message {
@@ -134,18 +137,20 @@ form {
     display: flex;
     flex-direction: column;
     color: #696F79;
+    width: 100%;
 }
 
 label {
     margin-bottom: 8px;
+    font-size: 1.25rem;
 }
 
 input {
     margin-bottom: 15px;
-    height: 40px;
+    height: 50px;
     border: 0.5px solid #8692A6;
     border-radius: 5px;
-    font-size: 1rem;
+    font-size: 1.25rem;
     padding: 0% 1.5%;
 }
 
@@ -153,13 +158,14 @@ input {
     display: flex;
     position: relative;
     align-items: center;
-    height: 40px;
+    height: 50px;
     border: 0.5px solid #8692A6;
     border-radius: 5px;
-    font-size: 1rem;
+    font-size: 1.25rem;
     padding: 0% 1.5%;
     margin-bottom: 15px;
     background-color: white;
+    max-width: 100%;
 }
 
 .password-input {
@@ -171,6 +177,10 @@ input {
 .toggle-icon {
     cursor: pointer;
     margin-right: 5px;
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-45%);
 }
 
 .toggle-icon img {
@@ -179,14 +189,19 @@ input {
 }
 
 button {
-    height: 40px;
+    height: 50px;
     padding: 10px;
     background-color: #ff8844;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.25rem;
     color: white;
+    min-width: 100%;
+}
+
+p {
+    font-size: 1.25rem;
 }
 
 #directToSignup {

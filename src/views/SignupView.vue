@@ -5,12 +5,19 @@
     </div>
     <div class="main-container">
         <div class="left-panel">
-            <img src="../assets/CFL_signup.png" alt="illustration">
+            <img src="../assets/CFL_signup.png" id="illustration" alt="illustration">
         </div>
         <div class="right-panel">
+            <router-link to="/login" style="text-decoration: none; color: #8692A6">
+                <div class="back-nav">
+                    <i class="pi pi-arrow-left"></i>
+                    <span> Back</span>
+                </div>
+            </router-link>
+            
             <div class="instructions">
                 <h1>Account Signup</h1>
-                <p>Join the CanFindLah Network - Helping Each Other, One Item at a Time!</p>
+                <p id="desc">Join the CanFindLah Network - Helping Each Other, One Item at a Time!</p>
 
                 <form @submit.prevent="registerUser">
                     <label for="name">Name</label>
@@ -51,6 +58,7 @@
 <script>
 import { auth, createUserWithEmailAndPassword, db } from "../firebase";
 import { doc, setDoc } from "firebase/firestore";
+import { signOut } from "firebase/auth";
 
 export default {
     data() {
@@ -93,10 +101,13 @@ export default {
                 const userCredential = await createUserWithEmailAndPassword(auth, this.email, this.password);
                 const user = userCredential.user;
                 await setDoc(doc(db, "users", user.uid), {
+                    userID: user.uid,
                     name: this.name,
                     email: this.email,
                     createdAt: new Date()
                 });
+
+                await signOut(auth);
                 alert("Signup sucessful! Redirecting to login.");
                 this.$router.push("/login");
 
@@ -125,7 +136,7 @@ export default {
     padding: 20px 0;
     position: absolute;
     top: 30px;
-    left: 40px;
+    left: 60px;
     font-size: 1.25rem;
     font-weight: bold;
 }
@@ -143,8 +154,8 @@ export default {
     background-color: #FF8844;
 }
 
-img {
-    max-width: 60%;
+#illustration {
+    max-width: 75%;
 }
 
 .right-panel {
@@ -154,37 +165,50 @@ img {
     align-items: center;
     justify-content: center;
     background-color: white;
+    position: relative;
+}
+
+.back-nav {
+    position: absolute;
+    top: 50px;
+    left: 32px;
+    font-size: 1.25rem;
 }
 
 .instructions {
-    max-width: 80%;
+    width: 70%;
 }
 
 h1 {
-    font-size: 1.875rem;
+    font-size: 2.25rem;
     margin-bottom: 0px;
 }
 
-p {
+#desc {
     color: #8692A6;
+    font-size: 1.375rem;
+    margin-top: 12px;
+    margin-bottom: 30px;
 }
 
 form {
     display: flex;
     flex-direction: column;
     color: #696F79;
+    width: 100%;
 }
 
 label {
     margin-bottom: 8px;
+    font-size: 1.25rem;
 }
 
 input {
     margin-bottom: 15px;
-    height: 40px;
+    height: 50px;
     border: 0.5px solid #8692A6;
     border-radius: 5px;
-    font-size: 1rem;
+    font-size: 1.25rem;
     padding: 0% 1.5%;
 }
 
@@ -192,13 +216,14 @@ input {
     display: flex;
     position: relative;
     align-items: center;
-    height: 40px;
+    height: 50px;
     border: 0.5px solid #8692A6;
     border-radius: 5px;
-    font-size: 1rem;
+    font-size: 1.25rem;
     padding: 0% 1.5%;
     margin-bottom: 15px;
     background-color: white;
+    max-width: 100%;
 }
 
 .password-input {
@@ -210,6 +235,10 @@ input {
 .toggle-icon {
     cursor: pointer;
     margin-right: 5px;
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-45%);
 }
 
 .toggle-icon img {
@@ -218,18 +247,20 @@ input {
 }
 
 button {
-    height: 40px;
+    height: 50px;
     padding: 10px;
     background-color: #ff8844;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.25rem;
     color: white;
+    min-width: 100%;
 }
 
 .error-message {
     color: red;
     margin-top: 10px;
+    font-size: 1.25rem;
 }
 </style>
