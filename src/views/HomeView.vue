@@ -63,19 +63,19 @@ export default {
         }
     },
     mounted() {
-        const claimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', true))
+        const claimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', 'Returned'))
 
         onSnapshot(claimedQuery, (snapshot) => {
             this.claimed = snapshot.size
         })
 
-        const foundQuery = query(collection(db, 'Lost Item'), where('claimed_status', '==', true))
+        const foundQuery = query(collection(db, 'Lost Item'), where('claimed_status', '==', 'Returned'))
 
         onSnapshot(foundQuery, (snapshot) => {
             this.found = snapshot.size
         })
 
-        const yetToBeClaimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', false))
+        const yetToBeClaimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', 'Not Found Yet'))
 
         onSnapshot(yetToBeClaimedQuery, (snapshot) => {
             this.yetToBeClaimed = snapshot.size

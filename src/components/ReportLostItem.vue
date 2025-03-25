@@ -86,13 +86,14 @@ export default {
             if (this.validateForm()) {
                 try {
                     await addDoc(collection(db, 'Lost Item'), {
-                        category: this.formData.category,
-                        color: this.formData.color,
                         brand: this.formData.brand,
-                        location_found: this.formData.location,
-                        datetime_found: this.formData.datetime,
+                        category: this.formData.category,
+                        claimed_status: 'Not Found Yet',
+                        colour: this.formData.color,
+                        date_time_lost: this.formData.datetime,
                         description: this.formData.description,
-                        claimed_status: false,
+                        lost_item_id: 'empty for now',
+                        location: this.formData.location,
                         name: `${this.formData.color} ${this.formData.category}`,
                     })
 

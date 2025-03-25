@@ -108,14 +108,15 @@ export default {
 
                     await addDoc(collection(db, 'Found Item'), {
                         category: this.formData.category,
-                        color: this.formData.color,
+                        colour: this.formData.color,
                         brand: this.formData.brand,
-                        location_found: this.formData.location,
-                        datetime_found: this.formData.datetime,
+                        location: this.formData.location,
+                        date_time_found: this.formData.datetime,
                         description: this.formData.description,
                         name: `${this.formData.color} ${this.formData.category}`,
-                        claimed_status: false,
-                        // imageUrl: imageUrl,
+                        claimed_status: 'Not Found Yet',
+                        found_item_id: 'empty for now',
+                        photo: 'jpg',
                     })
 
                     this.formData = {
