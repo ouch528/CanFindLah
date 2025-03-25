@@ -4,6 +4,7 @@
 
     <h2 class="messages-title">Messages</h2>
 
+
     <div class="messages-panel">
       <div class="main-layout">
 
@@ -20,7 +21,9 @@
       </div>
     </div>
   </div>
+
 </template>
+
 
 <script>
 import HeaderBar from "./components/HeaderBar.vue";
@@ -108,28 +111,37 @@ export default {
 }
 
 /* 2) Optional heading for "Messages" at the top, centered */
-.messages-title {
+.messages-title {   
+  position: absolute;          
+  left: 37.0625rem;
+  top: 8.25rem;
   text-align: center;
   font-family: 'Inter', sans-serif;
-  font-size: 48px;              /* or 3rem, if you prefer responsive units */
+  font-size: 3rem;              /* or 3rem, if you prefer responsive units */
   color: rgba(104, 69, 69, 1);
-  margin: 20px 0;               /* optional spacing */
+  margin: 1.25rem 0;  
 }
 
 /* 3) The container that encloses your main-layout and centers it */
 .messages-panel {
+  position: absolute;
   display: flex;           /* make it a flex container */
   flex-direction: column;  /* stack children vertically (the heading, then .main-layout) */
-  min-height: 900px;       /* or any desired height */
-
-  margin: 0 auto;
-  width: 100%;
-  max-width: 1400px;
+  left: 63px;
+  right: 63px;
+  top: 232px;
+  bottom: 38px;
   border: 2px solid #ccc;
   border-radius: 8px;
   background-color: rgba(255, 250, 239, 1);
-  margin-bottom: 10px;
-  padding: 0; /* optional, if you don’t want internal padding */
+  /* margin: 0 auto;
+  width: 100%;
+  max-width: 1948px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background-color: rgba(255, 250, 239, 1);
+  /* margin-bottom: 10px; */
+  /* padding: 0; optional, if you don’t want internal padding */ 
 }
 
 /* 4) The existing .main-layout that holds the left & right columns */
@@ -139,5 +151,17 @@ export default {
   align-items: stretch;/* ensures both columns stretch full height */
   overflow: hidden;    /* optional if you don't want scrollbars */
 }
+
+.preview-text {
+  font-size: 18px;    /* Set your desired font size here */
+  font-weight: 300;   /* Set your desired font weight here */
+}
+
+.conversation {
+  font-family: 'Inter', sans-serif;
+  font-weight: 300; /* Inter Light is often weight 300 */
+  font-size: 18px;
+}
+
 
 </style>

@@ -1,6 +1,9 @@
 <template>
     <header class="header-bar">
-      <div class="brand">CanFindLah</div>
+      <div class="brand">
+        <img src="/Users/cheepheng/Documents/GitHub/l1-finaltermproject-2425s2l1_group_08/src/components/images/Magnifying Glass Tilted Right.png" alt="CanFindLah Logo" class="logo">
+        <span>CanFindLah</span>
+      </div>
       <nav class="nav-links">
         <a href="#">Home</a>
         <a href="#">History</a>
@@ -17,7 +20,7 @@
   </script>
   
   <style scoped>
-  .header-bar {
+  /* .header-bar {
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -26,29 +29,48 @@
     padding: 10px 20px;
     border-bottom: 1px solid #ccc;
     box-sizing: border-box;
-  }
+  } */
   
   .brand {
+    display: flex;
+    /* align-items: center; */
+    position: absolute;
+    color: rgba(0, 0, 0, 1);
     font-weight: bold;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
+    left: 8.375rem;
+    top: 3.4375rem;
   }
 
-  .nav-links {
-    /* display: inline-block; */
-    /* margin-left: auto; */
-    display: flex;
-    gap: 20px;
 
+  /* .logo {
+    position: absolute;
+    left: 84px;
+    top: 50px;
+    width: 44px;
+    height: 44px;
+  } */
+
+  .nav-links {
+    position: absolute;
+    top: 55px;
+    left: 51.625rem;
+    display: flex;
+    gap: 8.5rem;
+    width: 51.625rem;
   }
   
   .nav-links a {
     text-decoration: none;
-    color: #333;
+    color: rgba(0, 0, 0, 1);
+    font-weight: bold;
+    font-size: 1.25rem;
   }
   
   .nav-links a.active {
+    font-size: 1.25rem;
+    color: rgba(128, 128, 128, 1);
     font-weight: bold;
-    text-decoration: underline;
   }
 
   * {

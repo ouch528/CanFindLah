@@ -23,11 +23,15 @@
             <span class="founder" v-if="conversation.founder">{{ conversation.founder }}</span>
             <span class="searcher" v-if="conversation.searcher">{{ conversation.searcher }}</span>
           </div>
+
+          <div class="preview-row">
+            <span class="preview-text">{{ conversation.preview }}</span>
+            <span class="time">{{ conversation.time }}</span>
+          </div>
   
           <!-- Timestamp and preview -->
-          <div class="timestamp">{{ conversation.time }}</div>
-          
-          <div class="preview">{{ conversation.preview }}</div>
+          <!-- <div class="timestamp">{{ conversation.time }}</div>
+          <div class="preview">{{ conversation.preview }}</div> -->
   
           <!-- Red minus circle at the bottom-left, visible only if isDeleteMode is true -->
           <div
@@ -104,7 +108,7 @@
   
   /* Main container styles */
   .message-list {
-    width: 250px;
+    width: 452px;
     border-right: 1px solid #ccc;
     padding: 10px;
     overflow-y: auto
@@ -118,7 +122,7 @@
   
   .message-list li {
     position: relative;/* Important: for absolutely positioning the minus-circle */
-    padding: 10px 10px 40px 40px; 
+    padding: 5px 5px 20px 20px; 
     cursor: pointer;
     border-bottom: 1px solid #eee; 
   }
@@ -134,9 +138,13 @@
     gap: 5px;
   }
 
-  /* Founder/Searcher badges */
+  .sender-name {
+    font-size: 22px;
+    font-weight: 600;
+  }
+
   .founder {
-    background-color: orangered;
+    background-color: rgba(74, 149, 223, 1);
     color: #fff;
     padding: 2px 5px;
     border-radius: 5px;
@@ -144,7 +152,7 @@
   }
   
   .searcher {
-    background-color: blue;
+    background-color: rgba(255, 136, 68, 1);
     color: #fff;
     padding: 2px 5px;
     border-radius: 5px;
@@ -170,7 +178,7 @@
     right: 10px;   /* adjust as desired */
     width: 20px;
     height: 20px;
-    background-color: red;
+    background-color: rgba(255, 136, 68, 1);
     border-radius: 50%;
     color: #fff;
     font-weight: bold;
@@ -180,5 +188,15 @@
     cursor: pointer;
     z-index: 1; 
   }
+
+  .preview-row {
+      display: flex;             /* Place preview & time side by side */
+      align-items: center;       /* Vertically center them */
+      justify-content: space-between; /* Spread them apart (optional) */
+      margin-top: 4px;          /* Example spacing */
+      font-family: 'Inter', sans-serif;
+      font-weight: 300; /* Inter Light is often weight 300 */
+      font-size: 18px;
+    }
   </style>
   

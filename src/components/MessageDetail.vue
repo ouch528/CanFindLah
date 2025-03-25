@@ -11,7 +11,7 @@
         </div>
       </div>
       <div v-else>
-        <h2>Select a conversation to start chatting!</h2>
+        <h2 class = "positioned-message">Select a conversation to start chatting!</h2>
       </div>
     </div>
   </template>
@@ -35,7 +35,7 @@
     background-color: #e0f2ff; 
     border-radius: 8px;     
     padding: 20px;
-
+    width: 861px;
   }
   
   .message-detail h2 {
@@ -46,6 +46,15 @@
     border: 1px solid #ccc;
     padding: 10px;
     border-radius: 5px;
+  }
+
+  .positioned-message {
+    position: absolute;
+    left: 731px;
+    top: 250px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 300; /* Inter Light typically uses a weight of 300 */
+    font-size: 20px;
   }
   </style>
   
