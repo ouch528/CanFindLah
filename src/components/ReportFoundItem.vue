@@ -52,13 +52,20 @@
                 <br /><br />
 
                 <label for="img">Upload Image </label> <br />
+                <div v-if="imagePreview">
+                    <button @click="removeImage" class="remove-image-btn">&#10006;</button>
+                    <img :src="imagePreview" alt="Uploaded Image" id="image-preview" />
+                </div>
                 <div id="upload-img">
                     <input type="file" @change="handleFileUpload" id="default-upload" accept="image/*" />
                     <label for="default-upload">
                         <img src="@/assets/upload.png" alt="Upload Icon" id="upload-icon" />
-                        <span id="instruction">Please attach photo of the item</span>
+                        <span id="instruction">{{ instruction }}</span>
                     </label>
                     <br /><br />
+                    <!-- <div v-if="imagePreview">
+                        <img :src="imagePreview" alt="Uploaded Image" id="image-preview" />
+                    </div> -->
                 </div>
 
                 <div class="save">
@@ -69,7 +76,7 @@
     </div>
 </template>
 
-<script>
+<!-- <script>
 import firebaseApp from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
 import { collection, addDoc } from 'firebase/firestore'
@@ -155,9 +162,137 @@ export default {
         },
     },
 }
+</script> -->
+
+<script>
+import firebaseApp from '../firebase.js'
+import { getFirestore } from 'firebase/firestore'
+import { getStorage } from 'firebase/storage'
+import { collection, addDoc } from 'firebase/firestore'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+const db = getFirestore(firebaseApp)
+const storage = getStorage(firebaseApp)
+
+export default {
+    data() {
+        return {
+            formData: {
+                category: '',
+                color: '',
+                brand: '',
+                location: '',
+                datetime: '',
+                description: '',
+                image: null,
+            },
+            maxDateTime: new Date().toISOString().slice(0, 16),
+            imagePreview: null, // To store the image preview URL
+            instruction: 'Please attach photo of the item',
+        }
+    },
+    methods: {
+        // Handle the file upload and create an image preview
+        handleFileUpload(event) {
+            const file = event.target.files[0]
+            if (file) {
+                this.formData.image = file
+                this.imagePreview = URL.createObjectURL(file)
+                this.instruction = 'Reupload Image'
+            }
+        },
+
+        removeImage() {
+            this.formData.image = null
+            this.imagePreview = null // Remove the preview
+            this.instruction = 'Please attach photo of the item'
+        },
+
+        async saveFoundItem() {
+            if (this.validateForm()) {
+                try {
+                    let imageUrl = ''
+
+                    if (this.formData.image) {
+                        const imageRef = ref(storage, `found_items/${Date.now()}-${this.formData.image.name}`)
+                        const snapshot = await uploadBytes(imageRef, this.formData.image)
+                        imageUrl = await getDownloadURL(snapshot.ref)
+                    }
+
+                    await addDoc(collection(db, 'Found Item'), {
+                        category: this.formData.category,
+                        colour: this.formData.color,
+                        brand: this.formData.brand,
+                        location: this.formData.location,
+                        date_time_found: this.formData.datetime,
+                        description: this.formData.description,
+                        name: `${this.formData.color} ${this.formData.category}`,
+                        claimed_status: 'Not Found Yet',
+                        found_item_id: 'empty for now',
+                        photo: imageUrl,
+                    })
+
+                    this.resetForm()
+                    this.instruction = 'Please attach photo of the item'
+                    alert('Item reported successfully!')
+                } catch (error) {
+                    console.error('Error saving item:', error)
+                    alert('Failed to report item. Please try again.')
+                }
+            }
+        },
+
+        validateForm() {
+            if (!this.formData.category || !this.formData.color || !this.formData.brand || !this.formData.location || !this.formData.datetime || !this.formData.description) {
+                alert('Please fill all required fields.')
+                return false
+            }
+
+            const selectedDateTime = new Date(this.formData.datetime)
+            const now = new Date()
+
+            if (selectedDateTime > now) {
+                alert('Date & Time must be in the past.')
+                return false
+            }
+
+            return true
+        },
+
+        resetForm() {
+            this.formData = {
+                category: '',
+                color: '',
+                brand: '',
+                location: '',
+                datetime: '',
+                description: '',
+                image: null,
+            }
+            this.imagePreview = null // Reset image preview after form submission
+        },
+    },
+}
 </script>
 
 <style scoped>
+.remove-image-btn {
+    background: none;
+    border: none;
+    color: red;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.2rem;
+    margin-left: 5.8125rem;
+}
+
+#image-preview {
+    width: 50%;
+    height: 50%; /* Adjust height and width as needed */
+    margin-left: 9.1rem;
+    margin-right: 9.1rem;
+    margin-bottom: 1rem;
+}
+
 input[type='file'] {
     display: none;
 }
