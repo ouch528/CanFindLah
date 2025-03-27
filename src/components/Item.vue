@@ -66,7 +66,7 @@
         props: {
             found_item_Id : String,
             lost_item_Id : String,
-            user: String
+            user_id: String
         },
 
         data() {
@@ -76,7 +76,7 @@
                 imageUrl: "",
                 showMenu : false,
                 item_id: "",
-                failed_image:""
+                failed_image:"",
                 // lost_item: 1,// Will store item details, set as 1 if null will wrong idk why
             };
         },
@@ -204,7 +204,7 @@
                     if (this.status == "searcher") {
                         // console.log(this.item)
                         const docRef = doc(db, 'Lost Item', this.lost_item_Id)
-                        const userRef = doc(db, 'History', "fAQOn1Iz4YfOKk8c9B8zvQSItcy1")
+                        const userRef = doc(db, 'History', this.user_id)
                         await updateDoc(userRef, {
                             lost_item_id_list: arrayRemove(this.lost_item_Id) // Remove the item ID from the array
                         });
@@ -212,7 +212,7 @@
                     } else {
                         console.log(this.found_item_Id)
                         const docRef = doc(db, 'Found_Item', this.found_item_Id)
-                        const userRef = doc(db, 'History', "fAQOn1Iz4YfOKk8c9B8zvQSItcy1")
+                        const userRef = doc(db, 'History', this.user_id)
                         await updateDoc(userRef, {
                             found_item_id_list: arrayRemove(this.found_item_Id) // Remove the item ID from the array
                         });

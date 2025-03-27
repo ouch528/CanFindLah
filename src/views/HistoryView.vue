@@ -26,11 +26,13 @@ export default {
 
 
     data() {
+        // <!-- user_id is for future when user configuration is implemented (when delete need update the history via user id) -->
         
         return {
         found_item_Ids: [], // Your list of item IDs
         lost_item_Ids: [],
         status : "all",
+        user_id : "fAQOn1Iz4YfOKk8c9B8zvQSItcy1"
         // isOpen: false,
         // selectedOption: this.value || this.options[0],
         // option: ["all", "founder", "searcher"]
@@ -99,12 +101,12 @@ export default {
     <br>
 
     <div id = "item-display">
-        <!-- user is for future when user configuration is implemented (when delete need update the history via user id) -->
+        <!-- user_id is for future when user configuration is implemented (when delete need update the history via user id) -->
         <Item
             v-for="found_item_Id in found_item_Ids"
             :key="found_item_Id"
             :found_item_Id="found_item_Id"
-            
+            :user_id = "user_id"
             v-if = "status == 'all' || status == 'founder'"
             @item-deleted="fetchItems"
             id = "card"
@@ -114,6 +116,7 @@ export default {
             v-for = "lost_item_Id in lost_item_Ids"
             :key = "lost_item_Id"
             :lost_item_Id = "lost_item_Id"
+            :user_id = "user_id"
             v-if = "status == 'all' || status == 'searcher'"
             @item-deleted="fetchItems"
         />
