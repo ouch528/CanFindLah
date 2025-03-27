@@ -12,10 +12,11 @@
             <p class = "status"> Not Found Yet</p>
             <p class = "you-are">Founder</p>
         </div> -->
-        <!-- <div class="image-container">
-            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" />
-            <p v-else>Loading image...</p>
-        </div> -->
+        <div class="image-container">
+            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError"/>
+            <img v-else :src = failed_image>
+            <!-- <p v-else>Loading image...</p> -->
+        </div>
         
         <!-- <p>{{ $route.params.edit_item.name }}</p> -->
 
@@ -49,14 +50,17 @@
         props: {
             lost_item_Id: String,
             found_item_Id: String,
+            image: String
         },
 
         data() {
             return {
+
                 item: 1,
                 status : "",
                 imageUrl: "",
                 showMenu : false,
+                failed_image:""
                 // lost_item: 1,// Will store item details, set as 1 if null will wrong idk why
             };
         },
@@ -82,12 +86,13 @@
                 if (!this.found_item_Id) return; // Ensure itemId is valid
 
                 try {
-                    const itemRef = doc(db, "Found_Item", String(this.found_item_Id)); // Reference to Firestore document
+                    const itemRef = doc(db, "Found Item", String(this.found_item_Id)); // Reference to Firestore document
                     const docSnap = await getDoc(itemRef);
 
                     if (docSnap.exists()) {
                         this.item = docSnap.data(); // Update item details
                         this.status = "founder"
+                        this.imageUrl = this.item.photo
                         console.log("Fetched Item Details:", this.item);
                     } else {
                         console.log("No item found for ID:", this.itemId);
@@ -102,12 +107,19 @@
                 if (!this.lost_item_Id) return; // Ensure itemId is valid
 
                 try {
-                    const itemRef = doc(db, "Lost_Item", String(this.lost_item_Id)); // Reference to Firestore document
+                    const itemRef = doc(db, "Lost Item", String(this.lost_item_Id)); // Reference to Firestore document
                     const docSnap = await getDoc(itemRef);
 
                     if (docSnap.exists()) {
+                        const storageRef = ref(storage, 'still_finding_yet.jpg'); // Replace with your image path
+                        const url = await getDownloadURL(storageRef);
                         this.item = docSnap.data(); // Update item details
                         this.status = "searcher"
+                        if (this.item.claimed_status == "Not Found Yet") {
+                            this.imageUrl = url
+                        } else {
+                            this.imageUrl = this.item.photo
+                        }
                         console.log("Fetched Item Details:", this.item);
                     } else {
                         console.log("No item found for ID:", this.itemId);
@@ -119,17 +131,24 @@
 
             async fetchImage() {
                 try {
-                    const storageRef = ref(storage, 'glasses.jpg'); // Replace with your image path
+                    const storageRef = ref(storage, 'image_not_found.jpg'); // Replace with your image path
                     const url = await getDownloadURL(storageRef);
-                    this.imageUrl = url;
+                    this.failed_image = url;
                 } catch (error) {
                     console.error('Error fetching image:', error);
                 }
             },
 
             markAsChanged() {
-                this.$emit("changeMade", { ...this.item }); // Emit a copy of the updated data
+                this.item.name = `${this.item.colour} ${this.item.category}`;
+                // console.log(this.item)
+                this.$emit("changeMade", { ...this.item}); // Emit a copy of the updated data
             },
+
+            handleImageError(event) {
+                this.imageUrl = this.failed_image; // Fallback image
+            }
+
         }
     }
 
@@ -141,12 +160,12 @@
     position: relative;
     background-color: white;
     /* right: 500px; */
-    border : 1px;
-    max-width: 250px;
-    margin: 7px;
+    border : 0.07rem;
+    max-width: 15.63rem;
+    margin: 0.44rem;
     background-color: #fff;
-    padding: 30px;
-    border: 1px solid #ccc;
+    padding: 1.88rem;
+    border: 0.07rem solid #ccc;
     /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
 
     }

@@ -7,8 +7,8 @@
 
 
         <div style="display: flex; justify-content: center; align-items: center;">
-            <EditItem :lost_item_Id = this.lost_item_Id v-if=" this.status_edit_item == 'searcher'" @changeMade="handleEdit"/>
-            <EditItem :found_item_Id = this.found_item_Id v-if=" this.status_edit_item == 'founder'" @changeMade="handleEdit"/>
+            <EditItem :lost_item_Id = this.lost_item_Id  :image = this.imageUrl v-if=" this.status_edit_item == 'searcher'" @changeMade="handleEdit"/>
+            <EditItem :found_item_Id = this.found_item_Id :image = this.imageUrl v-if=" this.status_edit_item == 'founder'" @changeMade="handleEdit"/>
         </div>
 
 
@@ -48,6 +48,7 @@
                 lost_item_Id : this.$route.query.edit_item_id,
                 status_edit_item : this.$route.query.status_edit_item,
                 found_item_Id : this.$route.query.edit_item_id,
+                imageUrl: this.$route.query.image,
                 hasChanges: false,
                 editedData: null, 
             
@@ -63,9 +64,9 @@
             async uploadChanges() {
                 if (this.editedData && this.status_edit_item == "searcher") {
                     try {
-                        const docRef = doc(db, "Lost_Item", this.editedData.lost_item_id); 
+                        console.log(this.editedData.lost_item_id)
+                        const docRef = doc(db, "Lost Item", this.lost_item_Id); 
                         await setDoc(docRef, this.editedData, { merge: true });
-
                         this.hasChanges = false;
                         this.editedData = null;
                         alert("Item edited successfully!")
@@ -75,7 +76,8 @@
                     }
                 } else if (this.editedData && this.status_edit_item == "founder") {
                     try {
-                        const docRef = doc(db, "Found_Item", this.editedData.found_item_id); 
+                        console.log(this.editedData.found_item_id)
+                        const docRef = doc(db, "Found Item", this.found_item_Id); 
                         await setDoc(docRef, this.editedData, { merge: true });
 
                         this.hasChanges = false;
@@ -105,9 +107,9 @@
 <style>
 
 .btn {
-    padding: 12px 24px;
-    font-size: 16px;
-    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 0.5rem;
     border: none;
     cursor: pointer;
     transition: all 0.3s ease-in-out;
@@ -126,7 +128,7 @@
 .secondary {
     background-color: #f8f9fa;
     color: black;
-    border: 1px solid #ccc;
+    border: 0.07rem solid #ccc;
 }
 
 .btn:hover {

@@ -13,8 +13,8 @@
             <p class = "you-are">Founder</p>
         </div> -->
         <div class="image-container">
-            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" />
-            <p v-else>Loading image...</p>
+            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError"/>
+            <img v-else :src = failed_image>
         </div>
 
         <h3> {{ item.name }}</h3>
@@ -66,6 +66,7 @@
         props: {
             found_item_Id : String,
             lost_item_Id : String,
+            user: String
         },
 
         data() {
@@ -74,7 +75,8 @@
                 status : "",
                 imageUrl: "",
                 showMenu : false,
-                item_id: ""
+                item_id: "",
+                failed_image:""
                 // lost_item: 1,// Will store item details, set as 1 if null will wrong idk why
             };
         },
@@ -99,13 +101,16 @@
                 if (!this.found_item_Id) return; // Ensure itemId is valid
 
                 try {
-                    const itemRef = doc(db, "Found_Item", String(this.found_item_Id)); // Reference to Firestore document
+                    const itemRef = doc(db, "Found Item", String(this.found_item_Id)); // Reference to Firestore document
                     const docSnap = await getDoc(itemRef);
 
                     if (docSnap.exists()) {
                         this.item = docSnap.data(); // Update item details
                         this.status = "founder"
                         this.item_id = this.item.found_item_id
+
+                        
+                        this.imageUrl = this.item.photo
                         console.log("Fetched Item Details:", this.item);
                     } else {
                         console.log("No item found for ID:", this.itemId);
@@ -119,13 +124,21 @@
                 if (!this.lost_item_Id) return; // Ensure itemId is valid
 
                 try {
-                    const itemRef = doc(db, "Lost_Item", String(this.lost_item_Id)); // Reference to Firestore document
+                    const itemRef = doc(db, "Lost Item", String(this.lost_item_Id)); // Reference to Firestore document
                     const docSnap = await getDoc(itemRef);
 
                     if (docSnap.exists()) {
                         this.item = docSnap.data(); // Update item details
+                        const storageRef = ref(storage, 'still_finding_yet.jpg'); // Replace with your image path
+                        const url = await getDownloadURL(storageRef);
                         this.status = "searcher"
                         this.item_id = this.item.lost_item_id
+                        if (this.item.claimed_status == "Not Found Yet") {
+                            this.imageUrl = url
+                        } else {
+                            this.imageUrl = this.item.photo
+                        }
+                        
                         console.log("Fetched Item Details:", this.item);
                     } else {
                         console.log("No item found for ID:", this.itemId);
@@ -137,9 +150,10 @@
 
             async fetchImage() {
                 try {
-                    const storageRef = ref(storage, 'glasses.jpg'); // Replace with your image path
+                    
+                    const storageRef = ref(storage, 'image_not_found.jpg'); // Replace with your image path
                     const url = await getDownloadURL(storageRef);
-                    this.imageUrl = url;
+                    this.failed_image = url;
                 } catch (error) {
                     console.error('Error fetching image:', error);
                 }
@@ -166,7 +180,8 @@
                     name: "edit_item",
                     query: { 
                         status_edit_item: this.status,
-                        edit_item_id: this.item_id,
+                        edit_item_id: this.lost_item_Id,
+                        image: ""
                     }
                     });
                 } else {
@@ -174,7 +189,8 @@
                     name: "edit_item",
                     query: {
                         status_edit_item: this.status,
-                        edit_item_id: this.item_id,
+                        edit_item_id: this.found_item_Id,
+                        image: this.imageUrl
                     }
                     });
                 }
@@ -186,9 +202,9 @@
                 try {
                     alert('Delete item clicked');
                     if (this.status == "searcher") {
-                        console.log(this.item)
-                        const docRef = doc(db, 'Lost_Item', this.lost_item_Id)
-                        const userRef = doc(db, 'History', "123456")
+                        // console.log(this.item)
+                        const docRef = doc(db, 'Lost Item', this.lost_item_Id)
+                        const userRef = doc(db, 'History', "fAQOn1Iz4YfOKk8c9B8zvQSItcy1")
                         await updateDoc(userRef, {
                             lost_item_id_list: arrayRemove(this.lost_item_Id) // Remove the item ID from the array
                         });
@@ -196,7 +212,7 @@
                     } else {
                         console.log(this.found_item_Id)
                         const docRef = doc(db, 'Found_Item', this.found_item_Id)
-                        const userRef = doc(db, 'History', "123456")
+                        const userRef = doc(db, 'History', "fAQOn1Iz4YfOKk8c9B8zvQSItcy1")
                         await updateDoc(userRef, {
                             found_item_id_list: arrayRemove(this.found_item_Id) // Remove the item ID from the array
                         });
@@ -214,6 +230,10 @@
             toggleMenu() {
                 this.showMenu = !this.showMenu;
             },
+
+            handleImageError(event) {
+                this.imageUrl = this.failed_image; // Fallback image
+            }
 
 
         }
@@ -275,56 +295,54 @@
         position: relative;
         background-color: white;
         /* right: 500px; */
-        border : 1px;
-        max-width: 250px;
-        margin: 7px;
+        border : 0.0625rem;
+        max-width: 15.625rem;
+        margin: 0.44rem;
         background-color: #fff;
-        padding: 20px;
-        border: 1px solid #ccc;
+        padding: 1.25rem;
+        border: 0.0625rem solid #ccc;
         /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
 
     }
 
     .you-are {
         display: inline;
-        padding: 8px 7px; /* Padding inside the boxes */
-        border-radius: 9px; /* Rounded corners */
+        padding: 0.5rem 0.5rem; /* Padding inside the boxes */
+        border-radius: 0.57rem; /* Rounded corners */
         color: white;
          /* Text color */
         font-family: sans-serif; /* Example font */
+        font-size: 1rem;
     }
 
     h3 {
         font-family: Arial;
-        margin-bottom: 8px;
+        margin-bottom: 0.5rem;
+        font-size: 1.5rem;
     }
 
     p{
         font-family: Arial;
-        margin-top: 4px;    /* Adjust the top margin */
-        margin-bottom: 4px;
+        margin-top: 0.25rem;    /* Adjust the top margin */
+        margin-bottom: 0.25rem;
         color: grey;
         /* display: inline; */
+        font-size: 1rem;
     }
 
-    h5 {
-        font-family: Arial;
-        text-align: center;
-        color: grey;
-    }
 
     .boxes {
         display: inline-flex; /* Arrange boxes horizontally */
         align-items: center; /* Vertically align items */
-        gap: 10px; /* Space between boxes */
+        gap: 0.625rem; /* Space between boxes */
 
     }
 
     
 
     .status {
-        padding: 8px 9px; /* Padding inside the boxes */
-        border-radius: 9px; /* Rounded corners */
+        padding: 0.5rem 0.57rem; /* Padding inside the boxes */
+        border-radius: 0.57rem; /* Rounded corners */
         color: black;
          /* Text color */
         font-family: sans-serif; /* Example font */
@@ -352,7 +370,7 @@
 
     .image-container {
         width: 100%; /* Image takes full width of the container */
-        margin-bottom: 10px; /* Space between image and boxes */
+        margin-bottom: 0.63rem; /* Space between image and boxes */
         text-align: center;
     }
 
@@ -360,7 +378,7 @@
         display: inline-block; /* Allow centering with text-align */
         max-width: 50%; /* Make image responsive */
         height: 120%;
-        border-radius: 5px; /* Rounded corners for image */
+        border-radius: 0.32rem; /* Rounded corners for image */
     }
 
     #pencil {
@@ -368,7 +386,7 @@
         right: 0.7em;
         transform: translateY(-50%);
         border-radius: 50%;
-        padding: 8px;
+        padding: 0.5rem;
     }
 
     #pencil:hover{
@@ -380,23 +398,23 @@
         top: 100%; /* Position below the icon */
         right: 0; /* Align to the right */
         background-color: white;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        padding: 8px;
+        border: 0.07rem solid #ccc;
+        border-radius: 0.32rem;
+        padding: 0.5rem;
         z-index: 10;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); /* Add shadow for depth */
+        box-shadow: 0 0.13rem 0.32rem rgba(0, 0, 0, 0.2); /* Add shadow for depth */
     }
 
     .action-menu button {
         display: block;
         width: 100%;
-        padding: 6px 10px;
-        margin-bottom: 4px;
+        padding: 0.375rem 0.625rem;
+        margin-bottom: 0.25rem;
         border: none;
         background-color: #f0f0f0;
-        border-radius: 3px;
+        border-radius: 0.1875rem;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 0.88rem;
     }
 
     .action-menu button:hover {

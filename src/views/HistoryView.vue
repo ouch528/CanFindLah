@@ -41,7 +41,7 @@ export default {
     methods: {
         async fetchItems() {
             try {
-                const his = doc(db, "History", "123456"); // Firestore document reference
+                const his = doc(db, "History", "fAQOn1Iz4YfOKk8c9B8zvQSItcy1"); // Firestore document reference
                 const docSnap = await getDoc(his); // Wait for document fetch
 
                 if (docSnap.exists()) {
@@ -99,12 +99,15 @@ export default {
     <br>
 
     <div id = "item-display">
+        <!-- user is for future when user configuration is implemented (when delete need update the history via user id) -->
         <Item
             v-for="found_item_Id in found_item_Ids"
             :key="found_item_Id"
             :found_item_Id="found_item_Id"
+            
             v-if = "status == 'all' || status == 'founder'"
             @item-deleted="fetchItems"
+            id = "card"
         />
 
         <Item
@@ -165,17 +168,19 @@ export default {
     h1{
         color: #685545;
         text-align: center;
+        font-size: 3rem;
         
     }
 
     body {
         background-color: green;
+        font-family: Inter;
     }
 
     select {
-        padding: 5px 6px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
+        padding: 0.32rem 0.38rem;
+        border-radius: 0.32rem;
+        border: 0.07rem solid #ccc;
         background-color: white;
         cursor: pointer;
     }
@@ -191,4 +196,13 @@ export default {
         display: flex;
         flex-wrap: wrap;
     }
+
+    h5 {
+        font-family: Arial;
+        text-align: center;
+        color: grey;
+        font-size: 1.5rem;
+    }
+
+
 </style>
