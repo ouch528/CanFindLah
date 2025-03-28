@@ -1,17 +1,43 @@
 <template>
     <nav class="navbar">
         <div class="logo">
+            <<<<<<< HEAD
             <img src="@/assets/CFL_logo.png" alt="CanFindLah" />
+            =======
+            <img src="@/assets/CFL_logo.png" alt="CanFindLah" />
+            >>>>>>> origin/jingle
             <span>CanFindLah</span>
         </div>
         <ul>
             <li><router-link to="/" active-class="active-link">Home</router-link></li>
             <li><router-link to="/history" active-class="active-link">History</router-link></li>
             <li><router-link to="/Messages" active-class="active-link">Messages</router-link></li>
-            <li>Logout</li>
+            <li id="logout" @click="logoutConfirmation">Logout</li>
         </ul>
     </nav>
 </template>
+
+<script>
+import { signOut } from 'firebase/auth'
+import { auth } from '../firebase'
+
+export default {
+    methods: {
+        async logoutConfirmation() {
+            let text = 'Are you sure you want to logout?'
+            if (confirm(text)) {
+                try {
+                    await signOut(auth)
+                    alert('You have been logged out.')
+                    this.$router.push('/login')
+                } catch (error) {
+                    console.error('Error signing out:', error)
+                }
+            }
+        },
+    },
+}
+</script>
 
 <style scoped>
 .navbar {
@@ -50,6 +76,14 @@ ul li a {
 }
 
 .active-link {
+    color: #808080;
+}
+
+#logout {
+    cursor: pointer;
+}
+
+#logout:hover {
     color: #808080;
 }
 </style>
