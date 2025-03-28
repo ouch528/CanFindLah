@@ -4,12 +4,12 @@ import NavBar from './components/NavBar.vue'
 </script>
 
 <template>
-  <header>
-    <nav>
-      <RouterLink to="/"></RouterLink>
-    </nav>
-  </header>
+    <header>
+        <nav>
+            <RouterLink to="/"></RouterLink>
+        </nav>
+    </header>
 
-  <NavBar />
-  <RouterView />
+    <NavBar />
+    <RouterView />
 </template>

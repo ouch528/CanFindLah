@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import LostPage from '../views/LostPage.vue'
 import FoundPage from '../views/FoundPage.vue'
+import MessagesView from '../views/MessagesView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,7 +10,7 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: MessagesView,
     },
     {
       path: '/report_lost',
@@ -21,6 +22,10 @@ const router = createRouter({
       name: 'Report Found',
       component: FoundPage,
     },
+      path: '/Messages',
+      name: 'Messages',
+      component: MessagesView,
+    }
   ],
 })
 
