@@ -60,7 +60,10 @@
                 status : "",
                 imageUrl: "",
                 showMenu : false,
-                failed_image:""
+                failed_image:"",
+                initialItem: {}, // Store initial state
+                changed: false,
+                initial: false,
                 // lost_item: 1,// Will store item details, set as 1 if null will wrong idk why
             };
         },
@@ -72,11 +75,23 @@
         async created() {
             await this.fetchItemDetails();
             await this.fetchItemDetails_lost(); // Fetch item details when component is created
+            this.initialItem = JSON.parse(JSON.stringify(this.item));
         },
 
         watch: {
             found_item_Id: "fetchItemDetails", // Fetch new data when itemId changes
-            lost_item_Id: "fetchItemDetails_lost"
+            lost_item_Id: "fetchItemDetails_lost",
+            // item: {
+            //     handler: function () {
+            //         if (this.item == 1) {
+            //             return
+            //         } else {
+            //             this.markAsChanged();
+            //         }
+                    
+            //     },
+            //     deep: true, // Watch for deep changes
+            // },
         },
 
         methods: {
@@ -142,7 +157,12 @@
             markAsChanged() {
                 this.item.name = `${this.item.colour} ${this.item.category}`;
                 // console.log(this.item)
-                this.$emit("changeMade", { ...this.item}); // Emit a copy of the updated data
+                this.changed = JSON.stringify(this.item) !== JSON.stringify(this.initialItem);
+
+                // Emit event only when a change is detected
+                if (this.changed) {
+                    this.$emit("changeMade", { ...this.item }); // Emit a copy of the updated data
+                }
             },
 
             handleImageError(event) {

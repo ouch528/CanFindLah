@@ -49,6 +49,8 @@ export default {
                 if (docSnap.exists()) {
                     this.found_item_Ids = docSnap.data().found_item_id_list; // Update state
                     this.lost_item_Ids = docSnap.data().lost_item_id_list;
+                    this.found_item_Ids.reverse();
+                    this.lost_item_Ids.reverse();
                     // console.log("Fetched Items:", this.itemIds);
                     console.log(this.lost_item_Ids)
                 } else {
