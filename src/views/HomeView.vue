@@ -13,7 +13,7 @@
         <div class="nav-section">
             <RouterLink to="/report_lost">
                 <div id="lost-item-nav">
-                    <img src="@/assets/lost_item_icon.png" />
+                    <img src="@/components/assets/lost_item_icon.png" />
                     Report Lost Item
                 </div>
             </RouterLink>
@@ -22,7 +22,7 @@
 
             <RouterLink to="/report_found">
                 <div id="found-item-nav">
-                    <img src="@/assets/found_item_icon.png" />
+                    <img src="@/components/assets/found_item_icon.png" />
                     Report Found Item
                 </div>
             </RouterLink>
@@ -48,10 +48,11 @@
 </template>
 
 <script>
-import firebaseApp from '../firebase.js'
+// import firebaseApp from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
 import { getDocs, collection, query, where, onSnapshot } from 'firebase/firestore'
-const db = getFirestore(firebaseApp)
+// const db = getFirestore(firebaseApp)
+import { db } from '../firebase.js'
 
 export default {
     name: 'Home',

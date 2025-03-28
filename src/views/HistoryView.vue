@@ -1,20 +1,19 @@
 <script>
-
 // import HelloWorld from './components/HelloWorld.vue'
 // import TheWelcome from './components/TheWelcome.vue'
-import Item from "@/components/Item.vue";
-import firebaseApp, {storage} from "../../firebase.js";
-import { getFirestore } from "firebase/firestore"
-import {collection, getDoc, doc, deleteDoc} from "firebase/firestore"
-const db = getFirestore(firebaseApp);
+import Item from '@/components/Item.vue'
+import firebaseApp, { storage } from '../firebase.js'
+import { getFirestore } from 'firebase/firestore'
+import { collection, getDoc, doc, deleteDoc } from 'firebase/firestore'
+const db = getFirestore(firebaseApp)
 
 export default {
-    components :{
+    components: {
         Item,
     },
 
     async created() {
-        await this.fetchItems(); // Fetch Firestore data when component is created
+        await this.fetchItems() // Fetch Firestore data when component is created
     },
 
     // async fetch() {
@@ -24,112 +23,88 @@ export default {
 
     // },
 
-
     data() {
         // <!-- user_id is for future when user configuration is implemented (when delete need update the history via user id) -->
-        
+
         return {
-        found_item_Ids: [], // Your list of item IDs
-        lost_item_Ids: [],
-        status : "all",
-        user_id : "fAQOn1Iz4YfOKk8c9B8zvQSItcy1"
-        // isOpen: false,
-        // selectedOption: this.value || this.options[0],
-        // option: ["all", "founder", "searcher"]
-        // itemIdsDb: db.collection("History").get()
-        };
+            found_item_Ids: [], // Your list of item IDs
+            lost_item_Ids: [],
+            status: 'all',
+            user_id: 'fAQOn1Iz4YfOKk8c9B8zvQSItcy1',
+            // isOpen: false,
+            // selectedOption: this.value || this.options[0],
+            // option: ["all", "founder", "searcher"]
+            // itemIdsDb: db.collection("History").get()
+        }
     },
-    
+
     methods: {
         async fetchItems() {
             try {
-                const his = doc(db, "History", "fAQOn1Iz4YfOKk8c9B8zvQSItcy1"); // Firestore document reference
-                const docSnap = await getDoc(his); // Wait for document fetch
+                const his = doc(db, 'History', 'fAQOn1Iz4YfOKk8c9B8zvQSItcy1') // Firestore document reference
+                const docSnap = await getDoc(his) // Wait for document fetch
 
                 if (docSnap.exists()) {
-                    this.found_item_Ids = docSnap.data().found_item_id_list; // Update state
-                    this.lost_item_Ids = docSnap.data().lost_item_id_list;
-                    this.found_item_Ids.reverse();
-                    this.lost_item_Ids.reverse();
+                    this.found_item_Ids = docSnap.data().found_item_id_list // Update state
+                    this.lost_item_Ids = docSnap.data().lost_item_id_list
+                    this.found_item_Ids.reverse()
+                    this.lost_item_Ids.reverse()
                     // console.log("Fetched Items:", this.itemIds);
                     console.log(this.lost_item_Ids)
                 } else {
-                    console.log("No such document!");
+                    console.log('No such document!')
                 }
             } catch (error) {
-                console.error("Error fetching Firestore data:", error);
+                console.error('Error fetching Firestore data:', error)
             }
         },
 
         toggleDropdown() {
-            this.isOpen = !this.isOpen;
+            this.isOpen = !this.isOpen
         },
 
         selectOption(option) {
-            this.status = option; // Update the status
-            this.isOpen = false; // Close the dropdown
+            this.status = option // Update the status
+            this.isOpen = false // Close the dropdown
         },
 
         mounted() {
-            document.addEventListener('click', this.closeDropdown);
+            document.addEventListener('click', this.closeDropdown)
         },
 
         beforeDestroy() {
-            document.removeEventListener('click', this.closeDropdown);
+            document.removeEventListener('click', this.closeDropdown)
         },
-
-
-
-
-    }
-};
+    },
+}
 
 // fetch()
 </script>
 
 <template>
-    <h1>
-        History <br>
-    </h1>
+    <h1>History <br /></h1>
 
-    <div id = "select-bar">
-        <select v-model = "status">
-            <option value = "all">Status: All</option>
-            <option value = "founder">Status: Founder</option>
-            <option value = "searcher">Status: Searcher</option>
+    <div id="select-bar">
+        <select v-model="status">
+            <option value="all">Status: All</option>
+            <option value="founder">Status: Founder</option>
+            <option value="searcher">Status: Searcher</option>
         </select>
-        
     </div>
-    <br>
+    <br />
 
-    <div id = "item-display">
+    <div id="item-display">
         <!-- user_id is for future when user configuration is implemented (when delete need update the history via user id) -->
-        <Item
-            v-for="found_item_Id in found_item_Ids"
-            :key="found_item_Id"
-            :found_item_Id="found_item_Id"
-            :user_id = "user_id"
-            v-if = "status == 'all' || status == 'founder'"
-            @item-deleted="fetchItems"
-            id = "card"
-        />
+        <Item v-for="found_item_Id in found_item_Ids" :key="found_item_Id" :found_item_Id="found_item_Id" :user_id="user_id" v-if="status == 'all' || status == 'founder'" @item-deleted="fetchItems" id="card" />
 
-        <Item
-            v-for = "lost_item_Id in lost_item_Ids"
-            :key = "lost_item_Id"
-            :lost_item_Id = "lost_item_Id"
-            :user_id = "user_id"
-            v-if = "status == 'all' || status == 'searcher'"
-            @item-deleted="fetchItems"
-        />
+        <Item v-for="lost_item_Id in lost_item_Ids" :key="lost_item_Id" :lost_item_Id="lost_item_Id" :user_id="user_id" v-if="status == 'all' || status == 'searcher'" @item-deleted="fetchItems" />
         <!-- <Item /> -->
-
     </div>
 
     <div>
         <h5>You've reached the end</h5>
     </div>
-  <!-- <header>
+    <!-- <header>
     <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
 
     <div class="wrapper">
@@ -170,44 +145,41 @@ export default {
   }
 } */
 
-    h1{
-        color: #685545;
-        text-align: center;
-        font-size: 3rem;
-        
-    }
+h1 {
+    color: #685545;
+    text-align: center;
+    font-size: 3rem;
+}
 
-    body {
-        background-color: green;
-        font-family: Inter;
-    }
+body {
+    background-color: green;
+    font-family: Inter;
+}
 
-    select {
-        padding: 0.32rem 0.38rem;
-        border-radius: 0.32rem;
-        border: 0.07rem solid #ccc;
-        background-color: white;
-        cursor: pointer;
-    }
+select {
+    padding: 0.32rem 0.38rem;
+    border-radius: 0.32rem;
+    border: 0.07rem solid #ccc;
+    background-color: white;
+    cursor: pointer;
+}
 
-    #item-display {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
+#item-display {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
 
-    #select-bar {
-        justify-content: center;
-        display: flex;
-        flex-wrap: wrap;
-    }
+#select-bar {
+    justify-content: center;
+    display: flex;
+    flex-wrap: wrap;
+}
 
-    h5 {
-        font-family: Arial;
-        text-align: center;
-        color: grey;
-        font-size: 1.5rem;
-    }
-
-
+h5 {
+    font-family: Arial;
+    text-align: center;
+    color: grey;
+    font-size: 1.5rem;
+}
 </style>

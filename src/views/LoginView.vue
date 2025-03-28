@@ -1,11 +1,11 @@
 <template>
     <div class="logo-container">
-        <img src="@/assets/CFL_logo.png" alt="CanFindLah">
+        <img src="@/components/assets/CFL_logo.png" alt="CanFindLah" />
         <span>CanFindLah</span>
     </div>
     <div class="main-container">
         <div class="left-panel">
-            <img src="../assets/CFL_signup.png" id="illustration" alt="illustration">
+            <img src="../assets/CFL_signup.png" id="illustration" alt="illustration" />
         </div>
         <div class="right-panel">
             <div class="instructions">
@@ -14,22 +14,22 @@
 
                 <form @submit.prevent="loginUser">
                     <label for="email">NUS Email Address</label>
-                    <input type="email" v-model="email" required>
-                    
+                    <input type="email" v-model="email" required />
+
                     <label for="password">Password</label>
                     <div class="password-container">
-                        <input class="password-input" :type="showPassword ? 'text' : 'password'" v-model="password" required>
+                        <input class="password-input" :type="showPassword ? 'text' : 'password'" v-model="password" required />
                         <span class="toggle-icon" @click="togglePassword">
                             <i :class="showPassword ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
                         </span>
                     </div>
-                    <br>
+                    <br />
 
                     <button type="submit">Login</button>
-                    <br>
+                    <br />
 
                     <p class="error-message">{{ errorMessage }}</p>
-                    <p id="directToSignup">Don't have an account? <router-link style="text-decoration: none; color: #2C73EB" to="/signup">Sign up here</router-link></p>
+                    <p id="directToSignup">Don't have an account? <router-link style="text-decoration: none; color: #2c73eb" to="/signup">Sign up here</router-link></p>
                 </form>
             </div>
         </div>
@@ -37,32 +37,32 @@
 </template>
 
 <script>
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth'
+import { auth } from '../firebase'
 
 export default {
     data() {
         return {
-            email: "", 
-            password: "",
+            email: '',
+            password: '',
             showPassword: false,
-            errorMessage: ""
-        };
-    }, 
+            errorMessage: '',
+        }
+    },
     methods: {
         togglePassword() {
-            this.showPassword = !this.showPassword;
-        }, 
+            this.showPassword = !this.showPassword
+        },
         async loginUser() {
             try {
-                await signInWithEmailAndPassword(auth, this.email, this.password);
-                alert("Login successful! Redirecting to home page.");
-                this.$router.push("/");
-            } catch(error) {
-                this.errorMessage = "Invalid email or password. Please try again.";
+                await signInWithEmailAndPassword(auth, this.email, this.password)
+                alert('Login successful! Redirecting to home page.')
+                this.$router.push('/')
+            } catch (error) {
+                this.errorMessage = 'Invalid email or password. Please try again.'
             }
-        }
-    }
+        },
+    },
 }
 </script>
 
@@ -70,7 +70,7 @@ export default {
 .main-container {
     display: flex;
     height: 100vh;
-    font-family: "Arial";
+    font-family: 'Arial';
 }
 
 .logo-container {
@@ -95,7 +95,7 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #FF8844;
+    background-color: #ff8844;
 }
 
 #illustration {
@@ -121,7 +121,7 @@ h1 {
 }
 
 #desc {
-    color: #8692A6;
+    color: #8692a6;
     font-size: 1.375rem;
     margin-top: 12px;
     margin-bottom: 30px;
@@ -136,7 +136,7 @@ h1 {
 form {
     display: flex;
     flex-direction: column;
-    color: #696F79;
+    color: #696f79;
     width: 100%;
 }
 
@@ -148,7 +148,7 @@ label {
 input {
     margin-bottom: 15px;
     height: 50px;
-    border: 0.5px solid #8692A6;
+    border: 0.5px solid #8692a6;
     border-radius: 5px;
     font-size: 1.25rem;
     padding: 0% 1.5%;
@@ -159,7 +159,7 @@ input {
     position: relative;
     align-items: center;
     height: 50px;
-    border: 0.5px solid #8692A6;
+    border: 0.5px solid #8692a6;
     border-radius: 5px;
     font-size: 1.25rem;
     padding: 0% 1.5%;

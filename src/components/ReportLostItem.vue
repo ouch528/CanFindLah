@@ -5,7 +5,7 @@
 
             <div class="formli">
                 <RouterLink to="/">
-                    <img id="backward_img" src="@/assets/arrow_back.png" alt="Back to Home" />
+                    <img id="backward_img" src="@/components/assets/arrow_back.png" alt="Back to Home" />
                 </RouterLink>
                 <br />
 
@@ -62,10 +62,11 @@
 </template>
 
 <script>
-import firebaseApp from '../firebase.js'
-import { getFirestore } from 'firebase/firestore'
+// import firebaseApp from '../firebase.js'
+// import { getFirestore } from 'firebase/firestore'
 import { collection, addDoc } from 'firebase/firestore'
-const db = getFirestore(firebaseApp)
+// const db = getFirestore(firebaseApp)
+import { db } from '../firebase.js'
 
 export default {
     data() {

@@ -2,9 +2,9 @@
     <nav class="navbar">
         <div class="logo">
             <<<<<<< HEAD
-            <img src="@/assets/CFL_logo.png" alt="CanFindLah" />
+            <img src="@/components/assets/CFL_logo.png" alt="CanFindLah" />
             =======
-            <img src="@/assets/CFL_logo.png" alt="CanFindLah" />
+            <img src="@/components/assets/CFL_logo.png" alt="CanFindLah" />
             >>>>>>> origin/jingle
             <span>CanFindLah</span>
         </div>

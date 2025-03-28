@@ -5,7 +5,7 @@
 
             <div class="formli">
                 <RouterLink to="/">
-                    <img id="backward_img" src="@/assets/arrow_back.png" alt="Back to Home" />
+                    <img id="backward_img" src="@/components/assets/arrow_back.png" alt="Back to Home" />
                 </RouterLink>
                 <br />
 
@@ -59,7 +59,7 @@
                 <div id="upload-img">
                     <input type="file" @change="handleFileUpload" id="default-upload" accept="image/*" />
                     <label for="default-upload">
-                        <img src="@/assets/upload.png" alt="Upload Icon" id="upload-icon" />
+                        <img src="@/components/assets/upload.png" alt="Upload Icon" id="upload-icon" />
                         <span id="instruction">{{ instruction }}</span>
                     </label>
                     <br /><br />
@@ -165,13 +165,15 @@ export default {
 </script> -->
 
 <script>
-import firebaseApp from '../firebase.js'
-import { getFirestore } from 'firebase/firestore'
-import { getStorage } from 'firebase/storage'
+// import firebaseApp from '../firebase.js'
+// import { getFirestore } from 'firebase/firestore'
+// import { getStorage } from 'firebase/storage'
 import { collection, addDoc } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
-const db = getFirestore(firebaseApp)
-const storage = getStorage(firebaseApp)
+// const db = getFirestore(firebaseApp)
+// const storage = getStorage(firebaseApp)
+
+import { storage, db } from '../firebase.js'
 
 export default {
     data() {
