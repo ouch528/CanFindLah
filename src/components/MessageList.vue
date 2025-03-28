@@ -185,10 +185,10 @@
   .minus-circle {
     position: absolute;
     bottom: 10px; /* adjust as desired */
-    right: 10px;   /* adjust as desired */
+    right: 5px;   /* adjust as desired */
     width: 20px;
     height: 20px;
-    background-color: rgba(255, 136, 68, 1);
+    background-color: red;
     border-radius: 50%;
     color: #fff;
     font-weight: bold;

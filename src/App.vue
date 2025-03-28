@@ -112,16 +112,26 @@ export default {
 }
 
 /* 2) Optional heading for "Messages" at the top, centered */
-.messages-title {   
+.messages-title {
+  text-align: center;
+  font-family: 'Inter', sans-serif;
+  font-size: 3rem;
+  color: rgba(104, 69, 69, 1);
+  margin: 1.25rem 0;
+  display: block; /* or leave it as h2 default */
+}
+
+/* .messages-title {   
   position: absolute;          
-  left: 37.0625rem;
-  top: 7.25rem; /* based on figma is 8.25rem */
+  /* left: 37.0625rem; */
+  /* top: 7.25rem; based on figma is 8.25rem */
+  /* align-items: center;
   text-align: center;
   font-family: 'Inter', sans-serif;
   font-size: 3rem;              /* or 3rem, if you prefer responsive units */
-  color: rgba(104, 69, 69, 1);
+  /* color: rgba(104, 69, 69, 1);
   margin: 1.25rem 0;  
-}
+}  */
 
 /* 3) The container that encloses your main-layout and centers it */
 .messages-panel {
