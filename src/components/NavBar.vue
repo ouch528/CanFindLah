@@ -1,7 +1,7 @@
 <template>
     <nav class="navbar">
         <div class="logo">
-            <img src="@/components/assets/CFL_logo.png" alt="CanFindLah" />
+            <img src="@/assets/CFL_logo.png" alt="CanFindLah" />
             <span>CanFindLah</span>
         </div>
         <ul>

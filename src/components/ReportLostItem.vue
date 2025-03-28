@@ -5,7 +5,7 @@
 
             <div class="formli">
                 <RouterLink to="/">
-                    <img id="backward_img" src="@/components/assets/arrow_back.png" alt="Back to Home" />
+                    <img id="backward_img" src="@/assets/arrow_back.png" alt="Back to Home" />
                 </RouterLink>
                 <br />
 

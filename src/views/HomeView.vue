@@ -13,7 +13,7 @@
         <div class="nav-section">
             <RouterLink to="/report_lost">
                 <div id="lost-item-nav">
-                    <img src="@/components/assets/lost_item_icon.png" />
+                    <img src="@/assets/lost_item_icon.png" />
                     Report Lost Item
                 </div>
             </RouterLink>
@@ -22,7 +22,7 @@
 
             <RouterLink to="/report_found">
                 <div id="found-item-nav">
-                    <img src="@/components/assets/found_item_icon.png" />
+                    <img src="@/assets/found_item_icon.png" />
                     Report Found Item
                 </div>
             </RouterLink>

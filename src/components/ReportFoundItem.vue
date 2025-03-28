@@ -5,7 +5,7 @@
 
             <div class="formli">
                 <RouterLink to="/">
-                    <img id="backward_img" src="@/components/assets/arrow_back.png" alt="Back to Home" />
+                    <img id="backward_img" src="@/assets/arrow_back.png" alt="Back to Home" />
                 </RouterLink>
                 <br />
 
@@ -59,7 +59,7 @@
                 <div id="upload-img">
                     <input type="file" @change="handleFileUpload" id="default-upload" accept="image/*" />
                     <label for="default-upload">
-                        <img src="@/components/assets/upload.png" alt="Upload Icon" id="upload-icon" />
+                        <img src="@/assets/upload.png" alt="Upload Icon" id="upload-icon" />
                         <span id="instruction">{{ instruction }}</span>
                     </label>
                     <br /><br />

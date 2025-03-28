@@ -1,6 +1,6 @@
 <template>
     <div class="logo-container">
-        <img src="@/components/assets/CFL_logo.png" alt="CanFindLah" />
+        <img src="@/assets/CFL_logo.png" alt="CanFindLah" />
         <span>CanFindLah</span>
     </div>
     <div class="main-container">

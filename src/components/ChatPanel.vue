@@ -63,10 +63,10 @@
                 <!-- Hidden file input triggered by paperclip -->
                 <input type="file" id="file-input" @change="handleFileUpload" style="display: none" />
                 <!-- Paperclip icon label -->
-                <label for="file-input" class="file-label"><img src="@/components/assets/icon.png" alt="Icon" /></label>
+                <label for="file-input" class="file-label"><img src="@/assets/icon.png" alt="Icon" /></label>
                 <input v-model="newMessage" type="text" placeholder="Write a message..." />
                 <button type="submit" class="send-button" :disabled="isSending">
-                    <img src="@/components/assets/send.png" alt="Send" />
+                    <img src="@/assets/send.png" alt="Send" />
                 </button>
             </div>
         </form>
