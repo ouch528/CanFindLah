@@ -101,7 +101,7 @@ export default {
 .main-content {
   display: flex;
   width: 90%;
-  max-width: 1200px;
+  max-width: 82rem;
   margin: 1rem auto;
   background-color: #fff; /* optional: a white background behind content */
   border-radius: 8px;
@@ -111,8 +111,8 @@ export default {
 /* Sidebar for the user list */
 .sidebar {
   width: 25%;
-  min-width: 200px; /* ensure some minimum space */
-  padding: 1rem;
+  min-width: 28rem; /* ensure some minimum space */
+  background-color: #FFFAEF;
   border-right: 1px solid #ddd; /* separate sidebar from chat */
 }
 

@@ -1,16 +1,12 @@
 <template>
     <nav class="navbar">
         <div class="logo">
-            <<<<<<< HEAD
             <img src="@/components/assets/CFL_logo.png" alt="CanFindLah" />
-            =======
-            <img src="@/components/assets/CFL_logo.png" alt="CanFindLah" />
-            >>>>>>> origin/jingle
             <span>CanFindLah</span>
         </div>
         <ul>
             <li><router-link to="/" active-class="active-link">Home</router-link></li>
-            <li><router-link to="/history" active-class="active-link">History</router-link></li>
+            <li>History</li>
             <li><router-link to="/Messages" active-class="active-link">Messages</router-link></li>
             <li id="logout" @click="logoutConfirmation">Logout</li>
         </ul>
