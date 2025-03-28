@@ -6,7 +6,7 @@
         </div>
         <ul>
             <li><router-link to="/" active-class="active-link">Home</router-link></li>
-            <li>History</li>
+            <li><router-link to="/history" active-class="active-link">History</router-link></li>
             <li><router-link to="/Messages" active-class="active-link">Messages</router-link></li>
             <li>Logout</li>
         </ul>
