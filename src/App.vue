@@ -14,13 +14,13 @@ const isAuthPage = computed(() => route.path === '/login' || route.path === '/si
 </template> -->
 
 <template>
-    <header>
+    <!-- <header>
         <nav>
             <RouterLink to="/"></RouterLink>
         </nav>
-    </header>
+    </header> -->
 
     <NavBar v-if="!isAuthPage" />
-    <NavBar />
+    <!-- <NavBar /> -->
     <RouterView />
 </template>

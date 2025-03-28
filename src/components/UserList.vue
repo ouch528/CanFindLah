@@ -43,12 +43,15 @@
     },
     emits: ['conversationStarted'],
     setup(props, { emit }) {
-      const users = ref([
-        { id: 1, name: 'User' },
-        { id: 2, name: 'Xavier' },
-        { id: 3, name: 'Ziyang' },
-        { id: 4, name: 'Mia' }
-      ])
+      const users = ref([])
+      const usersCollection = collection(db, 'users')
+
+      onSnapshot(usersCollection, (snapshot) => {
+        users.value = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+      })
 
       const lastMessages = ref({})
       const hoveredUser = ref(null)

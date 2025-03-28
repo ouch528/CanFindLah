@@ -1,11 +1,10 @@
 <script>
-// import HelloWorld from './components/HelloWorld.vue'
-// import TheWelcome from './components/TheWelcome.vue'
 import Item from '@/components/Item.vue'
-import firebaseApp, { storage } from '../firebase.js'
+import { storage } from '../firebase.js'
+import { app } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
 import { collection, getDoc, doc, deleteDoc } from 'firebase/firestore'
-const db = getFirestore(firebaseApp)
+const db = getFirestore(app)
 
 export default {
     components: {
@@ -15,13 +14,6 @@ export default {
     async created() {
         await this.fetchItems() // Fetch Firestore data when component is created
     },
-
-    // async fetch() {
-    //     const his = doc(db, "History", "123456")
-    //     const docSnap = getDoc(his);
-    //     console.log(docSnap.data().found_item_id_list)
-
-    // },
 
     data() {
         // <!-- user_id is for future when user configuration is implemented (when delete need update the history via user id) -->
@@ -39,6 +31,15 @@ export default {
     },
 
     methods: {
+        toggleDropdown() {
+            this.isOpen = !this.isOpen
+        },
+
+        selectOption(option) {
+            this.status = option // Update the status
+            this.isOpen = false // Close the dropdown
+        },
+
         async fetchItems() {
             try {
                 const his = doc(db, 'History', 'fAQOn1Iz4YfOKk8c9B8zvQSItcy1') // Firestore document reference
@@ -58,23 +59,14 @@ export default {
                 console.error('Error fetching Firestore data:', error)
             }
         },
+    },
 
-        toggleDropdown() {
-            this.isOpen = !this.isOpen
-        },
+    mounted() {
+        document.addEventListener('click', this.closeDropdown)
+    },
 
-        selectOption(option) {
-            this.status = option // Update the status
-            this.isOpen = false // Close the dropdown
-        },
-
-        mounted() {
-            document.addEventListener('click', this.closeDropdown)
-        },
-
-        beforeDestroy() {
-            document.removeEventListener('click', this.closeDropdown)
-        },
+    beforeDestroy() {
+        document.removeEventListener('click', this.closeDropdown)
     },
 }
 

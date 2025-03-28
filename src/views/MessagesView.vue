@@ -1,7 +1,5 @@
 <template>
   <div class="home-view">
-    <!-- Top navbar -->
-    <NavBar />
 
     <!-- Main "Messages" heading -->
     <div class="messages-header">

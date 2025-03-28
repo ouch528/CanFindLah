@@ -1,7 +1,7 @@
 <template>
     <div class="container">
         <div class="text-section">
-            <h3 id="welcome-msg">Welcome, Jane Doe.</h3>
+            <h3 id="welcome-msg">Welcome, {{ userName }}.</h3>
 
             <h1 id="main-msg">
                 Find and <br />
@@ -50,8 +50,8 @@
 <script>
 // import firebaseApp from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
-import { getDocs, collection, query, where, onSnapshot } from 'firebase/firestore'
-// const db = getFirestore(firebaseApp)
+import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { auth } from '../firebase.js'
 import { db } from '../firebase.js'
 
 export default {
@@ -61,9 +61,15 @@ export default {
             claimed: 0,
             found: 0,
             yetToBeClaimed: 0,
+            userName: ''
         }
     },
     mounted() {
+        const user = auth.currentUser
+        if (user) {
+            this.userName = user.displayName || user.email || 'there'
+        }
+
         const claimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', 'Returned'))
 
         onSnapshot(claimedQuery, (snapshot) => {
@@ -162,7 +168,6 @@ a {
 
 .stats {
     text-align: center;
-    justify-content: space-between;
     display: flex;
     justify-content: space-between;
     margin-left: 10rem;

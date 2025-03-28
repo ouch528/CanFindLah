@@ -41,7 +41,7 @@ const router = createRouter({
             meta: { requiresAuth: true },
         },
         {
-            path: '/Messages',
+            path: '/messages',
             name: 'Messages',
             component: MessagesView,
             meta: { requiresAuth: true },

@@ -32,13 +32,13 @@
 </template>
 
 <script>
-import firebaseApp, { storage } from '../firebase.js'
+import { app, storage } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
 import { ref, getDownloadURL } from 'firebase/storage'
 import { collection, getDoc, doc, deleteDoc } from 'firebase/firestore'
 import 'primeicons/primeicons.css'
 
-const db = getFirestore(firebaseApp)
+const db = getFirestore(app)
 
 export default {
     props: {
