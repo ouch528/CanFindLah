@@ -45,7 +45,8 @@ export default {
             try {
                 const userStore = useUserStore();
                 console.log("User ID:", userStore.userId);
-                const his = doc(db, 'History', userStore.userId) // Firestore document reference
+                // const his = doc(db, 'History', 'fAQOn1Iz4YfOKk8c9B8zvQSItcy1') // Firestore document reference
+                const his = doc(db, 'History', userStore.userId)
                 const docSnap = await getDoc(his) // Wait for document fetch
 
                 if (docSnap.exists()) {

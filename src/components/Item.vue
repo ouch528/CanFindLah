@@ -49,6 +49,7 @@ import { getFirestore } from 'firebase/firestore'
 import { ref, getDownloadURL } from 'firebase/storage'
 import { collection, getDoc, doc, deleteDoc, updateDoc, arrayRemove } from 'firebase/firestore'
 import 'primeicons/primeicons.css'
+import { useUserStore } from "@/stores/user-store";
 
 const db = getFirestore(app)
 
@@ -187,10 +188,12 @@ export default {
         async deleteItem() {
             try {
                 alert('Delete item clicked')
+                const userStore = useUserStore();
+                const user_id = userStore.userId
                 if (this.status == 'searcher') {
                     // console.log(this.item)
                     const docRef = doc(db, 'Lost Item', this.lost_item_Id)
-                    const userRef = doc(db, 'History', this.user_id)
+                    const userRef = doc(db, 'History', user_id)
                     await updateDoc(userRef, {
                         lost_item_id_list: arrayRemove(this.lost_item_Id), // Remove the item ID from the array
                     })
@@ -198,7 +201,7 @@ export default {
                 } else {
                     console.log(this.found_item_Id)
                     const docRef = doc(db, 'Found_Item', this.found_item_Id)
-                    const userRef = doc(db, 'History', this.user_id)
+                    const userRef = doc(db, 'History', user_id)
                     await updateDoc(userRef, {
                         found_item_id_list: arrayRemove(this.found_item_Id), // Remove the item ID from the array
                     })

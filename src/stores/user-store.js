@@ -11,5 +11,6 @@ export const useUserStore = defineStore("user", {
         clearUserId() {
             this.userId = null; // Clear user ID on logout
         }
-    }
+    },
+    persist: true, 
 });

@@ -64,9 +64,10 @@
 <script>
 // import firebaseApp from '../firebase.js'
 // import { getFirestore } from 'firebase/firestore'
-import { collection, addDoc } from 'firebase/firestore'
+import { collection, addDoc, doc, updateDoc, arrayUnion } from 'firebase/firestore'
 // const db = getFirestore(firebaseApp)
 import { db } from '../firebase.js'
+import { useUserStore } from "@/stores/user-store";
 
 export default {
     data() {
@@ -97,10 +98,11 @@ export default {
                         location: this.formData.location,
                         name: `${this.formData.color} ${this.formData.category}`,
                     })
-
-                    const userRef = doc(db, 'History', docRef.id)
+                    const userStore = useUserStore();
+                    console.log("User ID:", userStore.userId);
+                    const userRef = doc(db, 'History', userStore.userId)
                     await updateDoc(userRef, {
-                        lost_item_id_list: arrayUnion(this.lost_item_Id),
+                        lost_item_id_list: arrayUnion(docRef.id),
                     })
 
 
@@ -116,6 +118,8 @@ export default {
 
                     alert('Item reported successfully!')
                 } catch (error) {
+                    const userStore = useUserStore();
+                    console.log("User ID:", userStore.userId);
                     console.error('Error saving item:', error)
                     alert('Failed to report item. Please try again.')
                 }

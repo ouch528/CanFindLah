@@ -105,6 +105,12 @@ export default {
                     createdAt: new Date(),
                 })
 
+                await setDoc(doc(db, 'History', user.uid), {
+                    user_id : user.uid,
+			        found_item_id_list : [],
+			        lost_item_id_list : []
+                })
+
                 await signOut(auth)
                 alert('Signup sucessful! Redirecting to login.')
                 this.$router.push('/login')
