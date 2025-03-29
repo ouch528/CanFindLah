@@ -2,32 +2,23 @@
   <div class="chat-panel">
     <!-- Top bar showing the partner's name and optional subtitle -->
     <div class="chat-header">
-      <h2>{{ partnerName }}</h2>
-      <span class="partner-subtitle">Searcher of Green Water Bottle</span>
+      <h2>{{ partnerDisplayName }}</h2>
+      <span class="partner-subtitle">Chatting with {{ partnerDisplayName }}</span>
     </div>
 
     <!-- Scrollable message list -->
     <div class="messages" ref="messageContainer">
-      <!-- Outer loop: each date group -->
-      <div
-        v-for="group in groupedMessages"
-        :key="group.date"
-        class="day-group"
-      >
-        <!-- Date header -->
+      <div v-for="group in groupedMessages" :key="group.date" class="day-group">
         <div class="date-separator">{{ group.date }}</div>
 
-        <!-- Inner loop: messages within this date -->
         <div
           v-for="message in group.messages"
           :key="message.id"
-          :class="['message', { sent: message.sender === currentUser, received: message.sender !== currentUser }]"
+          :class="['message', { sent: message.sender === currentUserID, received: message.sender !== currentUserID }]"
         >
           <div class="message-bubble">
-            <!-- Message text -->
             <div class="message-text">{{ message.text }}</div>
 
-            <!-- Attachment (image/file) -->
             <div v-if="message.attachmentType" class="attachment">
               <template v-if="message.status === 'uploading'">
                 <div class="uploading-indicator">
@@ -36,6 +27,9 @@
                   </svg>
                   <span>Uploading...</span>
                 </div>
+              </template>
+              <template v-else-if="!message.attachmentUrl">
+                <div class="loading-placeholder">Loading attachment...</div>
               </template>
               <template v-else>
                 <img
@@ -49,16 +43,14 @@
               </template>
             </div>
 
-            <!-- "X" delete button for your own messages -->
             <button
-              v-if="message.sender === currentUser"
+              v-if="message.sender === currentUserID"
               class="delete-icon"
               @click="confirmDeleteMessage(message)"
             >
               ×
             </button>
           </div>
-          <!-- Timestamp -->
           <div class="message-info">
             <span class="timestamp">{{ formatTimestamp(message.timestamp) }}</span>
           </div>
@@ -66,7 +58,6 @@
       </div>
     </div>
 
-    <!-- File preview area if a file is selected -->
     <div v-if="filePreview" class="file-preview">
       <button class="close-btn" @click="clearFile">×</button>
       <div v-if="isImageFile">
@@ -77,25 +68,13 @@
       </div>
     </div>
 
-    <!-- Input area (text + file + send) -->
     <form @submit.prevent="sendMessage" class="message-form">
       <div class="input-container">
-        <!-- Hidden file input triggered by paperclip -->
-        <input
-          type="file"
-          id="file-input"
-          @change="handleFileUpload"
-          style="display: none;"
-        />
-        <!-- Paperclip icon label -->
+        <input type="file" id="file-input" @change="handleFileUpload" style="display: none;" />
         <label for="file-input" class="file-label"><img src="@/assets/icon.png" alt="Icon" /></label>
-        <input
-          v-model="newMessage"
-          type="text"
-          placeholder="Write a message..."
-        />
+        <input v-model="newMessage" type="text" placeholder="Write a message..." />
         <button type="submit" class="send-button" :disabled="isSending">
-          <img src="@/assets/send.png" alt="Send">
+          <img src="@/assets/send.png" alt="Send" />
         </button>
       </div>
     </form>
@@ -103,7 +82,7 @@
 </template>
 
 <script>
-import { ref, onMounted, watch, nextTick, computed } from 'vue'
+import { ref, onMounted, watch, nextTick, computed } from 'vue';
 import {
   collection,
   doc,
@@ -113,125 +92,132 @@ import {
   deleteDoc,
   addDoc,
   updateDoc,
+  getDoc,
   serverTimestamp
-} from 'firebase/firestore'
+} from 'firebase/firestore';
 import {
   ref as storageRef,
   uploadBytes,
   getDownloadURL,
   deleteObject
-} from 'firebase/storage'
-import { db, storage } from '../firebase'
+} from 'firebase/storage';
+import { db, storage } from '../firebase';
 
 export default {
   name: 'ChatPanel',
   props: {
     conversationId: { type: String, required: true },
-    currentUser: { type: String, required: true },
-    partnerName: { type: String, required: false }
+    currentUserID: { type: String, required: true },
+    partnerID: { type: String, required: true }
   },
   setup(props) {
-    const messages = ref([])
-    const newMessage = ref('')
-    const file = ref(null)
-    const filePreview = ref(null)
-    const fileName = ref('')
-    const isImageFile = ref(false)
-    let unsubscribe = null
-    const messageContainer = ref(null)
+    const partnerDisplayName = ref('');
+
+    const messages = ref([]);
+    const newMessage = ref('');
+    const file = ref(null);
+    const filePreview = ref(null);
+    const fileName = ref('');
+    const isImageFile = ref(false);
+    let unsubscribe = null;
+    const messageContainer = ref(null);
     const isSending = ref(false);
-
-    // Group messages by date
+    watch(() => props.partnerID, () => {
+      fetchPartnerName();
+    });
     const groupedMessages = computed(() => {
-      if (!messages.value.length) return []
-
-      // A map of dateString -> array of messages for that date
-      const dateMap = new Map()
+      if (!messages.value.length) return [];
+      const dateMap = new Map();
 
       for (const msg of messages.value) {
-        const timestamp = msg.timestamp
-        if (!timestamp) continue
-
-        // Convert Firestore Timestamp or Date object to a JS Date
-        const dateObj = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
-
-        // Extract just the date portion as a string, e.g., "March 29, 2025"
+        const timestamp = msg.timestamp;
+        if (!timestamp) continue;
+        const dateObj = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
         const dateString = dateObj.toLocaleDateString([], {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })
-
+          year: 'numeric', month: 'long', day: 'numeric'
+        });
         if (!dateMap.has(dateString)) {
-          dateMap.set(dateString, [])
+          dateMap.set(dateString, []);
         }
-        dateMap.get(dateString).push(msg)
+        dateMap.get(dateString).push(msg);
       }
 
-      // Convert map entries to an array of { date, messages }
-      const result = []
+      const result = [];
       for (const [dateString, msgs] of dateMap.entries()) {
-        // Sort messages within the same day by actual timestamp
         msgs.sort((a, b) => {
-          const aTime = a.timestamp ? a.timestamp.toMillis() : 0
-          const bTime = b.timestamp ? b.timestamp.toMillis() : 0
-          return aTime - bTime
-        })
-        result.push({ date: dateString, messages: msgs })
+          const aTime = a.timestamp ? a.timestamp.toMillis() : 0;
+          const bTime = b.timestamp ? b.timestamp.toMillis() : 0;
+          return aTime - bTime;
+        });
+        result.push({ date: dateString, messages: msgs });
       }
 
-      // Sort the groups by date
-      result.sort((a, b) => {
-        // parse the date string into a Date object
-        const aDate = new Date(a.date)
-        const bDate = new Date(b.date)
-        return aDate - bDate
-      })
+      result.sort((a, b) => new Date(a.date) - new Date(b.date));
+      return result;
+    });
 
-      return result
-    })
-
-    // Load messages from Firestore
     const loadMessages = () => {
-      if (unsubscribe) unsubscribe()
-      const messagesRef = collection(db, 'conversations', props.conversationId, 'messages')
-      const q = query(messagesRef, orderBy('timestamp'))
+      if (unsubscribe) unsubscribe();
+      const messagesRef = collection(db, 'conversations', props.conversationId, 'messages');
+      const q = query(messagesRef, orderBy('timestamp'));
       unsubscribe = onSnapshot(q, (snapshot) => {
-        messages.value = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data()
-        }))
+        messages.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         nextTick(() => {
           if (messageContainer.value) {
-            messageContainer.value.scrollTop = messageContainer.value.scrollHeight
+            messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
           }
-        })
-      })
-    }
+        });
+      });
+    };
 
-    onMounted(loadMessages)
-    watch(() => props.conversationId, loadMessages)
+    const fetchPartnerName = async () => {
+      try {
+        const userDoc = await getDoc(doc(db, 'users', props.partnerID));
+        partnerDisplayName.value = userDoc.exists() ? userDoc.data().name : 'Unknown User';
+      } catch (err) {
+        partnerDisplayName.value = 'Unknown User';
+      }
+    };
 
-    // Confirm & delete message
+    onMounted(() => {
+      loadMessages();
+      fetchPartnerName();
+    });
+
+    watch(() => props.conversationId, () => {
+      messages.value = [];
+      loadMessages();
+    });
+
+    watch(messages, () => {
+      nextTick(() => {
+        if (messageContainer.value) {
+          messageContainer.value.scrollTo({
+            top: messageContainer.value.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      });
+    });
+
     const confirmDeleteMessage = async (message) => {
-      const userConfirmed = window.confirm("Are you sure you want to delete this message?")
-      if (!userConfirmed) return
+      const userConfirmed = window.confirm('Are you sure you want to delete this message?');
+      if (!userConfirmed) return;
       try {
         if (message.attachmentPath) {
-          const fileRef = storageRef(storage, message.attachmentPath)
-          await deleteObject(fileRef)
+          const fileRef = storageRef(storage, message.attachmentPath);
+          await deleteObject(fileRef);
         }
-        await deleteDoc(doc(db, 'conversations', props.conversationId, 'messages', message.id))
+        await deleteDoc(doc(db, 'conversations', props.conversationId, 'messages', message.id));
       } catch (error) {
-        console.error('Error deleting message:', error)
+        console.error('Error deleting message:', error);
       }
-    }
+    };
 
-    // Handle file selection
     const handleFileUpload = (e) => {
       if (e.target.files.length > 0) {
         const selectedFile = e.target.files[0];
-        if (selectedFile.size > 5242880) { // 5MB in bytes
+        if (selectedFile.size > 5242880) {
           alert('File must be less than 5MB');
           clearFile();
           return;
@@ -241,98 +227,75 @@ export default {
         isImageFile.value = selectedFile.type.startsWith('image/');
         filePreview.value = URL.createObjectURL(selectedFile);
       }
-    }
+    };
 
-    // Clear file
     const clearFile = () => {
-      file.value = null
-      filePreview.value = null
-      fileName.value = ''
-      isImageFile.value = false
-      const input = document.getElementById('file-input')
-      if (input) input.value = ''
-    }
+      file.value = null;
+      filePreview.value = null;
+      fileName.value = '';
+      isImageFile.value = false;
+      const input = document.getElementById('file-input');
+      if (input) input.value = '';
+    };
 
     const sendMessage = async () => {
-      if (isSending.value) return; // Prevent multiple submissions
-      if (newMessage.value.trim() === "" && !file.value) {
-        return;
-      }
+      if (isSending.value) return;
+      if (newMessage.value.trim() === '' && !file.value) return;
       isSending.value = true;
       try {
         let fileToUpload = null;
         if (file.value) {
           fileToUpload = file.value;
-          // Hide file preview immediately upon clicking send
           clearFile();
         }
         if (fileToUpload) {
           const attachmentName = fileToUpload.name;
           const attachmentType = fileToUpload.type;
           const attachmentPath = `chat_attachments/${attachmentName}-${Date.now()}`;
-
-          // Optimistically add the message with a placeholder for attachmentUrl and status 'uploading'
           const messageData = {
             text: newMessage.value.trim(),
-            sender: props.currentUser,
+            sender: props.currentUserID,
             timestamp: serverTimestamp(),
-            attachmentUrl: "", // placeholder until upload completes
+            attachmentUrl: '',
             attachmentType,
             attachmentName,
             attachmentPath,
             status: 'uploading'
           };
           const messageRef = await addDoc(collection(db, 'conversations', props.conversationId, 'messages'), messageData);
-
-          // Start the file upload
           const storageReference = storageRef(storage, attachmentPath);
           await uploadBytes(storageReference, fileToUpload);
           const attachmentUrl = await getDownloadURL(storageReference);
-
-          // Update the message document with the actual download URL and status
           await updateDoc(doc(db, 'conversations', props.conversationId, 'messages', messageRef.id), {
             attachmentUrl,
             status: 'sent'
           });
         } else {
-          // No file attached; simply add the text message
           await addDoc(collection(db, 'conversations', props.conversationId, 'messages'), {
             text: newMessage.value.trim(),
-            sender: props.currentUser,
+            sender: props.currentUserID,
             timestamp: serverTimestamp()
           });
         }
-
         newMessage.value = '';
       } catch (error) {
         console.error('Error sending message:', error);
       } finally {
         isSending.value = false;
       }
-    }
+    };
 
-    // Format timestamp
     const formatTimestamp = (timestamp) => {
-      if (!timestamp) return ''
-      const dateObj = timestamp.toDate ? timestamp.toDate() : new Date(timestamp)
-
-      // Show date+time if it's not today
-      const now = new Date()
-      const isToday = dateObj.toDateString() === now.toDateString()
-
-      if (isToday) {
-        // e.g. '10:41 PM'
-        return dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      } else {
-        // e.g. 'Mar 29, 10:41 PM'
-        return dateObj.toLocaleString([], {
-          month: 'short',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      }
-    }
+      if (!timestamp) return '';
+      const dateObj = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+      const now = new Date();
+      const isToday = dateObj.toDateString() === now.toDateString();
+      return isToday
+        ? dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        : dateObj.toLocaleString([], {
+            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+          });
+    };
 
     return {
       messages,
@@ -349,24 +312,20 @@ export default {
       clearFile,
       sendMessage,
       formatTimestamp,
-      isSending
-    }
+      isSending,
+      partnerDisplayName
+    };
   }
-}
+};
 </script>
+
 
 <style scoped>
 /* Overall chat panel with a white card look, slight radius, etc. */
 .chat-panel {
   display: flex;
   flex-direction: column;
-  background-color: #fff; /* white card look */
-  width: 100%;
-  max-width: 900px;
-  margin: auto;
-  border: 1px solid #ddd;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-  height: 650px; /* fix the height to get a scroll area */
+  height: 74vh; /* or 100% if parent already handles height */
   overflow: hidden;
 }
 
@@ -396,8 +355,9 @@ export default {
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
-  background: #F2FAFF; /* a subtle light background for the chat area */
-  min-height: 0; /* ensures flex container can shrink */
+  background: #F2FAFF;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Individual message */
@@ -603,5 +563,15 @@ export default {
   border-radius: 8px;
   font-weight: 500;
   font-family: "Inter";
+}
+
+.loading-placeholder {
+  font-size: 0.9rem;
+  color: #888;
+  padding: 0.5rem;
+  background-color: #eee;
+  border-radius: 6px;
+  max-width: 200px;
+  text-align: center;
 }
 </style>

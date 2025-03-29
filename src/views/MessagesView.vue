@@ -1,36 +1,24 @@
 <template>
   <div class="home-view">
-
     <!-- Main "Messages" heading -->
     <div class="messages-header">
       <h1>Messages</h1>
-    </div>
-
-    <!-- Identity selection -->
-    <div class="perspective-select">
-      <label for="perspective">Select Your Identity:</label>
-      <select id="perspective" v-model="currentUser">
-        <option>User</option>
-        <option>Xavier</option>
-        <option>Ziyang</option>
-        <option>Mia</option>
-      </select>
     </div>
 
     <!-- Main content area: two columns (sidebar + chat) -->
     <div class="main-content">
       <!-- Sidebar with list of conversation partners -->
       <div class="sidebar">
-        <UserList :currentUser="currentUser" @conversationStarted="handleConversationStarted" />
+        <UserList :currentUserID="currentUserID" @conversationStarted="handleConversationStarted" />
       </div>
 
       <!-- Chat panel area -->
       <div class="chat-container">
-        <div v-if="conversationId">
+        <div v-if="currentConversationId">
           <ChatPanel
-            :conversationId="conversationId"
-            :currentUser="currentUser"
-            :partnerName="partnerName"
+            :conversationId="currentConversationId"
+            :currentUserID="currentUserID"
+            :partnerID="partnerID"
           />
         </div>
         <div v-else class="no-chat-selected">
@@ -44,102 +32,94 @@
 </template>
 
 <script>
-import NavBar from '@/components/NavBar.vue'
-import ChatPanel from '@/components/ChatPanel.vue'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth, db } from '../firebase'
+import { doc, getDoc } from 'firebase/firestore'
 import UserList from '@/components/UserList.vue'
+import ChatPanel from '@/components/ChatPanel.vue'
 
 export default {
-  name: 'HomeView',
   components: {
-    NavBar,
+    UserList,
     ChatPanel,
-    UserList
   },
   data() {
     return {
-      conversationId: '',
-      currentUser: 'User',
-      partnerName: '' // store the other participant here
+      currentUserID: '',
+      currentConversationId: '',
+      partnerID: '',
     }
   },
+  created() {
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userRef = doc(db, 'users', user.uid)
+        const userSnap = await getDoc(userRef)
+        if (userSnap.exists()) {
+          this.currentUserID = userSnap.data().userID
+        }
+      }
+    })
+  },
   methods: {
-  handleConversationStarted(newId) {
-    this.conversationId = newId
-    // Extract partner name from newId:
-    const participants = newId.split('-')
-    this.partnerName = participants.find(name => name !== this.currentUser)
-  }
-}
+    handleConversationStarted(conversationId, partnerID) {
+      this.currentConversationId = conversationId
+      this.partnerID = partnerID
+    },
+  },
 }
 </script>
 
 <style scoped>
 .home-view {
-  /* A gradient background, like in your screenshot */
-  background: linear-gradient(to bottom, white, #F1C39C);
-  min-height: 100vh;
+  height: 80vh;
   display: flex;
   flex-direction: column;
+  background: linear-gradient(to bottom, white, #F1C39C);
+  overflow: hidden;
 }
-
-/* Header for "Messages" */
 .messages-header {
   text-align: center;
   margin-top: 1rem;
   font-family: 'Inter';
 }
-
 .messages-header h1 {
   font-size: 2rem;
-  color: #7A4B2B; /* Example brand color */
+  color: #7A4B2B;
   margin: 0;
 }
-
-/* The container for the sidebar + chat panel */
 .main-content {
+  flex: 1;
   display: flex;
   width: 90%;
   max-width: 82rem;
-  margin: 1rem auto;
-  background-color: #fff; /* optional: a white background behind content */
+  margin: 0 auto;
+  background-color: #F2FAFF;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* optional: subtle shadow */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
 }
-
-/* Sidebar for the user list */
 .sidebar {
-  width: 25%;
-  min-width: 28rem; /* ensure some minimum space */
+  width: 28rem;
   background-color: #FFFAEF;
-  border-right: 1px solid #ddd; /* separate sidebar from chat */
+  border-right: 1px solid #ddd;
+  overflow-y: auto;
 }
-
-/* Container for the chat area */
 .chat-container {
-  /* Make sure the container can fill available space */
+  flex: 1;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  position: relative;
+  overflow: hidden;
 }
-
-/* The main container for "no chat selected" state */
 .no-chat-selected {
-  /* Fill up space so content can be centered both vertically & horizontally */
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-
-  /* Optionally, use a background gradient or image like Telegram */
   background: #F2FAFF;
-  background-size: cover;
-  background-position: center;
 }
-
-/* The rounded message in the center */
 .no-chat-message {
-  background-color: rgba(0, 0, 0, 0.4); /* black with 50% transparency */
+  background-color: rgba(0, 0, 0, 0.4);
   padding: 0.5rem 0.5rem;
   border-radius: 2rem;
   font-size: 1.2rem;
