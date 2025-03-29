@@ -268,11 +268,13 @@ export default {
     background-color: white;
     /* right: 500px; */
     border: 0.0625rem;
-    max-width: 15.625rem;
+    /* max-width: 15.625rem; */
     margin: 0.44rem;
     background-color: #fff;
     padding: 1.25rem;
     border: 0.0625rem solid #ccc;
+    width: 31.25rem;
+    height: 21.88rem;
     /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
 }
 
@@ -342,10 +344,12 @@ p {
 }
 
 .image-container img {
-    display: inline-block; /* Allow centering with text-align */
-    max-width: 50%; /* Make image responsive */
-    height: 120%;
-    border-radius: 0.32rem; /* Rounded corners for image */
+    /* max-width: 100%;
+    height: auto;
+    object-fit: contain; */
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
 }
 
 #pencil {

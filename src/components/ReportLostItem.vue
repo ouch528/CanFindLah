@@ -86,7 +86,7 @@ export default {
         async saveLostItem() {
             if (this.validateForm()) {
                 try {
-                    await addDoc(collection(db, 'Lost Item'), {
+                    const docRef = await addDoc(collection(db, 'Lost Item'), {
                         brand: this.formData.brand,
                         category: this.formData.category,
                         claimed_status: 'Not Found Yet',
@@ -97,6 +97,13 @@ export default {
                         location: this.formData.location,
                         name: `${this.formData.color} ${this.formData.category}`,
                     })
+
+                    const userRef = doc(db, 'History', docRef.id)
+                    await updateDoc(userRef, {
+                        lost_item_id_list: arrayUnion(this.lost_item_Id),
+                    })
+
+
 
                     this.formData = {
                         category: '',

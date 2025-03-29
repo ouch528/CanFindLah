@@ -5,6 +5,7 @@ import { app } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
 import { collection, getDoc, doc, deleteDoc } from 'firebase/firestore'
 const db = getFirestore(app)
+import { useUserStore } from "@/stores/user-store";
 
 export default {
     components: {
@@ -42,7 +43,9 @@ export default {
 
         async fetchItems() {
             try {
-                const his = doc(db, 'History', 'fAQOn1Iz4YfOKk8c9B8zvQSItcy1') // Firestore document reference
+                const userStore = useUserStore();
+                console.log("User ID:", userStore.userId);
+                const his = doc(db, 'History', userStore.userId) // Firestore document reference
                 const docSnap = await getDoc(his) // Wait for document fetch
 
                 if (docSnap.exists()) {
