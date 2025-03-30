@@ -381,6 +381,7 @@ textarea::placeholder {
     color: black;
     font-weight: 600;
     border: none;
+    margin-bottom: 1rem;
 }
 
 #backward_img {

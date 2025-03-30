@@ -62,10 +62,7 @@
 </template>
 
 <script>
-// import firebaseApp from '../firebase.js'
-// import { getFirestore } from 'firebase/firestore'
 import { collection, addDoc } from 'firebase/firestore'
-// const db = getFirestore(firebaseApp)
 import { db } from '../firebase.js'
 
 export default {
@@ -98,6 +95,8 @@ export default {
                         name: `${this.formData.color} ${this.formData.category}`,
                     })
 
+                    const formDataCopy = { ...this.formData }
+
                     this.formData = {
                         category: '',
                         color: '',
@@ -106,8 +105,13 @@ export default {
                         datetime: '',
                         description: '',
                     }
+                    console.log('Form Data:', formDataCopy)
+                    alert('Item reported successfully! Redirecting to check for similar items found')
 
-                    alert('Item reported successfully!')
+                    this.$router.push({
+                        name: 'matching',
+                        query: { lostItem: JSON.stringify(formDataCopy) },
+                    })
                 } catch (error) {
                     console.error('Error saving item:', error)
                     alert('Failed to report item. Please try again.')
