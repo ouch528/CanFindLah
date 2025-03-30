@@ -38,7 +38,8 @@
 
 <script>
 import { signInWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '../firebase'
+import { auth, db } from '../firebase'
+import { doc, setDoc, serverTimestamp, updateDoc, getDoc } from 'firebase/firestore'
 
 export default {
     data() {
@@ -54,17 +55,64 @@ export default {
             this.showPassword = !this.showPassword
         },
         async loginUser() {
+            const attempts = doc(db, "loginattempts", this.email)
+            const attemptsSnap = await getDoc(attempts)
+            const now = new Date()
+            let newFailCount = 1
+
+            if (attemptsSnap.exists()) { 
+                const { failCount, lastAttempt } = attemptsSnap.data()
+                const diff = (now - lastAttempt.toDate()) / 1000
+
+                // For users whose accounts have already been locked, prevent them from logging in
+                if (failCount >= 5 && diff < 600) {
+                    const remainingMinutes = Math.ceil((600 - diff) / 60)
+
+                    this.errorMessage = `Account temporarily locked. Please try again in ${remainingMinutes} minute${remainingMinutes !== 1 ? "s" : ""}.`
+                    return
+                }
+            }
+
             try {
                 await signInWithEmailAndPassword(auth, this.email, this.password)
+
+                // user has not verified email
                 if (!auth.currentUser.emailVerified) {
                     alert('Please verify your email before logging in.')
                     await signOut(auth)
                     return
                 }
+
+                // sucessful login, reset the counter
+                await setDoc(attempts, {
+                    failCount: 0,
+                    lastAttempt: serverTimestamp()
+                })
+
                 alert('Login successful! Redirecting to home page.')
                 this.$router.push('/')
             } catch (error) {
-                this.errorMessage = 'Invalid email or password. Please try again.'
+                if (attemptsSnap.exists()) {
+                    const { failCount, lastAttempt } = attemptsSnap.data();
+                    const diff = (now - lastAttempt.toDate()) / 1000 // in seconds
+                    
+                    if (diff < 600) { // last failed login attempt was less than 10 minutes
+                        newFailCount = failCount + 1; // increment fail count
+                    }
+                }
+
+                await setDoc(attempts, {
+                    failCount: newFailCount,
+                    lastAttempt: serverTimestamp(),
+                })
+
+                // First time they got locked
+                if (newFailCount > 5) { // == 6 condition works too
+                    alert('Too many failed attempts. Account temporarily locked.')
+                    this.errorMessage = 'Account temporarily locked. Please try again in 10 minutes.'
+                } else {
+                    this.errorMessage = 'Invalid email or password. Please try again.'
+                }
             }
         },
     },
