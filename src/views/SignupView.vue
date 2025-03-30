@@ -56,7 +56,7 @@
 <script>
 import { auth, createUserWithEmailAndPassword, db } from '../firebase'
 import { doc, setDoc } from 'firebase/firestore'
-import { signOut } from 'firebase/auth'
+import { signOut, sendEmailVerification } from 'firebase/auth'
 
 export default {
     data() {
@@ -105,8 +105,10 @@ export default {
                     createdAt: new Date(),
                 })
 
+                await sendEmailVerification(user)
+
                 await signOut(auth)
-                alert('Signup sucessful! Redirecting to login.')
+                alert('Signup sucessful! A verification email has been sent to your inbox. Please verify your email before logging in.')
                 this.$router.push('/login')
             } catch (error) {
                 if (error.code == 'auth/email-already-in-use') {

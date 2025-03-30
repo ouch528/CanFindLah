@@ -56,6 +56,11 @@ export default {
         async loginUser() {
             try {
                 await signInWithEmailAndPassword(auth, this.email, this.password)
+                if (!auth.currentUser.emailVerified) {
+                    alert('Please verify your email before logging in.')
+                    await signOut(auth)
+                    return
+                }
                 alert('Login successful! Redirecting to home page.')
                 this.$router.push('/')
             } catch (error) {
