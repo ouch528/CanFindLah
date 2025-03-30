@@ -20,13 +20,35 @@
         <!-- <p>{{ $route.params.edit_item.name }}</p> -->
 
         <h3>{{ item.name }}</h3>
-        <p>Category: <input type="text" id="item" v-model="item.category" @input="markAsChanged" /></p>
-        <p>Colour: <input type="text" id="item" v-model="item.colour" @input="markAsChanged" /></p>
-        <p>Brand: <input type="text" id="item" v-model="item.brand" @input="markAsChanged" /></p>
-        <p v-if="this.status == 'founder'">Location: <input type="text" id="item" v-model="item.location" @input="markAsChanged" /></p>
-        <p v-if="this.status == 'searcher'">Location: <input type="text" id="item" v-model="item.location_lost" @input="markAsChanged" /></p>
-        <p>Date & Time: <input type="text" id="item" v-model="item.date_time_lost" @input="markAsChanged" /></p>
-        <p>Description: <input type="text" id="item" v-model="item.description" @input="markAsChanged" /></p>
+        <p>Category: <br><select id="item" v-model="item.category" @change = "markAsChanged">
+                    <option value="Card">Card</option>
+                    <option value="Waterbottle">Waterbottle</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Stationary">Stationary</option>
+                    <option value="Toys">Toys</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Others">Others</option>
+                </select></p>
+        <p>Colour: <br><select v-model="item.colour" id="item" @change = "markAsChanged">
+                    <option value="Red">Red</option>
+                    <option value="Green">Green</option>
+                    <option value="Blue">Blue</option>
+                    <option value="Yellow">Yellow</option>
+                    <option value="Black">Black</option>
+                    <option value="White">White</option>
+                    <option value="Others">Others</option>
+                </select></p>
+        <!-- <p v-if="item.colour == 'others' || others == true">
+        Enter Colour: <input type="text" v-model="item.colour" @input="markAsChanged" />
+        </p> -->
+                
+        <!-- <p>Colour: <input type="text" id="item" v-model="item.colour" @input="markAsChanged" /></p> -->
+        <p>Brand: <br><input type="text" id="item" v-model="item.brand" @input="markAsChanged" /></p>
+        <p>Location: <br><input type="text" id="item" v-model="item.location" @input="markAsChanged" /></p>
+        <!-- <p>Date & Time: <input type="text" id="item" v-model="item.date_time_lost" @input="markAsChanged" /></p> -->
+        <p v-if = "status == 'founder'"> Date & Time:<br> <input type="datetime-local" id="item" v-model="item.date_time_found" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
+        <p v-if="status == 'searcher'"> Date & Time:<br> <input type="datetime-local" id="item" v-model="item.date_time_lost" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
+        <p>Description:<br> <input type="text" id="item" v-model="item.description" @input="markAsChanged" /></p>
         <!-- <p>{{ itemId }}</p> -->
     </div>
 </template>
@@ -57,6 +79,8 @@ export default {
             initialItem: {}, // Store initial state
             changed: false,
             initial: false,
+            test: "",
+            others: false
             // lost_item: 1,// Will store item details, set as 1 if null will wrong idk why
         }
     },
@@ -170,11 +194,20 @@ export default {
     background-color: white;
     /* right: 500px; */
     border: 0.07rem;
-    max-width: 15.63rem;
+    max-width: 17rem;
     margin: 0.44rem;
     background-color: #fff;
     padding: 1.88rem;
     border: 0.07rem solid #ccc;
     /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
+}
+
+select, input {
+  width: 200px;  /* Set a fixed width */
+  height: 25px;  /* Set a fixed height */
+  padding: 1px;  /* Add some padding */
+  font-size: 16px;  /* Ensure text size is the same */
+  border: 1px solid #ccc;  /* Add a consistent border */
+  border-radius: 1px;  /* Optional: Rounded corners */
 }
 </style>

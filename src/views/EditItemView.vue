@@ -4,8 +4,10 @@
         <h3>You are {{ status_edit_item }}</h3>
 
         <div style="display: flex; justify-content: center; align-items: center">
-            <EditItem :lost_item_Id="this.lost_item_Id" :image="this.imageUrl" v-if="this.status_edit_item == 'searcher'" @changeMade="handleEdit" />
-            <EditItem :found_item_Id="this.found_item_Id" :image="this.imageUrl" v-if="this.status_edit_item == 'founder'" @changeMade="handleEdit" />
+            <EditItem :lost_item_Id="this.lost_item_Id" :image="this.imageUrl" v-if="this.status_edit_item == 'searcher'" @changeMade="handleEdit" 
+            style="width: 800px; height: 500px;"   />
+            <EditItem :found_item_Id="this.found_item_Id" :image="this.imageUrl" v-if="this.status_edit_item == 'founder'" @changeMade="handleEdit"
+            style="width: 800px; height: 500px;" />
         </div>
 
         <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px">

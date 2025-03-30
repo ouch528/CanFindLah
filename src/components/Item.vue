@@ -21,7 +21,8 @@
         <p>Colour: {{ item.colour }}</p>
         <p>Brand: {{ item.brand }}</p>
         <p>Location: {{ item.location }}</p>
-        <p>Date & Time: {{ item.date_time_lost }}</p>
+        <p v-if=" status == 'founder'">Date & Time: {{ item.date_time_found }}</p>
+        <p v-if=" status == 'searcher'">Date & Time: {{ item.date_time_lost }}</p>
         <p>Description: {{ item.description }}</p>
         <br />
         <!-- <p>{{ itemId }}</p> -->
@@ -205,6 +206,7 @@ export default {
                     await updateDoc(userRef, {
                         found_item_id_list: arrayRemove(this.found_item_Id), // Remove the item ID from the array
                     })
+                    console.log("yes")
                     await deleteDoc(docRef)
                 }
                 this.$emit('item-deleted')

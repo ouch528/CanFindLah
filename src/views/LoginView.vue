@@ -61,7 +61,6 @@ export default {
                 const userId = user.uid;
                 const userStore = useUserStore();
                 userStore.setUserId(userId);
-                console.log(userId)
                 alert('Login successful! Redirecting to home page.')
                 this.$router.push('/')
             } catch (error) {
