@@ -12,13 +12,13 @@
                 <label for="cat">Category </label> <br />
                 <select name="cat" id="cat" v-model="formData.category">
                     <option value="">--Please choose the category--</option>
-                    <option value="card">Card</option>
-                    <option value="waterbottle">Waterbottle</option>
-                    <option value="electronics">Electronics</option>
-                    <option value="stationary">Stationary</option>
-                    <option value="toys">Toys</option>
-                    <option value="clothing">Clothing</option>
-                    <option value="others">Others</option>
+                    <option value="Card">Card</option>
+                    <option value="Waterbottle">Waterbottle</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Stationary">Stationary</option>
+                    <option value="Toys">Toys</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Others">Others</option>
                 </select>
 
                 <br />
@@ -27,12 +27,12 @@
                 <label for="col">Colour </label> <br />
                 <select v-model="formData.color" id="col" required>
                     <option value="">--Please choose the colour--</option>
-                    <option value="red">Red</option>
-                    <option value="green">Green</option>
-                    <option value="blue">Blue</option>
-                    <option value="yellow">Yellow</option>
-                    <option value="black">Black</option>
-                    <option value="white">White</option>
+                    <option value="Red">Red</option>
+                    <option value="Green">Green</option>
+                    <option value="Blue">Blue</option>
+                    <option value="Yellow">Yellow</option>
+                    <option value="Black">Black</option>
+                    <option value="White">White</option>
                     <option value=" ">Others</option>
                 </select>
                 <br /><br />
