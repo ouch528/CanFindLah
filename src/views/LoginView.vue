@@ -29,7 +29,10 @@
                     <br />
 
                     <p class="error-message">{{ errorMessage }}</p>
-                    <p id="directToSignup">Don't have an account? <router-link style="text-decoration: none; color: #2c73eb" to="/signup">Sign up here</router-link></p>
+                    <p v-if="needsVerification" id="prompt">
+                        Haven't received the verification email? <span @click="resendVerificationEmail" style="color:#2c73eb; cursor: pointer;"> Click here to resend </span>
+                    </p>
+                    <p id="prompt">Don't have an account? <router-link style="text-decoration: none; color: #2c73eb" to="/signup">Sign up here</router-link></p>
                 </form>
             </div>
         </div>
@@ -37,7 +40,7 @@
 </template>
 
 <script>
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import { signInWithEmailAndPassword, signOut, sendEmailVerification } from 'firebase/auth'
 import { auth, db } from '../firebase'
 import { doc, setDoc, serverTimestamp, updateDoc, getDoc } from 'firebase/firestore'
 
@@ -48,6 +51,8 @@ export default {
             password: '',
             showPassword: false,
             errorMessage: '',
+            needsVerification: false,
+            unverifiedUser: null,
         }
     },
     methods: {
@@ -55,7 +60,7 @@ export default {
             this.showPassword = !this.showPassword
         },
         async loginUser() {
-            const attempts = doc(db, "loginattempts", this.email)
+            const attempts = doc(db, "Login Attempts", this.email)
             const attemptsSnap = await getDoc(attempts)
             const now = new Date()
             let newFailCount = 1
@@ -68,7 +73,7 @@ export default {
                 if (failCount >= 5 && diff < 600) {
                     const remainingMinutes = Math.ceil((600 - diff) / 60)
 
-                    this.errorMessage = `Account temporarily locked. Please try again in ${remainingMinutes} minute${remainingMinutes !== 1 ? "s" : ""}.`
+                    this.errorMessage = `Account temporarily locked due to too many failed attempts. Please try again in ${remainingMinutes} minute${remainingMinutes !== 1 ? "s" : ""}.`
                     return
                 }
             }
@@ -78,7 +83,10 @@ export default {
 
                 // user has not verified email
                 if (!auth.currentUser.emailVerified) {
+                    this.unverifiedUser = auth.currentUser
                     alert('Please verify your email before logging in.')
+                    this.needsVerification = true
+                    this.errorMessage = 'Please verify your email before logging in.'
                     await signOut(auth)
                     return
                 }
@@ -115,6 +123,20 @@ export default {
                 }
             }
         },
+        async resendVerificationEmail() {
+            try {
+                const user = this.unverifiedUser;
+                if (!user) {
+                    this.errorMessage = 'User info expired. Please log in again.';
+                    return;
+                }
+                await sendEmailVerification(user);
+                this.errorMessage = "Verification email sent! Please check your inbox.";
+            } catch (error) {
+                console.error(error);
+                this.errorMessage = "Failed to resend verification email. Please try again.";
+            }
+        }
     },
 }
 </script>
@@ -182,7 +204,7 @@ h1 {
 
 .error-message {
     margin-top: 0px;
-    margin-bottom: 5px;
+    margin-bottom: 15px;
     color: red;
 }
 
@@ -257,7 +279,7 @@ p {
     font-size: 1.25rem;
 }
 
-#directToSignup {
+#prompt {
     text-align: center;
 }
 </style>
