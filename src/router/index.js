@@ -9,6 +9,7 @@ import History from '../views/HistoryView.vue'
 import SignupView from '../views/SignupView.vue'
 import LoginView from '../views/LoginView.vue'
 import MatchingItem from '../views/MatchingItem.vue'
+import ClaimItem from '../views/ClaimItem.vue'
 
 const router = createRouter({
     history: createWebHistory(import.meta.env.BASE_URL),
@@ -64,6 +65,12 @@ const router = createRouter({
             path: '/matching_item',
             name: 'matching',
             component: MatchingItem,
+            meta: { requiresAuth: true },
+        },
+        {
+            path: '/claim_item',
+            name: 'claim',
+            component: ClaimItem,
             meta: { requiresAuth: true },
         },
     ],
