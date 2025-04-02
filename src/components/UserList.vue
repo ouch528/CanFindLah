@@ -31,7 +31,7 @@
 <script>
 import { ref, computed, watch } from 'vue'
 import {
-  doc, getDoc, setDoc, deleteDoc,
+  doc, getDoc, setDoc, deleteDoc, getDocs,
   serverTimestamp, collection, query,
   orderBy, limit, onSnapshot
 } from 'firebase/firestore'
@@ -119,30 +119,54 @@ export default {
     )
 
     const startChat = async (user) => {
-      const conversationId = [props.currentUserID, user.id].sort().join('-')
-      const conversationRef = doc(db, 'conversations', conversationId)
-      const snap = await getDoc(conversationRef)
+      // Generate a consistent conversationId by sorting the IDs
+      const conversationId = [props.currentUserID, user.id].sort().join('-');
+      const conversationRef = doc(db, 'conversations', conversationId);
+      const snap = await getDoc(conversationRef);
 
       if (!snap.exists()) {
         await setDoc(conversationRef, {
-          participants: [props.currentUserID, user.id],
+          roles: {
+            searcher: props.currentUserID,
+            founder: user.id
+          },
           createdAt: serverTimestamp()
-        })
+        });
       }
 
-      emit('conversationStarted', conversationId, user.id)
-    }
+      emit('conversationStarted', conversationId, user.id);
+    };
 
     const deleteConversation = async (partnerID) => {
-      const confirmDelete = confirm(`Are you sure you want to delete the conversation with this user?`)
-      if (!confirmDelete) return
+      const confirmDelete = confirm(`Are you sure you want to delete the conversation with this user?`);
+      if (!confirmDelete) return;
 
-      const conversationId = [props.currentUserID, partnerID].sort().join('-')
-      await deleteDoc(doc(db, 'conversations', conversationId))
-      lastMessages.value[partnerID] = undefined
+      // Use the same conversationId format as in startChat
+      const conversationId = `${props.currentUserID}-${partnerID}`;
+
+      // Delete all messages in the conversation's 'messages' subcollection
+      const messagesRef = collection(db, 'conversations', conversationId, 'messages');
+      const messagesSnapshot = await getDocs(messagesRef);
+      const deletePromises = [];
+      messagesSnapshot.forEach((docSnap) => {
+        deletePromises.push(deleteDoc(doc(db, 'conversations', conversationId, 'messages', docSnap.id)));
+      });
+      await Promise.all(deletePromises);
+
+      // Delete the conversation document
+      await deleteDoc(doc(db, 'conversations', conversationId));
+      lastMessages.value[partnerID] = undefined;
     }
 
     watch(() => props.currentUserID, loadLastMessages)
+    watch(
+      [() => props.currentUserID, () => users.value],
+      ([currentID, allUsers]) => {
+        if (currentID && allUsers.length) {
+          loadLastMessages();
+        }
+      }
+    );
 
     return {
       filteredUsers,

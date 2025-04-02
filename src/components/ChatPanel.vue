@@ -53,6 +53,10 @@
           </div>
           <div class="message-info">
             <span class="timestamp">{{ formatTimestamp(message.timestamp) }}</span>
+            <span v-if="message.sender === currentUserID" class="read-receipt">
+              <span v-if="message.readAt">✓✓</span>
+              <span v-else>✓</span>
+            </span>
           </div>
         </div>
       </div>
@@ -122,6 +126,7 @@ export default {
     let unsubscribe = null;
     const messageContainer = ref(null);
     const isSending = ref(false);
+    const updatedMessageIds = new Set();
     watch(() => props.partnerID, () => {
       fetchPartnerName();
     });
@@ -162,6 +167,25 @@ export default {
       const q = query(messagesRef, orderBy('timestamp'));
       unsubscribe = onSnapshot(q, (snapshot) => {
         messages.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        
+        // Loop through each message document to mark unread messages as read only once
+        snapshot.docs.forEach((docSnap) => {
+          const msg = docSnap.data();
+          // If the message is not sent by the current user, hasn't been marked as read yet, and hasn't been updated already
+          if (msg.sender !== props.currentUserID && !msg.readAt && !updatedMessageIds.has(docSnap.id)) {
+            updateDoc(
+              doc(db, 'conversations', props.conversationId, 'messages', docSnap.id),
+              { readAt: serverTimestamp() }
+            )
+              .then(() => {
+                updatedMessageIds.add(docSnap.id);
+              })
+              .catch((error) => {
+                console.error('Error updating read receipt:', error);
+              });
+          }
+        });
+
         nextTick(() => {
           if (messageContainer.value) {
             messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
@@ -256,6 +280,7 @@ export default {
             text: newMessage.value.trim(),
             sender: props.currentUserID,
             timestamp: serverTimestamp(),
+            readAt: null,
             attachmentUrl: '',
             attachmentType,
             attachmentName,
@@ -274,7 +299,8 @@ export default {
           await addDoc(collection(db, 'conversations', props.conversationId, 'messages'), {
             text: newMessage.value.trim(),
             sender: props.currentUserID,
-            timestamp: serverTimestamp()
+            timestamp: serverTimestamp(),
+            readAt: null
           });
         }
         newMessage.value = '';
@@ -573,5 +599,11 @@ export default {
   border-radius: 6px;
   max-width: 200px;
   text-align: center;
+}
+
+.read-receipt {
+  margin-left: 8px;
+  font-size: 0.9rem;
+  color: #666;
 }
 </style>
