@@ -23,6 +23,7 @@
                             <i :class="showPassword ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
                         </span>
                     </div>
+                    <p id="forgot-password"><span @click="forgotPassword">Forgot password?</span></p>
                     <br />
 
                     <button type="submit">Login</button>
@@ -40,7 +41,7 @@
 </template>
 
 <script>
-import { signInWithEmailAndPassword, signOut, sendEmailVerification } from 'firebase/auth'
+import { signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail, fetchSignInMethodsForEmail } from 'firebase/auth'
 import { auth, db } from '../firebase'
 import { doc, setDoc, serverTimestamp, updateDoc, getDoc } from 'firebase/firestore'
 
@@ -58,6 +59,28 @@ export default {
     methods: {
         togglePassword() {
             this.showPassword = !this.showPassword
+        },
+        async forgotPassword() {
+            if (!this.email) {
+                alert('Please enter your email address first.')
+                return
+            }
+            const confirmed = confirm('Reset password? A password reset email will be sent to your inbox')
+            if (!confirmed) return
+            
+            try {
+                const methods = await fetchSignInMethodsForEmail(auth, this.email)
+
+                await sendPasswordResetEmail(auth, this.email)
+                alert('If your email exists, a reset link will be sent.')
+            } catch (error) {
+                console.error("Reset error: ", error);
+                if (error.code === "auth/invalid-email") {
+                    this.errorMessage = "Please enter a valid email address.";
+                } else {
+                    this.errorMessage = "Failed to send reset email. Please try again.";
+                }
+            }
         },
         async loginUser() {
             const attempts = doc(db, "Login Attempts", this.email)
@@ -104,7 +127,7 @@ export default {
                     const { failCount, lastAttempt } = attemptsSnap.data();
                     const diff = (now - lastAttempt.toDate()) / 1000 // in seconds
                     
-                    if (diff < 600) { // last failed login attempt was less than 10 minutes
+                    if (diff < 300) { // last failed login attempt was less than 5 minutes
                         newFailCount = failCount + 1; // increment fail count
                     }
                 }
@@ -277,6 +300,17 @@ button {
 
 p {
     font-size: 1.25rem;
+}
+
+#forgot-password {
+    margin-top: 0px;
+    font-size: 1rem;
+    text-align: right;
+    color: #8692a6;
+}
+
+#forgot-password span {
+    cursor: pointer;
 }
 
 #prompt {
