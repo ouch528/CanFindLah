@@ -216,7 +216,8 @@ export default {
                     let imageUrl = ''
 
                     if (this.formData.image) {
-                        const imageRef = ref(storage, `found_items/${Date.now()}-${this.formData.image.name}`)
+                        var image_file_path = `found_items/${Date.now()}-${this.formData.image.name}`
+                        const imageRef = ref(storage, image_file_path)
                         const snapshot = await uploadBytes(imageRef, this.formData.image)
                         imageUrl = await getDownloadURL(snapshot.ref)
                     }
@@ -232,6 +233,7 @@ export default {
                         claimed_status: 'Not Found Yet',
                         found_item_id: 'empty for now',
                         photo: imageUrl,
+                        photo_directory: image_file_path
                     })
                     const userStore = useUserStore();
                     console.log("User ID:", userStore.userId);

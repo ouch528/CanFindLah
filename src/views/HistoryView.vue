@@ -93,7 +93,7 @@ export default {
         <!-- user_id is for future when user configuration is implemented (when delete need update the history via user id) -->
         <Item v-for="found_item_Id in found_item_Ids" :key="found_item_Id" :found_item_Id="found_item_Id" :user_id="user_id" v-if="status == 'all' || status == 'founder'" @item-deleted="fetchItems" id="card" />
 
-        <Item v-for="lost_item_Id in lost_item_Ids" :key="lost_item_Id" :lost_item_Id="lost_item_Id" :user_id="user_id" v-if="status == 'all' || status == 'searcher'" @item-deleted="fetchItems" />
+        <Item v-for="lost_item_Id in lost_item_Ids" :key="lost_item_Id" :lost_item_Id="lost_item_Id" :user_id="user_id" v-if="status == 'all' || status == 'searcher'" @item-deleted="fetchItems" id = "card"/>
         <!-- <Item /> -->
     </div>
 
@@ -152,12 +152,19 @@ body {
     font-family: Inter;
 }
 
-select {
-    padding: 0.32rem 0.38rem;
+#select-bar select {
+    /* padding: 0.32rem 0.38rem; */
     border-radius: 0.32rem;
     border: 0.07rem solid #ccc;
-    background-color: white;
+    background-color: ba;
     cursor: pointer;
+    width: 200px;  /* Set a fixed width */
+    height: 25px;  /* Set a fixed height */
+    padding: 1px;  /* Add some padding */
+    font-size: 16px;  /* Ensure text size is the same */
+    font-family: 'Arial';
+    /* background-color: rgba(251, 240, 230, 1); */
+    box-sizing: border-box;
 }
 
 #item-display {
@@ -178,4 +185,6 @@ h5 {
     color: grey;
     font-size: 1.5rem;
 }
+
+
 </style>

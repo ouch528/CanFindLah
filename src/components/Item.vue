@@ -13,7 +13,11 @@
         </div> -->
         <div class="image-container">
             <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError" />
-            <img v-else :src="failed_image" />
+            <img v-else :src ="failed_image"/>
+            <router-link to="/edit?status_edit_item=searcher&edit_item_id=YsmFFHlbIil3k4M7W1qj&image=">
+                <div class="alert-icon">!</div>
+            </router-link>
+            
         </div>
 
         <h3>{{ item.name }}</h3>
@@ -41,13 +45,15 @@
                 </div>
             </div>
         </div>
+        
+        
     </div>
 </template>
 
 <script>
 import { app, storage } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
-import { ref, getDownloadURL } from 'firebase/storage'
+import { ref, getDownloadURL, getStorage, deleteObject } from 'firebase/storage'
 import { collection, getDoc, doc, deleteDoc, updateDoc, arrayRemove } from 'firebase/firestore'
 import 'primeicons/primeicons.css'
 import { useUserStore } from "@/stores/user-store";
@@ -80,6 +86,19 @@ export default {
     async created() {
         await this.fetchItemDetails()
         await this.fetchItemDetails_lost() // Fetch item details when component is created
+        // const storage = getStorage();
+        //             console.log(this.found_item_Id)
+                    
+        //             const docRef = doc(db, 'Found Item', "zY5xtPpDQFuEvQds4UVw")
+        //             const docSnap = await getDoc(docRef);
+        //             const data = docSnap.data()
+        //             const desertRef = ref(storage, "found_items/1743705909082");
+        //             console.log(desertRef)
+        //             deleteObject(desertRef).then(() => {
+        //             // File deleted successfully
+        //             }).catch((error) => {
+        //             console.log(error)
+        //             });
     },
 
     watch: {
@@ -195,13 +214,25 @@ export default {
                     // console.log(this.item)
                     const docRef = doc(db, 'Lost Item', this.lost_item_Id)
                     const userRef = doc(db, 'History', user_id)
+
                     await updateDoc(userRef, {
                         lost_item_id_list: arrayRemove(this.lost_item_Id), // Remove the item ID from the array
                     })
                     await deleteDoc(docRef)
                 } else {
+                    const storage = getStorage();
                     console.log(this.found_item_Id)
-                    const docRef = doc(db, 'Found_Item', this.found_item_Id)
+                    
+                    const docRef = doc(db, 'Found Item', this.found_item_Id)
+                    const docSnap = await getDoc(docRef);
+                    const data = docSnap.data()
+                    const desertRef = ref(storage, `${data.photo_directory}`);
+                    console.log(desertRef)
+                    deleteObject(desertRef).then(() => {
+                    // File deleted successfully
+                    }).catch((error) => {
+                    console.log(error)
+                    });
                     const userRef = doc(db, 'History', user_id)
                     await updateDoc(userRef, {
                         found_item_id_list: arrayRemove(this.found_item_Id), // Remove the item ID from the array
@@ -277,9 +308,8 @@ export default {
     margin: 0.44rem;
     background-color: #fff;
     padding: 1.25rem;
+    width : 31.25rem;
     border: 0.0625rem solid #ccc;
-    width: 31.25rem;
-    height: 21.88rem;
     /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
 }
 
@@ -306,12 +336,14 @@ p {
     color: grey;
     /* display: inline; */
     font-size: 1rem;
+  
 }
 
 .boxes {
     display: inline-flex; /* Arrange boxes horizontally */
     align-items: center; /* Vertically align items */
     gap: 0.625rem; /* Space between boxes */
+
 }
 
 .status {
@@ -352,8 +384,8 @@ p {
     /* max-width: 100%;
     height: auto;
     object-fit: contain; */
-    width: 100px;
-    height: 100px;
+    width: 9.4rem;
+    height: 9.4rem;
     object-fit: cover;
 }
 
@@ -395,5 +427,34 @@ p {
 
 .action-menu button:hover {
     background-color: #e0e0e0; /* Slightly darker on hover */
+}
+
+
+.similar {
+    text-align: center;
+}
+
+button.update {
+    border: none;
+}
+
+.row-wrap{
+    display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.alert-icon {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: red;
+  color: white;
+  font-weight: bold;
+  border-radius: 50%;
+  padding: 0.3rem 0.6rem;
+  font-size: 1rem;
+  z-index: 5;
+  box-shadow: 0 0 5px rgba(0,0,0,0.2);
 }
 </style>

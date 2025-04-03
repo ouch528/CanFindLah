@@ -12,52 +12,65 @@
             <p class = "you-are">Founder</p>
         </div> -->
         <div class="image-container">
-            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError" />
-            <img v-else :src="failed_image" />
+            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError"/>
+            <img v-else :src ="failed_image"/>
             <!-- <p v-else>Loading image...</p> -->
         </div>
 
         <!-- <p>{{ $route.params.edit_item.name }}</p> -->
-
-        <h3>{{ item.name }}</h3>
-        <p>Category: <br><select id="item" v-model="item.category" @change = "markAsChanged">
-                    <option value="Card">Card</option>
-                    <option value="Waterbottle">Waterbottle</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Stationary">Stationary</option>
-                    <option value="Toys">Toys</option>
-                    <option value="Clothing">Clothing</option>
-                    <option value="Others">Others</option>
-                </select></p>
-        <p>Colour: <br><select v-model="item.colour" id="item" @change = "markAsChanged">
-                    <option value="Red">Red</option>
-                    <option value="Green">Green</option>
-                    <option value="Blue">Blue</option>
-                    <option value="Yellow">Yellow</option>
-                    <option value="Black">Black</option>
-                    <option value="White">White</option>
-                    <option value="Others">Others</option>
-                </select></p>
-        <!-- <p v-if="item.colour == 'others' || others == true">
-        Enter Colour: <input type="text" v-model="item.colour" @input="markAsChanged" />
-        </p> -->
-                
-        <!-- <p>Colour: <input type="text" id="item" v-model="item.colour" @input="markAsChanged" /></p> -->
-        <p>Brand: <br><input type="text" id="item" v-model="item.brand" @input="markAsChanged" /></p>
-        <p>Location: <br><input type="text" id="item" v-model="item.location" @input="markAsChanged" /></p>
-        <!-- <p>Date & Time: <input type="text" id="item" v-model="item.date_time_lost" @input="markAsChanged" /></p> -->
-        <p v-if = "status == 'founder'"> Date & Time:<br> <input type="datetime-local" id="item" v-model="item.date_time_found" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
-        <p v-if="status == 'searcher'"> Date & Time:<br> <input type="datetime-local" id="item" v-model="item.date_time_lost" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
-        <p>Description:<br> <input type="text" id="item" v-model="item.description" @input="markAsChanged" /></p>
-        <!-- <p>{{ itemId }}</p> -->
+        <div class = "edit-item"> 
+            <h3 class = "item-name">{{ item.name }}</h3>
+            <p class = "word">Category:</p><p class = "edit-box"><select id="item" v-model="item.category" @change = "markAsChanged">
+                        <option value="Card">Card</option>
+                        <option value="Waterbottle">Waterbottle</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Stationary">Stationary</option>
+                        <option value="Toys">Toys</option>
+                        <option value="Clothing">Clothing</option>
+                        <option value="Others">Others</option>
+                    </select></p>
+            <p class = "word">Colour:</p> <p class = "edit-box"><select v-model="item.colour" id="item" @change = "markAsChanged">
+                        <option value="Red">Red</option>
+                        <option value="Green">Green</option>
+                        <option value="Blue">Blue</option>
+                        <option value="Yellow">Yellow</option>
+                        <option value="Black">Black</option>
+                        <option value="White">White</option>
+                        <option value="Others">Others</option>
+                    </select></p>
+            <!-- <p v-if="item.colour == 'others' || others == true">
+            Enter Colour: <input type="text" v-model="item.colour" @input="markAsChanged" />
+            </p> -->
+                    
+            <!-- <p>Colour: <input type="text" id="item" v-model="item.colour" @input="markAsChanged" /></p> -->
+            <p class = "word">Brand:</p> <p class = "edit-box"><input type="text" id="item" v-model="item.brand" @input="markAsChanged" /></p>
+            <p class = "word">Location:</p> <p class = "edit-box"><input type="text" id="item" v-model="item.location" @input="markAsChanged" /></p>
+            <!-- <p>Date & Time: <input type="text" id="item" v-model="item.date_time_lost" @input="markAsChanged" /></p> -->
+            <p v-if = "status == 'founder'" class = "word"> Date & Time:</p><p class = "edit-box" v-if = "status == 'founder'"> <input type="datetime-local" id="item" v-model="item.date_time_found" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
+            <p v-if= "status == 'searcher'" class = "word"> Date & Time:</p><p class = "edit-box" v-if= "status == 'searcher'"><input type="datetime-local" id="item" v-model="item.date_time_lost" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
+            <p class = "word">Description:</p><p class = "edit-box"><input type="text" id="item" v-model="item.description" @input="markAsChanged" /></p>
+            <!-- <p>{{ itemId }}</p> -->
+            <div id="upload-img" v-if = "status == 'founder'">
+                    <input type="file" @change="handleImageUpload" id="default-upload" accept="image/*" />
+                    <label for="default-upload">
+                        <img src="@/assets/upload.png" alt="Upload Icon" id="upload-icon" />
+                        <!-- <span id="instruction">{{ instruction }}</span> -->
+                    </label>
+                    <br /><br />
+                    <!-- <div v-if="imagePreview">
+                        <img :src="imagePreview" alt="Uploaded Image" id="image-preview" />
+                    </div> -->
+            </div>
+        </div>
     </div>
 </template>
 
 <script>
 import { app, storage } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
-import { ref, getDownloadURL } from 'firebase/storage'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { collection, getDoc, doc, deleteDoc } from 'firebase/firestore'
+// import failedImage from '@/assets/still_finding_yet.jpg';
 import 'primeicons/primeicons.css'
 
 const db = getFirestore(app)
@@ -75,12 +88,14 @@ export default {
             status: '',
             imageUrl: '',
             showMenu: false,
-            failed_image: '',
+            failed_image: "",
             initialItem: {}, // Store initial state
             changed: false,
             initial: false,
             test: "",
-            others: false
+            others: false,
+            image_change : false,
+            change_image :''
             // lost_item: 1,// Will store item details, set as 1 if null will wrong idk why
         }
     },
@@ -170,20 +185,63 @@ export default {
             }
         },
 
-        markAsChanged() {
+        async markAsChanged() {
+            // console.log(this.image_change)
             this.item.name = `${this.item.colour} ${this.item.category}`
             // console.log(this.item)
-            this.changed = JSON.stringify(this.item) !== JSON.stringify(this.initialItem)
+            // if (this.image_change == false) {
+                this.changed = JSON.stringify(this.item) !== JSON.stringify(this.initialItem)
+            // }
 
             // Emit event only when a change is detected
             if (this.changed) {
-                this.$emit('changeMade', { ...this.item }) // Emit a copy of the updated data
+                this.$emit('changeMade', { ...this.item}) // Emit a copy of the updated data
             }
         },
 
         handleImageError(event) {
             this.imageUrl = this.failed_image // Fallback image
         },
+
+        // handleFileUpload(event) {
+        //     const file = event.target.files[0]
+        //     if (file) {
+        //         this.change_image = file
+        //         // this.imagePreview = URL.createObjectURL(file)
+        //         // this.instruction = 'Reupload Image'
+        //     }
+        //     this.$emit('changeMade', { ...this.item, changing : true })
+        //     this.image_change = true
+        //     console.log("erm")
+        //     this.handleImageUpload()
+            
+        // },
+
+        async handleImageUpload(event) {
+            var file = event.target.files[0];
+            if (!file) return;
+            this.uploadingImage = true;
+            this.$emit('uploading', true); // notify parent
+
+            try {
+                // var image_file_path = `found_items/${Date.now()}-${file.name}`
+                const storageReference = ref(storage, image_file_path)
+                const snapshot = await uploadBytes(storageReference, file);
+                const url = await getDownloadURL(snapshot.ref);
+                this.image_change_url = url;
+                this.hasChanges = true;
+                this.$emit('changeMade', {
+                ...this.editedData,
+                image_change_url: url,
+                });
+            } catch (error) {
+                console.error("Image upload failed:", error);
+            } finally {
+                this.uploadingImage = false;
+                this.$emit('uploading', false); // done uploading
+                this.$emit('', true);
+            }
+        }
     },
 }
 </script>
@@ -202,12 +260,65 @@ export default {
     /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
 }
 
-select, input {
-  width: 200px;  /* Set a fixed width */
-  height: 25px;  /* Set a fixed height */
-  padding: 1px;  /* Add some padding */
-  font-size: 16px;  /* Ensure text size is the same */
-  border: 1px solid #ccc;  /* Add a consistent border */
-  border-radius: 1px;  /* Optional: Rounded corners */
+.edit-item select, .edit-item input {
+    width: 22rem;  /* Set a fixed width */
+    height: 25px;  /* Set a fixed height */
+    padding: 1px;  /* Add some padding */
+    font-size: 16px;  /* Ensure text size is the same */
+    border: 1px solid #ccc;  /* Add a consistent border */
+    border-radius: 1px;  /* Optional: Rounded corners */
+    font-family: 'Arial';
+    background-color: rgba(251, 240, 230, 1);
+    border-radius: 0.625rem;
+    line-height: 2;
+    border: none;
+    box-sizing: border-box;
+    align-content: center;
 }
+
+.edit-item p {
+    font-family: Arial;
+    margin-top: 0.25rem; /* Adjust the top margin */
+    margin-bottom: 0.5rem;
+    /* color: grey; */
+    /* display: inline; */
+    font-size: 1rem;
+    font-weight: 600;
+    /* text-align: center; */
+
+}
+
+
+.formli label {
+    margin-left: 5.8125rem;
+    display: inline-block;
+    width: 24.8125rem;
+    height: 1.75rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+#upload-img {
+    background-color: rgba(251, 240, 230, 1);
+    margin-left: 5.8125rem;
+    margin-right: 5.8125rem;
+    border-radius: 0.625rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+}
+
+.word{
+    margin-left: 5rem;
+}
+
+.edit-box{
+    text-align: center;
+}
+
+.item-name {
+    text-align: center;
+}
+
+
 </style>

@@ -1,19 +1,22 @@
 <template>
-    <div style="text-align: center">
+    <div overflow: auto>
+        <div style="text-align: center">
         <h1>Edit This Item <br /></h1>
         <h3>You are {{ status_edit_item }}</h3>
-
-        <div style="display: flex; justify-content: center; align-items: center">
-            <EditItem :lost_item_Id="this.lost_item_Id" :image="this.imageUrl" v-if="this.status_edit_item == 'searcher'" @changeMade="handleEdit" 
-            style="width: 800px; height: 500px;"   />
-            <EditItem :found_item_Id="this.found_item_Id" :image="this.imageUrl" v-if="this.status_edit_item == 'founder'" @changeMade="handleEdit"
-            style="width: 800px; height: 500px;" />
+        </div>
+        
+        <div style="display: flex; justify-content: center; ">
+            <EditItem :lost_item_Id="this.lost_item_Id" :image="this.imageUrl" v-if="this.status_edit_item == 'searcher'" @changeMade="handleEdit" @uploading="handleUploading"
+              class = "edit-item"/>
+            <EditItem :found_item_Id="this.found_item_Id" :image="this.imageUrl" v-if="this.status_edit_item == 'founder'" @changeMade="handleEdit" @uploading="handleUploading"
+            class = "edit-item" />
         </div>
 
-        <div style="display: flex; justify-content: center; gap: 20px; margin-top: 20px">
-            <button :disabled="!hasChanges" @click="uploadChanges" class="btn primary">Edit Item</button>
+        <div style=" justify-content: center; gap: 20px; margin-top: 20px; display: flex;">
+            <button :disabled="!hasChanges || uploadingImage" @click="uploadChanges" class="btn primary">Edit Item</button>
             <button id="back-button" class="btn secondary" @click="goBack">Back</button>
         </div>
+
     </div>
 </template>
 
@@ -38,21 +41,26 @@ export default {
             status_edit_item: this.$route.query.status_edit_item,
             found_item_Id: this.$route.query.edit_item_id,
             imageUrl: this.$route.query.image,
-            hasChanges: false,
             editedData: null,
+            edited_image: null,
+            hasChanges: false,
+            uploadingImage: false,
         }
     },
 
     methods: {
         handleEdit(updatedItem) {
             this.editedData = updatedItem
+            this.edited_image = updatedItem.image_change_url
+            console.log(this.editedData)
             this.hasChanges = true
+            
         },
 
         async uploadChanges() {
             if (this.editedData && this.status_edit_item == 'searcher') {
                 try {
-                    console.log(this.editedData.lost_item_id)
+                    console.log(this.lost_item_Id)
                     const docRef = doc(db, 'Lost Item', this.lost_item_Id)
                     await setDoc(docRef, this.editedData, { merge: true })
                     this.hasChanges = false
@@ -64,10 +72,10 @@ export default {
                 }
             } else if (this.editedData && this.status_edit_item == 'founder') {
                 try {
-                    console.log(this.editedData.found_item_id)
+                    console.log(this.found_item_Id_item_Id)
                     const docRef = doc(db, 'Found Item', this.found_item_Id)
-                    await setDoc(docRef, this.editedData, { merge: true })
-
+                    
+                    await setDoc(docRef, {...this.editedData, photo: this.edited_image,}, { merge: true })
                     this.hasChanges = false
                     this.editedData = null
                     alert('Item edited successfully!')
@@ -81,7 +89,22 @@ export default {
         goBack() {
             // Use Vue Router to navigate to a different page (e.g., "Home Page")
             this.$router.push('/history') // Replace with your desired route path
+            this.edited_image = null
         },
+
+        handleUploading(isUploading) {
+            
+            this.uploadingImage = isUploading;
+            console.log(this.uploadingImage)
+            console.log(this.hasChanges)
+            if (this.uploadingImage == false){
+                this.hasChanges = true
+            }
+        },
+
+
+
+
     },
 }
 </script>
@@ -114,5 +137,11 @@ export default {
 
 .btn:hover {
     transform: scale(1.05);
+}
+
+.edit-item {
+    max-width: 500px; 
+    /* height: 550px; */
+    border-radius: 1rem;
 }
 </style>
