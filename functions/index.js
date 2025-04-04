@@ -10,28 +10,14 @@ export const sendWelcomeEmail = onDocumentUpdated('Lost Item/{lost_item_id}', as
 
   // Check if claimed_status changed from "Not Found Yet" to "Matched"
   if (beforeData.claimed_status === 'Not Found Yet' && afterData.claimed_status === 'Matched') {
-    // Retrieve userId from the Lost Item document (ensure this field exists)
-    const userId = afterData.userId;
-    if (!userId) {
-      console.log('No userId found in Lost Item document.');
+    // Use the userEmail field directly from the Lost Item document
+    const userEmail = afterData.userEmail;
+    if (!userEmail) {
+      console.log('No userEmail found in Lost Item document.');
       return;
     }
 
     try {
-      // Retrieve the user document from the "users" collection
-      const userDoc = await admin.firestore().collection('users').doc(userId).get();
-      if (!userDoc.exists) {
-        console.log(`User document not found for userId: ${userId}`);
-        return;
-      }
-
-      // Extract the email from the user document (assumes the field is named "email")
-      const userEmail = userDoc.data().email;
-      if (!userEmail) {
-        console.log(`No email found for userId: ${userId}`);
-        return;
-      }
-
       // Add a mail document to the "mail" collection so that your email service can process it
       await admin.firestore().collection('mail').add({
         to: userEmail,
@@ -42,10 +28,11 @@ export const sendWelcomeEmail = onDocumentUpdated('Lost Item/{lost_item_id}', as
       });
       console.log(`Email queued for user: ${userEmail}`);
     } catch (error) {
-      console.error('Error retrieving user or queuing email:', error);
+      console.error('Error queuing email:', error);
     }
   }
 });
+
 
 
 
