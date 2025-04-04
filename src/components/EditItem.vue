@@ -14,6 +14,7 @@
         <div class="image-container">
             <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError"/>
             <img v-else :src ="failed_image"/>
+            <i class="pi pi-refresh" id="pencil" @click="refresh" title="Click this to revert all your changes"></i>
             <!-- <p v-else>Loading image...</p> -->
         </div>
 
@@ -288,6 +289,12 @@ export default {
                 this.$emit('noUpdate', false);
             }
         },
+
+        refresh() {
+            Object.assign(this.item, JSON.parse(JSON.stringify(this.initialItem)));
+            this.$emit('noUpdate', false);
+            this.removeImage()
+        }
     },
 }
 </script>

@@ -40,7 +40,7 @@
                 <i class="pi pi-pencil" id="pencil" @click="toggleMenu"></i>
 
                 <div v-if="showMenu" class="action-menu">
-                    <button @click="updateItem">Update</button>
+                    <button @click="updateItem">Edit</button>
                     <button @click="deleteItem">Delete</button>
                 </div>
             </div>
@@ -182,7 +182,7 @@ export default {
                 alert('You cannot edit a matched item')
                 return
             }
-            alert('Update item clicked')
+            alert('Edit item clicked')
             if (this.status == 'searcher') {
                 this.$router.push({
                     name: 'edit_item',
@@ -206,43 +206,45 @@ export default {
         },
 
         async deleteItem() {
-            try {
-                alert('Delete item clicked')
-                const userStore = useUserStore();
-                const user_id = userStore.userId
-                if (this.status == 'searcher') {
-                    // console.log(this.item)
-                    const docRef = doc(db, 'Lost Item', this.lost_item_Id)
-                    const userRef = doc(db, 'History', user_id)
+            if (confirm("Are you sure you want to delete this item") == true) {
+                try {
+                    alert('Delete item clicked')
+                    const userStore = useUserStore();
+                    const user_id = userStore.userId
+                    if (this.status == 'searcher') {
+                        // console.log(this.item)
+                        const docRef = doc(db, 'Lost Item', this.lost_item_Id)
+                        const userRef = doc(db, 'History', user_id)
 
-                    await updateDoc(userRef, {
-                        lost_item_id_list: arrayRemove(this.lost_item_Id), // Remove the item ID from the array
-                    })
-                    await deleteDoc(docRef)
-                } else {
-                    const storage = getStorage();
-                    console.log(this.found_item_Id)
-                    
-                    const docRef = doc(db, 'Found Item', this.found_item_Id)
-                    const docSnap = await getDoc(docRef);
-                    const data = docSnap.data()
-                    const desertRef = ref(storage, `${data.photo_directory}`);
-                    console.log(desertRef)
-                    deleteObject(desertRef).then(() => {
-                    // File deleted successfully
-                    }).catch((error) => {
-                    console.log(error)
-                    });
-                    const userRef = doc(db, 'History', user_id)
-                    await updateDoc(userRef, {
-                        found_item_id_list: arrayRemove(this.found_item_Id), // Remove the item ID from the array
-                    })
-                    console.log("yes")
-                    await deleteDoc(docRef)
+                        await updateDoc(userRef, {
+                            lost_item_id_list: arrayRemove(this.lost_item_Id), // Remove the item ID from the array
+                        })
+                        await deleteDoc(docRef)
+                    } else {
+                        const storage = getStorage();
+                        console.log(this.found_item_Id)
+                        
+                        const docRef = doc(db, 'Found Item', this.found_item_Id)
+                        const docSnap = await getDoc(docRef);
+                        const data = docSnap.data()
+                        const desertRef = ref(storage, `${data.photo_directory}`);
+                        console.log(desertRef)
+                        deleteObject(desertRef).then(() => {
+                        // File deleted successfully
+                        }).catch((error) => {
+                        console.log(error)
+                        });
+                        const userRef = doc(db, 'History', user_id)
+                        await updateDoc(userRef, {
+                            found_item_id_list: arrayRemove(this.found_item_Id), // Remove the item ID from the array
+                        })
+                        console.log("yes")
+                        await deleteDoc(docRef)
+                    }
+                    this.$emit('item-deleted')
+                } catch (error) {
+                    console.error('Error deleting document: ', error)
                 }
-                this.$emit('item-deleted')
-            } catch (error) {
-                console.error('Error deleting document: ', error)
             }
 
             this.showMenu = false // Close menu after action

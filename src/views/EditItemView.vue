@@ -59,30 +59,32 @@ export default {
         },
 
         async uploadChanges() {
-            if (this.editedData && this.status_edit_item == 'searcher') {
-                try {
-                    console.log(this.lost_item_Id)
-                    const docRef = doc(db, 'Lost Item', this.lost_item_Id)
-                    await setDoc(docRef, this.editedData, { merge: true })
-                    this.hasChanges = false
-                    this.editedData = null
-                    alert('Item edited successfully!')
-                    this.$router.push('/history')
-                } catch (error) {
-                    console.error('Error uploading data:', error)
-                }
-            } else if (this.editedData && this.status_edit_item == 'founder') {
-                try {
-                    console.log(this.found_item_Id_item_Id)
-                    const docRef = doc(db, 'Found Item', this.found_item_Id)
+            if (confirm("Are you sure you want to edit this item?") == true) {
+                if (this.editedData && this.status_edit_item == 'searcher') {
+                    try {
+                        console.log(this.lost_item_Id)
+                        const docRef = doc(db, 'Lost Item', this.lost_item_Id)
+                        await setDoc(docRef, this.editedData, { merge: true })
+                        this.hasChanges = false
+                        this.editedData = null
+                        alert('Item edited successfully!')
+                        this.$router.push('/history')
+                    } catch (error) {
+                        console.error('Error uploading data:', error)
+                    }
+                } else if (this.editedData && this.status_edit_item == 'founder') {
+                    try {
+                        console.log(this.found_item_Id_item_Id)
+                        const docRef = doc(db, 'Found Item', this.found_item_Id)
 
-                    await setDoc(docRef, {...this.editedData, photo: this.edited_image, photo_directory: this.image_file_path}, { merge: true })
-                    this.hasChanges = false
-                    this.editedData = null 
-                    alert('Item edited successfully!')
-                    this.$router.push('/history')
-                } catch (error) {
-                    console.error('Error uploading data:', error)
+                        await setDoc(docRef, {...this.editedData, photo: this.edited_image, photo_directory: this.image_file_path}, { merge: true })
+                        this.hasChanges = false
+                        this.editedData = null 
+                        alert('Item edited successfully!')
+                        this.$router.push('/history')
+                    } catch (error) {
+                        console.error('Error uploading data:', error)
+                    }
                 }
             }
         },
