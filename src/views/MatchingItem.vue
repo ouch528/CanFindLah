@@ -3,7 +3,8 @@
     <div>
         <!-- Loading and error messages -->
         <p v-if="loading">Searching for matching items...</p>
-        <p v-if="error" class="error">{{ error }}</p>
+
+        <p v-if="errorMessage === 'The lost item has already been matched.'" id="already-matched">This lost item has already been matched with another item.</p>
 
         <!-- Display matching items using the SimilarItem component -->
         <div class="card-container" v-if="matchingItems.length > 0">
@@ -11,7 +12,7 @@
         </div>
 
         <!-- No matching items message -->
-        <p id="no-match" v-else-if="!loading && !matchingItems.length">
+        <p id="no-match" v-else-if="!loading && !matchingItems.length && !errorMessage">
             No matching items found yet. <br />
             <br />
             An email notification will be sent if a similar item has been found.
@@ -22,8 +23,10 @@
 </template>
 
 <script>
+import { doc, getDoc } from 'firebase/firestore' // Import Firestore v9 functions
 import SimilarItem from '@/components/SimilarItem.vue'
 import { findMatchingItems } from '@/components/matchingService.js'
+import { db } from '@/firebase' // Assuming db is the Firestore instance
 
 export default {
     name: 'MatchingItem',
@@ -34,31 +37,61 @@ export default {
         return {
             matchingItems: [],
             loading: false,
-            error: '',
+            errorMessage: '', // Error message to display if any
         }
     },
     async mounted() {
-        this.loading = true
+        this.refreshMatchingItems()
+    },
+    methods: {
+        async refreshMatchingItems() {
+            this.loading = true
+            this.errorMessage = '' // Clear any previous error messages
+            try {
+                console.log('Query Parameters:', this.$route.query)
 
-        try {
-            console.log('Query Parameters:', this.$route.query)
+                const lostItem = this.$route.query.lostItem
+                const lostItemID = this.$route.query.id
 
-            const lostItem = this.$route.query.lostItem
-            const lostItemID = this.$route.query.id
+                console.log('Lost Item ID:', lostItemID)
 
-            console.log('Lost Item ID:', lostItemID)
+                if (!lostItem || !lostItemID) {
+                    this.errorMessage = 'Lost item data is missing.'
+                    return
+                }
 
-            if (!lostItem) {
-                throw new Error('')
+                // Fetch the lost item document from Firestore
+                const lostItemDocRef = doc(db, 'Lost Item', lostItemID) // Get the document reference
+                const lostItemDocSnap = await getDoc(lostItemDocRef) // Fetch the document
+
+                // Check if the document exists and if the claimed_status is "Not Found Yet"
+                if (!lostItemDocSnap.exists() || lostItemDocSnap.data().claimed_status !== 'Not Found Yet') {
+                    this.errorMessage = 'The lost item has already been matched.'
+                    return
+                }
+
+                const parsedLostItem = JSON.parse(lostItem)
+                const matchingItems = await findMatchingItems(parsedLostItem)
+
+                // Filter items with 'claimed_status' as "Not Found Yet"
+                this.matchingItems = matchingItems.filter((item) => item.claimed_status === 'Not Found Yet')
+            } catch (err) {
+                this.errorMessage = 'An error occurred while fetching the matching items.'
+            } finally {
+                this.loading = false
             }
-
-            const parsedLostItem = JSON.parse(lostItem)
-            this.matchingItems = await findMatchingItems(parsedLostItem)
-        } catch (err) {
-            this.error = err.message
-        } finally {
-            this.loading = false
-        }
+        },
+    },
+    beforeRouteEnter(to, from, next) {
+        // Force data refresh when entering the route
+        next((vm) => {
+            vm.refreshMatchingItems()
+        })
+    },
+    beforeRouteUpdate(to, from, next) {
+        // Force data refresh when navigating between pages (e.g., using back button)
+        this.refreshMatchingItems()
+        next()
     },
 }
 </script>
@@ -69,6 +102,7 @@ export default {
     color: #684545;
     text-align: center;
 }
+
 .error {
     color: red;
     font-weight: bold;
@@ -80,6 +114,11 @@ export default {
     justify-content: center;
     gap: 1rem;
     padding: 1rem;
+}
+
+#already-matched {
+    text-align: center;
+    font-size: 1.5rem;
 }
 
 #no-match {
