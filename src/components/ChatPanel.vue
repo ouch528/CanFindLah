@@ -4,6 +4,18 @@
     <div class="chat-header">
       <h2>{{ partnerDisplayName }}</h2>
       <span class="partner-subtitle">Chatting with {{ partnerDisplayName }}</span>
+      <div class="dropdown-container" ref="dropdownContainer">
+        <div class="item-status">{{ itemStatus }}</div>
+        <button class="dropdown-toggle" @click="toggleDropdown">
+          <img src="@/assets/more.png" alt="More" />
+        </button>
+        <div v-if="dropdownOpen" class="dropdown-menu">
+          <button class="dropdown-item" @click="onDeleteConversation(partnerID)">Delete Conversation</button>
+          <button class="dropdown-item" @click="onItemReturned(partnerID)">
+            {{ itemStatus === 'Matched' ? 'Item Returned' : 'Undo Item Returned' }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Scrollable message list -->
@@ -86,7 +98,7 @@
 </template>
 
 <script>
-import { ref, onMounted, watch, nextTick, computed } from 'vue';
+import { ref, onMounted, onBeforeUnmount, watch, nextTick, computed } from 'vue';
 import {
   collection,
   doc,
@@ -97,6 +109,7 @@ import {
   addDoc,
   updateDoc,
   getDoc,
+  getDocs,
   serverTimestamp
 } from 'firebase/firestore';
 import {
@@ -126,6 +139,58 @@ export default {
     let unsubscribe = null;
     const messageContainer = ref(null);
     const isSending = ref(false);
+    const itemStatus = ref('Matched');
+    const dropdownOpen = ref(false);
+    const toggleDropdown = () => {
+      dropdownOpen.value = !dropdownOpen.value;
+    };
+
+    const dropdownContainer = ref(null);
+
+    const handleClickOutside = (event) => {
+      if (dropdownOpen.value && dropdownContainer.value && !dropdownContainer.value.contains(event.target)) {
+        dropdownOpen.value = false;
+      }
+    };
+
+    // Add the event listener when the component is mounted
+    onMounted(() => {
+      document.addEventListener('click', handleClickOutside);
+    });
+
+    // Remove the event listener when the component is about to unmount
+    onBeforeUnmount(() => {
+      document.removeEventListener('click', handleClickOutside);
+    });
+    
+    const deleteConversation = async (partnerID) => {
+      const confirmDelete = confirm(`Are you sure you want to delete the conversation with this user?`);
+      if (!confirmDelete) return;
+    
+      const conversationId = [props.currentUserID, partnerID].sort().join('-');
+      const messagesRef = collection(db, 'conversations', conversationId, 'messages');
+      const messagesSnapshot = await getDocs(messagesRef);
+      const deletePromises = [];
+      messagesSnapshot.forEach((docSnap) => {
+        deletePromises.push(deleteDoc(doc(db, 'conversations', conversationId, 'messages', docSnap.id)));
+      });
+      await Promise.all(deletePromises);
+      await deleteDoc(doc(db, 'conversations', conversationId));
+    };
+    
+    const onDeleteConversation = (partnerID) => {
+      deleteConversation(partnerID);
+      dropdownOpen.value = false;
+    };
+    
+    const onItemReturned = (partnerID) => {
+      if (itemStatus.value === 'Matched') {
+        itemStatus.value = 'Returned';
+      } else {
+        itemStatus.value = 'Matched';
+      }
+      dropdownOpen.value = false;
+    };
     const updatedMessageIds = new Set();
     watch(() => props.partnerID, () => {
       fetchPartnerName();
@@ -339,7 +404,13 @@ export default {
       sendMessage,
       formatTimestamp,
       isSending,
-      partnerDisplayName
+      partnerDisplayName,
+      dropdownOpen,
+      toggleDropdown,
+      onDeleteConversation,
+      onItemReturned,
+      dropdownContainer,
+      itemStatus
     };
   }
 };
@@ -364,6 +435,7 @@ export default {
   flex-direction: column;
   gap: 4px;
   font-family: "Inter";
+  position: relative; /* added to position the dropdown correctly */
 }
 .chat-header h2 {
   margin: 0;
@@ -606,4 +678,53 @@ export default {
   font-size: 0.9rem;
   color: #666;
 }
+
+/* Dropdown styles */
+.dropdown-container {
+  position: absolute;
+  top: 0.75rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dropdown-toggle {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+.dropdown-menu {
+  position: absolute;
+  top: 2rem;
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  min-width: 140px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+}
+.dropdown-item {
+  background: none;
+  border: none;
+  text-align: left;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-family: "Inter";
+  font-size: 0.95rem;
+}
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+}
 </style>
+.item-status {
+  display: inline-block;
+  margin-right: 8px;
+  font-weight: bold;
+  color: #333;
+  vertical-align: middle;
+}

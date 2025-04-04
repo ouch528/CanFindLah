@@ -5,8 +5,6 @@
         v-for="user in filteredUsers"
         :key="user.id"
         class="chat-item"
-        @mouseenter="hoveredUser = user.id"
-        @mouseleave="hoveredUser = null"
       >
         <div class="chat-content" @click="startChat(user)">
           <div class="chat-left-col">
@@ -18,11 +16,6 @@
             <span v-if="user.lastTimestamp" class="chat-time">{{ user.lastTimestamp }}</span>
           </div>
         </div>
-        <div
-          v-if="hoveredUser === user.id"
-          class="delete-icon"
-          @click.stop="deleteConversation(user.id)"
-        >✕</div>
       </li>
     </ul>
   </div>
@@ -49,7 +42,6 @@ export default {
   setup(props, { emit }) {
     const users = ref([])
     const lastMessages = ref({})
-    const hoveredUser = ref(null)
 
     const usersCollection = collection(db, 'users')
 
@@ -137,27 +129,6 @@ export default {
       emit('conversationStarted', conversationId, user.id);
     };
 
-    const deleteConversation = async (partnerID) => {
-      const confirmDelete = confirm(`Are you sure you want to delete the conversation with this user?`);
-      if (!confirmDelete) return;
-
-      // Use the same conversationId format as in startChat
-      const conversationId = `${props.currentUserID}-${partnerID}`;
-
-      // Delete all messages in the conversation's 'messages' subcollection
-      const messagesRef = collection(db, 'conversations', conversationId, 'messages');
-      const messagesSnapshot = await getDocs(messagesRef);
-      const deletePromises = [];
-      messagesSnapshot.forEach((docSnap) => {
-        deletePromises.push(deleteDoc(doc(db, 'conversations', conversationId, 'messages', docSnap.id)));
-      });
-      await Promise.all(deletePromises);
-
-      // Delete the conversation document
-      await deleteDoc(doc(db, 'conversations', conversationId));
-      lastMessages.value[partnerID] = undefined;
-    }
-
     watch(() => props.currentUserID, loadLastMessages)
     watch(
       [() => props.currentUserID, () => users.value],
@@ -170,9 +141,7 @@ export default {
 
     return {
       filteredUsers,
-      startChat,
-      hoveredUser,
-      deleteConversation
+      startChat
     }
   }
 }
@@ -244,17 +213,5 @@ export default {
 .chat-time {
   color: #aaa;
   font-size: 0.8125rem;
-}
-.delete-icon {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  cursor: pointer;
-  font-size: 1.1rem;
-  color: #d11a2a;
-  display: none;
-}
-.chat-item:hover .delete-icon {
-  display: block;
 }
 </style>
