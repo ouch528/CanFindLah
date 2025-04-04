@@ -69,7 +69,7 @@
                 </div>
 
                 <div class="save">
-                    <button id="savebutton" type="button" v-on:click="saveFoundItem">Submit</button>
+                    <button id="savebutton" type="button" :disabled="uploading" v-on:click="saveFoundItem">Submit</button>
                 </div>
             </div>
         </form>
@@ -191,6 +191,7 @@ export default {
             maxDateTime: new Date().toISOString().slice(0, 16),
             imagePreview: null, // To store the image preview URL
             instruction: 'Please attach photo of the item',
+            uploading: false,
         }
     },
     methods: {
@@ -213,6 +214,7 @@ export default {
         async saveFoundItem() {
             if (this.validateForm()) {
                 try {
+                    this.uploading = true
                     let imageUrl = ''
 
                     if (this.formData.image) {
@@ -241,10 +243,12 @@ export default {
                     await updateDoc(userRef, {
                         found_item_id_list: arrayUnion(docRef.id),
                     })
+                    
 
                     this.resetForm()
                     this.instruction = 'Please attach photo of the item'
                     alert('Item reported successfully!')
+                    this.uploading = false
                 } catch (error) {
                     console.error('Error saving item:', error)
                     alert('Failed to report item. Please try again.')

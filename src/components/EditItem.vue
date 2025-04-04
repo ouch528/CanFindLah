@@ -46,15 +46,21 @@
             <p class = "word">Brand:</p> <p class = "edit-box"><input type="text" id="item" v-model="item.brand" @input="markAsChanged" /></p>
             <p class = "word">Location:</p> <p class = "edit-box"><input type="text" id="item" v-model="item.location" @input="markAsChanged" /></p>
             <!-- <p>Date & Time: <input type="text" id="item" v-model="item.date_time_lost" @input="markAsChanged" /></p> -->
-            <p v-if = "status == 'founder'" class = "word"> Date & Time:</p><p class = "edit-box" v-if = "status == 'founder'"> <input type="datetime-local" id="item" v-model="item.date_time_found" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
-            <p v-if= "status == 'searcher'" class = "word"> Date & Time:</p><p class = "edit-box" v-if= "status == 'searcher'"><input type="datetime-local" id="item" v-model="item.date_time_lost" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
+            <p v-if = "status == 'founder'" class = "word">Date & Time:</p><p class = "edit-box" v-if = "status == 'founder'"> <input type="datetime-local" id="item" v-model="item.date_time_found" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
+            <p v-if= "status == 'searcher'" class = "word">Date & Time:</p><p class = "edit-box" v-if= "status == 'searcher'"><input type="datetime-local" id="item" v-model="item.date_time_lost" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
             <p class = "word">Description:</p><p class = "edit-box"><input type="text" id="item" v-model="item.description" @input="markAsChanged" /></p>
             <!-- <p>{{ itemId }}</p> -->
+            <br>
+
+            <div v-if="imagePreview">
+                    <button @click="removeImage" class="remove-image-btn">&#10006;</button>
+                    <img :src="imagePreview" alt="Uploaded Image" id="image-preview" />
+            </div>
             <div id="upload-img" v-if = "status == 'founder'">
                     <input type="file" @change="handleImageUpload" id="default-upload" accept="image/*" />
                     <label for="default-upload">
                         <img src="@/assets/upload.png" alt="Upload Icon" id="upload-icon" />
-                        <!-- <span id="instruction">{{ instruction }}</span> -->
+                        <span id="instruction">{{ instruction }}</span>
                     </label>
                     <br /><br />
                     <!-- <div v-if="imagePreview">
@@ -68,7 +74,7 @@
 <script>
 import { app, storage } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { ref, getDownloadURL, getStorage, deleteObject,  uploadBytes } from 'firebase/storage'
 import { collection, getDoc, doc, deleteDoc } from 'firebase/firestore'
 // import failedImage from '@/assets/still_finding_yet.jpg';
 import 'primeicons/primeicons.css'
@@ -89,14 +95,26 @@ export default {
             imageUrl: '',
             showMenu: false,
             failed_image: "",
-            initialItem: {}, // Store initial state
+            initialItem: null, // Store initial state
             changed: false,
             initial: false,
             test: "",
             others: false,
             image_change : false,
-            change_image :''
+            change_image :'',
+            instruction: 'Please attach photo of the item',
+            imagePreview: null,
+            directory: null,
             // lost_item: 1,// Will store item details, set as 1 if null will wrong idk why
+        }
+    },
+
+    computed: {
+        hasChanges() {
+            console.log('haha')
+            if (JSON.stringify(this.item) == JSON.stringify(this.originalItem)) {
+                this.$emit('noUpdate', false);
+            }
         }
     },
 
@@ -190,8 +208,13 @@ export default {
             this.item.name = `${this.item.colour} ${this.item.category}`
             // console.log(this.item)
             // if (this.image_change == false) {
-                this.changed = JSON.stringify(this.item) !== JSON.stringify(this.initialItem)
+            this.changed = JSON.stringify(this.item) !== JSON.stringify(this.initialItem)
             // }
+            console.log(this.originalItem)
+            if (JSON.stringify(this.item) == JSON.stringify(this.initialItem)) {
+                this.$emit('noUpdate', false);
+                return
+            }
 
             // Emit event only when a change is detected
             if (this.changed) {
@@ -222,14 +245,16 @@ export default {
             if (!file) return;
             this.uploadingImage = true;
             this.$emit('uploading', true); // notify parent
+            this.imagePreview = URL.createObjectURL(file)
 
             try {
-                // var image_file_path = `found_items/${Date.now()}-${file.name}`
+                var image_file_path = `found_items/${Date.now()}-${file.name}`
                 const storageReference = ref(storage, image_file_path)
                 const snapshot = await uploadBytes(storageReference, file);
                 const url = await getDownloadURL(snapshot.ref);
                 this.image_change_url = url;
                 this.hasChanges = true;
+                this.directory = image_file_path;
                 this.$emit('changeMade', {
                 ...this.editedData,
                 image_change_url: url,
@@ -238,10 +263,31 @@ export default {
                 console.error("Image upload failed:", error);
             } finally {
                 this.uploadingImage = false;
-                this.$emit('uploading', false); // done uploading
-                this.$emit('', true);
+                this.$emit('uploading', false, image_file_path); // done uploading
+                this.instruction = 'Reupload Image'
+
             }
-        }
+        },
+
+        removeImage() {
+            if (this.directory) {
+                const storage = getStorage();
+                const desertRef = ref(storage, this.directory);
+                console.log(this.directory)
+                deleteObject(desertRef).then(() => {
+                // File deleted successfully
+                }).catch((error) => {
+                console.log(error)
+                });
+            }
+            this.imagePreview = null // Remove the preview
+            this.instruction = 'Please attach photo of the item'
+            this.directory = null
+            console.log("yes")
+            if (JSON.stringify(this.item) == JSON.stringify(this.initialItem)) {
+                this.$emit('noUpdate', false);
+            }
+        },
     },
 }
 </script>
@@ -299,17 +345,25 @@ export default {
 }
 
 #upload-img {
+    width: 22rem;  /* Set a fixed width */
+    height: 25px;  /* Set a fixed height */
+    padding: 1px;  /* Add some padding */
+    font-size: 16px;  /* Ensure text size is the same */
+    border: 1px solid #ccc;  /* Add a consistent border */
+    border-radius: 1px;  /* Optional: Rounded corners */
+    font-family: 'Arial';
     background-color: rgba(251, 240, 230, 1);
-    margin-left: 5.8125rem;
-    margin-right: 5.8125rem;
     border-radius: 0.625rem;
-    height: 2rem;
-    display: flex;
-    align-items: center;
+    line-height: 2;
+    border: none;
+    box-sizing: border-box;
+    align-content: center;
+    margin-left: 4.6em;
 }
 
 .word{
     margin-left: 5rem;
+    color: black;
 }
 
 .edit-box{
@@ -318,6 +372,44 @@ export default {
 
 .item-name {
     text-align: center;
+}
+
+#upload-icon {
+    margin-left: 0.5rem;
+}
+
+#instruction {
+    line-height: 2rem;
+    color: #888;
+    font-size: 0.875rem;
+    padding-left: 0.75rem;
+    opacity: 0.7;
+    font-weight: 400;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    align-items: center;
+}
+
+input[type='file'] {
+    display: none;
+}
+
+#image-preview {
+    width: 50%;
+    height: 50%; /* Adjust height and width as needed */
+    margin-left: 9.1rem;
+    margin-right: 9.1rem;
+    margin-bottom: 1rem;
+}
+
+.remove-image-btn {
+    background: none;
+    border: none;
+    color: red;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.2rem;
+    margin-left: 5.8125rem;
 }
 
 

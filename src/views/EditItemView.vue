@@ -6,9 +6,9 @@
         </div>
         
         <div style="display: flex; justify-content: center; ">
-            <EditItem :lost_item_Id="this.lost_item_Id" :image="this.imageUrl" v-if="this.status_edit_item == 'searcher'" @changeMade="handleEdit" @uploading="handleUploading"
+            <EditItem :lost_item_Id="this.lost_item_Id" :image="this.imageUrl" v-if="this.status_edit_item == 'searcher'" @changeMade="handleEdit" @uploading="handleUploading" @noUpdate = "noUpdate"
               class = "edit-item"/>
-            <EditItem :found_item_Id="this.found_item_Id" :image="this.imageUrl" v-if="this.status_edit_item == 'founder'" @changeMade="handleEdit" @uploading="handleUploading"
+            <EditItem :found_item_Id="this.found_item_Id" :image="this.imageUrl" v-if="this.status_edit_item == 'founder'" @changeMade="handleEdit" @uploading="handleUploading" @noUpdate = "noUpdate"
             class = "edit-item" />
         </div>
 
@@ -23,7 +23,7 @@
 <script>
 import { app, storage } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
-import { ref, getDownloadURL } from 'firebase/storage'
+import { ref, getDownloadURL, getStorage, deleteObject } from 'firebase/storage'
 import { collection, getDoc, doc, deleteDoc, setDoc } from 'firebase/firestore'
 import 'primeicons/primeicons.css'
 
@@ -45,6 +45,7 @@ export default {
             edited_image: null,
             hasChanges: false,
             uploadingImage: false,
+            image_file_path: ""
         }
     },
 
@@ -74,10 +75,10 @@ export default {
                 try {
                     console.log(this.found_item_Id_item_Id)
                     const docRef = doc(db, 'Found Item', this.found_item_Id)
-                    
-                    await setDoc(docRef, {...this.editedData, photo: this.edited_image,}, { merge: true })
+
+                    await setDoc(docRef, {...this.editedData, photo: this.edited_image, photo_directory: this.image_file_path}, { merge: true })
                     this.hasChanges = false
-                    this.editedData = null
+                    this.editedData = null 
                     alert('Item edited successfully!')
                     this.$router.push('/history')
                 } catch (error) {
@@ -86,21 +87,40 @@ export default {
             }
         },
 
-        goBack() {
+        async goBack() {
             // Use Vue Router to navigate to a different page (e.g., "Home Page")
             this.$router.push('/history') // Replace with your desired route path
             this.edited_image = null
+            if (this.image_file_path) {
+                const storage = getStorage();
+                console.log(this.found_item_Id)
+                const desertRef = ref(storage, this.image_file_path);
+                console.log(desertRef)
+                deleteObject(desertRef).then(() => {
+                // File deleted successfully
+                }).catch((error) => {
+                console.log(error)
+                });
+            }
         },
 
-        handleUploading(isUploading) {
+        handleUploading(isUploading, directory) {
             
             this.uploadingImage = isUploading;
             console.log(this.uploadingImage)
             console.log(this.hasChanges)
+            console.log(directory)
             if (this.uploadingImage == false){
                 this.hasChanges = true
             }
+            this.image_file_path = directory
         },
+
+        noUpdate(boolean) {
+            console.log('hahah')
+            this.hasChanges = false
+            this.uploadingImage = false
+        }
 
 
 

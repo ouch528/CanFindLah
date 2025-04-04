@@ -154,15 +154,15 @@ body {
 
 #select-bar select {
     /* padding: 0.32rem 0.38rem; */
-    border-radius: 0.32rem;
+    border-radius: 0.5rem;
     border: 0.07rem solid #ccc;
-    background-color: ba;
+    background-color: white;
     cursor: pointer;
-    width: 200px;  /* Set a fixed width */
-    height: 25px;  /* Set a fixed height */
-    padding: 1px;  /* Add some padding */
-    font-size: 16px;  /* Ensure text size is the same */
-    font-family: 'Arial';
+    width: 6.87rem;  /* Set a fixed width */
+    height: 1.57rem;  /* Set a fixed height */
+    padding: 0.07rem;  /* Add some padding */
+    font-size: 1rem;  /* Ensure text size is the same */
+    font-family: 'Inter';
     /* background-color: rgba(251, 240, 230, 1); */
     box-sizing: border-box;
 }
@@ -174,7 +174,8 @@ body {
 }
 
 #select-bar {
-    justify-content: center;
+    /* justify-content: center; */
+    margin-left: 7.5rem;
     display: flex;
     flex-wrap: wrap;
 }

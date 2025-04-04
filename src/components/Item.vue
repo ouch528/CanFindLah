@@ -12,7 +12,7 @@
             <p class = "you-are">Founder</p>
         </div> -->
         <div class="image-container">
-            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError" />
+            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError" id = "item-image"/>
             <img v-else :src ="failed_image"/>
             <router-link to="/edit?status_edit_item=searcher&edit_item_id=YsmFFHlbIil3k4M7W1qj&image=">
                 <div class="alert-icon">!</div>
@@ -21,13 +21,13 @@
         </div>
 
         <h3>{{ item.name }}</h3>
-        <p>Category: {{ item.category }}</p>
-        <p>Colour: {{ item.colour }}</p>
-        <p>Brand: {{ item.brand }}</p>
-        <p>Location: {{ item.location }}</p>
-        <p v-if=" status == 'founder'">Date & Time: {{ item.date_time_found }}</p>
-        <p v-if=" status == 'searcher'">Date & Time: {{ item.date_time_lost }}</p>
-        <p>Description: {{ item.description }}</p>
+        <p><strong>Category: </strong>{{ item.category }}</p>
+        <p><strong>Colour: </strong>{{ item.colour }}</p>
+        <p><strong>Brand: </strong>{{ item.brand }}</p>
+        <p><strong>Location: </strong>{{ item.location }}</p>
+        <p v-if=" status == 'founder'"><strong>Date & Time: </strong>{{ item.date_time_found }}</p>
+        <p v-if=" status == 'searcher'"><strong>Date & Time: </strong>{{ item.date_time_lost }}</p>
+        <p><strong>Description: </strong>{{ item.description }}</p>
         <br />
         <!-- <p>{{ itemId }}</p> -->
         <div class="boxes">
@@ -386,7 +386,6 @@ p {
     object-fit: contain; */
     width: 9.4rem;
     height: 9.4rem;
-    object-fit: cover;
 }
 
 #pencil {
@@ -456,5 +455,13 @@ button.update {
   font-size: 1rem;
   z-index: 5;
   box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+#item-image{
+    width: 18rem;
+    height: 9.4rem;
+    /* background-size: cover; */
+    object-fit: contain;
+    display: block;
 }
 </style>
