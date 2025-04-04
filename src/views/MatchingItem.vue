@@ -44,6 +44,10 @@ export default {
             console.log('Query Parameters:', this.$route.query)
 
             const lostItem = this.$route.query.lostItem
+            const lostItemID = this.$route.query.id
+
+            console.log('Lost Item ID:', lostItemID)
+
             if (!lostItem) {
                 throw new Error('')
             }
@@ -65,7 +69,6 @@ export default {
     color: #684545;
     text-align: center;
 }
-
 .error {
     color: red;
     font-weight: bold;
@@ -88,5 +91,6 @@ export default {
     text-align: center;
     font-size: 1.5rem;
     margin-top: 4.125rem;
+    margin-bottom: 4.125rem;
 }
 </style>

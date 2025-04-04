@@ -83,7 +83,7 @@ export default {
         async saveLostItem() {
             if (this.validateForm()) {
                 try {
-                    await addDoc(collection(db, 'Lost Item'), {
+                    const docRef = await addDoc(collection(db, 'Lost Item'), {
                         brand: this.formData.brand,
                         category: this.formData.category,
                         claimed_status: 'Not Found Yet',
@@ -95,6 +95,9 @@ export default {
                         name: `${this.formData.color} ${this.formData.category}`,
                     })
 
+                    const lostItemId = docRef.id
+
+                    // const formDataCopy = { ...this.formData }
                     const formDataCopy = { ...this.formData }
 
                     this.formData = {
@@ -110,7 +113,7 @@ export default {
 
                     this.$router.push({
                         name: 'matching',
-                        query: { lostItem: JSON.stringify(formDataCopy) },
+                        query: { lostItem: JSON.stringify(formDataCopy), id: lostItemId },
                     })
                 } catch (error) {
                     console.error('Error saving item:', error)
