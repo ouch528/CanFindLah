@@ -64,7 +64,7 @@
 <script>
 // import firebaseApp from '../firebase.js'
 // import { getFirestore } from 'firebase/firestore'
-import { collection, addDoc, doc, updateDoc, arrayUnion } from 'firebase/firestore'
+import { collection, addDoc, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore'
 // const db = getFirestore(firebaseApp)
 import { db } from '../firebase.js'
 import { useUserStore } from "@/stores/user-store";
@@ -87,6 +87,13 @@ export default {
         async saveLostItem() {
             if (this.validateForm()) {
                 try {
+                    const userStore = useUserStore();
+                    const userEmailRef = doc(db, 'users', userStore.userId)
+                    const docSnap = await getDoc(userEmailRef);
+                    const userData = docSnap.data();
+                    const userEmail = userData.email;
+
+
                     const docRef = await addDoc(collection(db, 'Lost Item'), {
                         brand: this.formData.brand,
                         category: this.formData.category,
@@ -97,8 +104,10 @@ export default {
                         lost_item_id: 'empty for now',
                         location: this.formData.location,
                         name: `${this.formData.color} ${this.formData.category}`,
+                        email: userEmail,
+                        reporter_id : userStore.userId
                     })
-                    const userStore = useUserStore();
+                    
                     console.log("User ID:", userStore.userId);
                     const userRef = doc(db, 'History', userStore.userId)
                     await updateDoc(userRef, {

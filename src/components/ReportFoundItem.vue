@@ -168,7 +168,7 @@ export default {
 // import firebaseApp from '../firebase.js'
 // import { getFirestore } from 'firebase/firestore'
 // import { getStorage } from 'firebase/storage'
-import { collection, addDoc, doc, updateDoc, arrayUnion } from 'firebase/firestore'
+import { collection, addDoc, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useUserStore } from "@/stores/user-store";
 // const db = getFirestore(firebaseApp)
@@ -223,6 +223,14 @@ export default {
                         const snapshot = await uploadBytes(imageRef, this.formData.image)
                         imageUrl = await getDownloadURL(snapshot.ref)
                     }
+                    const userStore = useUserStore();
+                    const userEmailRef = doc(db, 'users', userStore.userId)
+                    const docSnap = await getDoc(userEmailRef);
+                    const userData = docSnap.data();
+                    const userEmail = userData.email;
+
+
+                
 
                     const docRef = await addDoc(collection(db, 'Found Item'), {
                         category: this.formData.category,
@@ -235,9 +243,12 @@ export default {
                         claimed_status: 'Not Found Yet',
                         found_item_id: 'empty for now',
                         photo: imageUrl,
-                        photo_directory: image_file_path
+                        photo_directory: image_file_path,
+                        email: userEmail,
+                        reporter_id : userStore.userId
+
                     })
-                    const userStore = useUserStore();
+                    
                     console.log("User ID:", userStore.userId);
                     const userRef = doc(db, 'History', userStore.userId)
                     await updateDoc(userRef, {

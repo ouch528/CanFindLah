@@ -12,7 +12,7 @@
             <p class = "you-are">Founder</p>
         </div> -->
         <div class="image-container">
-            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError"/>
+            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError" id = "edit-image"/>
             <img v-else :src ="failed_image"/>
             <i class="pi pi-refresh" id="pencil" @click="refresh" title="Click this to revert all your changes"></i>
             <!-- <p v-else>Loading image...</p> -->
@@ -417,6 +417,11 @@ input[type='file'] {
     cursor: pointer;
     padding: 0.2rem;
     margin-left: 5.8125rem;
+}
+
+#edit-image {
+    width: 70%;
+    height: 70%;
 }
 
 
