@@ -3,6 +3,7 @@
     <div class="container">
         <div class="claim-item card">
             <img v-if="item.photo" :src="item.photo" :alt="item.name" class="item-image" />
+            <img v-else src="@/assets/image_not_found.png" :alt="item.name" class="item-image" />
             <img src="@/assets/cross.png" class="close-icon" @click="goBack" />
 
             <div class="card-content">

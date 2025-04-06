@@ -1,6 +1,7 @@
 <template>
     <div class="card" @click="goToClaimPage">
         <img v-if="imageUrl" :src="imageUrl" :alt="item.name" class="item-image" />
+        <img v-else src="@/assets/image_not_found.png" :alt="item.name" class="item-image" />
 
         <div class="card-content">
             <h3>{{ item.name }}</h3>
