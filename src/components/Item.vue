@@ -25,8 +25,8 @@
         <p><strong>Colour: </strong>{{ item.colour }}</p>
         <p><strong>Brand: </strong>{{ item.brand }}</p>
         <p><strong>Location: </strong>{{ item.location }}</p>
-        <p v-if=" status == 'founder'"><strong>Date & Time: </strong>{{ item.date_time_found }}</p>
-        <p v-if=" status == 'searcher'"><strong>Date & Time: </strong>{{ item.date_time_lost }}</p>
+        <p v-if=" status == 'founder'"><strong>Date & Time: </strong>{{ item.date_time_found.replace('T', ' ') }}</p>
+        <p v-if=" status == 'searcher'"><strong>Date & Time: </strong>{{ item.date_time_lost.replace('T', ' ') }}</p>
         <p><strong>Description: </strong>{{ item.description }}</p>
         <br />
         <!-- <p>{{ itemId }}</p> -->

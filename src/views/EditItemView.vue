@@ -76,8 +76,11 @@ export default {
                     try {
                         console.log(this.found_item_Id_item_Id)
                         const docRef = doc(db, 'Found Item', this.found_item_Id)
-
-                        await setDoc(docRef, {...this.editedData, photo: this.edited_image, photo_directory: this.image_file_path}, { merge: true })
+                        if (this.edited_image) {
+                            await setDoc(docRef, {...this.editedData, photo: this.edited_image, photo_directory: this.image_file_path}, { merge: true })
+                        } else {
+                            await setDoc(docRef, {...this.editedData}, { merge: true })
+                        }
                         this.hasChanges = false
                         this.editedData = null 
                         alert('Item edited successfully!')
