@@ -1,5 +1,7 @@
 import admin from "firebase-admin";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import { logger } from "firebase-functions"; // optional for structured logs
 
 admin.initializeApp();
 
@@ -34,7 +36,80 @@ export const sendWelcomeEmail = onDocumentUpdated('Lost Item/{lost_item_id}', as
 });
 
 
+export const notifyUnreadMessages = onSchedule(
+  {
+    schedule: "every 5 minutes", // You can adjust this cron as needed
+    timeZone: "Asia/Singapore"   // or your preferred time zone
+  },
+  async (event) => {
+    const db = admin.firestore();
+    const now = Date.now();
+    // const oneHourAgo = new Date(now - 60 * 60 * 1000); // 1 hour in milliseconds
+    const oneHourAgo = new Date(now - 60);
 
+    try {
+      // 1. Query all message docs (across conversation subcollections) that are:
+      //    - unread (readAt == null)
+      //    - older than 1 hour (timestamp < oneHourAgo)
+      // Note: .collectionGroup("messages") searches all subcollections named "messages"
+      // across your entire Firestore.
+      const messagesSnapshot = await db
+        .collectionGroup("messages")
+        .where("readAt", "==", null)
+        .where("timestamp", "<", oneHourAgo)
+        .get();
+
+      if (messagesSnapshot.empty) {
+        logger.info("No unread messages older than 1 hour found.");
+        return;
+      }
+
+      // 2. For each unread message, send an email notification to the receiver
+      for (const msgDoc of messagesSnapshot.docs) {
+        const msgData = msgDoc.data();
+        const { userId } = msgData;
+        if (!receiverId) {
+          logger.warn(`Message ${msgDoc.id} has no receiverId field.`);
+          continue;
+        }
+
+        // 3. Look up the receiver’s user doc to get the email
+        const userDoc = await db.collection("users").doc(userId).get();
+        if (!userDoc.exists) {
+          logger.warn(`No user found for receiverId: ${userId}`);
+          continue;
+        }
+
+        const userEmail = userDoc.data().email;
+        if (!userEmail) {
+          logger.warn(`No email field for user: ${userId}`);
+          continue;
+        }
+
+        // 4. Queue an email in the "mail" collection
+        await db.collection("mail").add({
+          to: userEmail,
+          message: {
+            subject: "You have unread messages!",
+            html: `
+              <p>You have unread messages that have been waiting for over an hour.</p>
+              <p>Please log in to check your conversation.</p>
+            `,
+          },
+        });
+
+        logger.info(`Queued email notification for user: ${userId}`);
+
+        // (Optional) Mark that we've notified this user to avoid spamming
+        // e.g. msgDoc.ref.update({ notified: true });
+      }
+
+      logger.info(`Processed ${messagesSnapshot.size} unread messages older than 1 hour.`);
+    } catch (error) {
+      logger.error("Error checking for unread messages:", error);
+    }
+  }
+);
 
 
 // import * as admin from "firebase-admin";
