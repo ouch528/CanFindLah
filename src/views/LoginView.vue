@@ -1,8 +1,8 @@
 <template>
-    <!-- <div class="logo-container">
+    <div class="logo-container">
         <img src="@/assets/CFL_logo.png" alt="CanFindLah" />
         <span>CanFindLah</span>
-    </div> -->
+    </div>
     <div class="main-container">
         <div class="left-panel">
             <img src="../assets/CFL_signup.png" id="illustration" alt="illustration" />
