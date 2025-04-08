@@ -62,12 +62,27 @@ export async function findMatchingItems(formData) {
                 dateTimeFound = new Date(dateTimeFound) // Otherwise, assume it's a Date or string
             }
 
+            // Check if the category is 'others' and compare descriptions
+            let descriptionMatch = true // Default to true if no description comparison is needed
+            if (formData.category === 'others' && docData.description) {
+                // Use regex to match words from both the lost and found descriptions
+                const lostDescriptionWords = formData.description.toLowerCase().match(/\b\w+\b/g) // Matches all word characters (alphanumeric + underscores)
+                const foundDescriptionWords = docData.description.toLowerCase().match(/\b\w+\b/g) // Matches all word characters (alphanumeric + underscores)
+
+                console.log('Lost description words:', lostDescriptionWords)
+                console.log('Found description words:', foundDescriptionWords)
+
+                // Check if any of the lost description words are present in the found description
+                descriptionMatch = lostDescriptionWords.some((lostWord) => foundDescriptionWords.includes(lostWord))
+            }
+
             // Now, perform the additional filtering on client-side based on color, claimed_status, and the date range
             if (
                 docData.colour === formData.color &&
                 docData.claimed_status === 'Not Found Yet' &&
                 dateTimeFound >= dateTimeLost && // Check if found date is after or equal to lost date
-                dateTimeFound <= sevenDaysAfterLost // Check if found date is within 7 days
+                dateTimeFound <= sevenDaysAfterLost && // Check if found date is within 7 days
+                descriptionMatch // Check if description matches (only for 'others' category)
             ) {
                 console.log('Found matching document:', doc.id, docData)
                 results.push({ id: doc.id, ...docData })
