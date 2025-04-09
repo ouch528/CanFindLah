@@ -1,5 +1,5 @@
 <template>
-    <div class="item">
+    <div class="edit-item-box">
         <!-- <h3>Small tortoise toy</h3>
         <p>Category: Toy</p>
         <p>Colour: Unknown</p>
@@ -11,10 +11,14 @@
             <p class = "status"> Not Found Yet</p>
             <p class = "you-are">Founder</p>
         </div> -->
+       
         <div class="image-container">
+
+            <img id="backward-img" src="@/assets/arrow_back.png" alt="Back to Home" @click = "goBack" />
             <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError" id = "edit-image"/>
             <img v-else :src ="failed_image"/>
-            <i class="pi pi-refresh" id="pencil" @click="refresh" title="Click this to revert all your changes"></i>
+            
+            <i class="pi pi-undo" id="pencil" @click="refresh" title="Click this to revert all your changes"></i>
             <!-- <p v-else>Loading image...</p> -->
         </div>
 
@@ -49,7 +53,7 @@
             <!-- <p>Date & Time: <input type="text" id="item" v-model="item.date_time_lost" @input="markAsChanged" /></p> -->
             <p v-if = "status == 'founder'" class = "word">Date & Time:</p><p class = "edit-box" v-if = "status == 'founder'"> <input type="datetime-local" id="item" v-model="item.date_time_found" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
             <p v-if= "status == 'searcher'" class = "word">Date & Time:</p><p class = "edit-box" v-if= "status == 'searcher'"><input type="datetime-local" id="item" v-model="item.date_time_lost" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
-            <p class = "word">Description:</p><p class = "edit-box"><input type="text" id="item" v-model="item.description" @input="markAsChanged" /></p>
+            <p class = "word">Description:</p><p class = "edit-box"><textarea type="text" id="des" v-model="item.description" @input="markAsChanged"></textarea></p>
             <!-- <p>{{ itemId }}</p> -->
             <br>
 
@@ -294,13 +298,25 @@ export default {
             Object.assign(this.item, JSON.parse(JSON.stringify(this.initialItem)));
             this.$emit('noUpdate', false);
             this.removeImage()
+        },
+
+        goBack() {
+            if (JSON.stringify(this.item) != JSON.stringify(this.initialItem)) {
+                if (confirm("Are you sure you want to go back, you will lose all your edit") == true) {
+                    this.removeImage()
+                    this.$router.push('/history')
+                }
+            } else {
+            this.$router.push('/history')
+            }
+            
         }
     },
 }
 </script>
 
 <style>
-.item {
+.edit-item-box {
     position: relative;
     background-color: white;
     /* right: 500px; */
@@ -310,15 +326,16 @@ export default {
     background-color: #fff;
     padding: 1.88rem;
     border: 0.07rem solid #ccc;
+    height: 42rem;
     /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
+    overflow-y: scroll
 }
 
-.edit-item select, .edit-item input {
+.edit-item select {
     width: 22rem;  /* Set a fixed width */
-    height: 25px;  /* Set a fixed height */
-    padding: 1px;  /* Add some padding */
-    font-size: 16px;  /* Ensure text size is the same */
-    border: 1px solid #ccc;  /* Add a consistent border */
+    height: 1.57rem;  /* Set a fixed height */
+    font-size: 1rem;  /* Ensure text size is the same */
+    /* border: 1px solid #ccc;   */
     border-radius: 1px;  /* Optional: Rounded corners */
     font-family: 'Arial';
     background-color: rgba(251, 240, 230, 1);
@@ -326,7 +343,41 @@ export default {
     line-height: 2;
     border: none;
     box-sizing: border-box;
-    align-content: center;
+    color: #888;
+    padding-left: 0.5rem;
+}
+
+.edit-item input {
+    width: 22rem;  /* Set a fixed width */
+    height: 1.57rem;  /* Set a fixed height */
+    font-size: 1rem;  /* Ensure text size is the same */
+    /* border: 1px solid #ccc;   */
+    border-radius: 1px;  /* Optional: Rounded corners */
+    font-family: 'Arial';
+    background-color: rgba(251, 240, 230, 1);
+    border-radius: 0.625rem;
+    line-height: 2;
+    border: none;
+    box-sizing: border-box;
+    color: #888;
+    padding-left: 0.7rem;
+}
+
+.edit-item textarea {
+    width: 22rem;  /* Set a fixed width */
+    height: 10rem;  /* Set a fixed height */
+    font-size: 1rem;  /* Ensure text size is the same */
+    /* border: 1px solid #ccc;   */
+    border-radius: 1px;  /* Optional: Rounded corners */
+    font-family: 'Arial';
+    background-color: rgba(251, 240, 230, 1);
+    border-radius: 0.625rem;
+    border: none;
+    box-sizing: border-box;
+    color: #888;
+    padding-left: 0.7rem;
+    resize: none;
+    padding-top: 0.5rem;
 }
 
 .edit-item p {
@@ -353,11 +404,11 @@ export default {
 
 #upload-img {
     width: 22rem;  /* Set a fixed width */
-    height: 25px;  /* Set a fixed height */
-    padding: 1px;  /* Add some padding */
-    font-size: 16px;  /* Ensure text size is the same */
-    border: 1px solid #ccc;  /* Add a consistent border */
-    border-radius: 1px;  /* Optional: Rounded corners */
+    height: 1.5625rem;  /* Set a fixed height */
+    padding: 0.07rem;  /* Add some padding */
+    font-size: 1rem;  /* Ensure text size is the same */
+    border: 0.07rem solid #ccc;  /* Add a consistent border */
+    border-radius: 0.07rem;  /* Optional: Rounded corners */
     font-family: 'Arial';
     background-color: rgba(251, 240, 230, 1);
     border-radius: 0.625rem;
@@ -371,6 +422,11 @@ export default {
 .word{
     margin-left: 5rem;
     color: black;
+}
+
+#des{
+    height: 10rem;  
+    white-space: pre-wrap;
 }
 
 .edit-box{
@@ -422,6 +478,22 @@ input[type='file'] {
 #edit-image {
     width: 70%;
     height: 70%;
+}
+
+#backward-img {
+    width: 2.125rem;
+    height: 2.125rem;
+    
+    position: absolute;
+    top: 0.625rem; /* Adjust the value to set how far from the top you want it */
+    left: 0.625rem; /* Adjust the value to set how far from the left you want it */
+    z-index: 1000; /* Ensure the arrow stays on top of other elements */
+
+}
+
+#backward-img:hover {
+    transform: scale(1.1);   /* Slight zoom in */
+    opacity: 0.8;            /* Slight transparency */
 }
 
 

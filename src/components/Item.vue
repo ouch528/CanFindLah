@@ -1,5 +1,5 @@
 <template>
-    <div class="item">
+    <div class="history-item">
         <!-- <h3>Small tortoise toy</h3>
         <p>Category: Toy</p>
         <p>Colour: Unknown</p>
@@ -206,6 +206,10 @@ export default {
         },
 
         async deleteItem() {
+            if (this.item.claimed_status == 'Matched') {
+                alert("You cannot delete a Matched Item")
+                return
+            }
             if (confirm("Are you sure you want to delete this item") == true) {
                 try {
                     alert('Delete item clicked')
@@ -301,7 +305,7 @@ export default {
 </script>
 
 <style>
-.item {
+.history-item {
     position: relative;
     background-color: white;
     /* right: 500px; */
@@ -309,11 +313,11 @@ export default {
     /* max-width: 15.625rem; */
     margin: 0.44rem;
     background-color: #fff;
-    padding: 1.25rem;
-    width : 31.25rem;
+    padding: 1rem;
     border: 0.0625rem solid #ccc;
     /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
 }
+
 
 .you-are {
     display: inline;
@@ -354,14 +358,33 @@ p {
     color: black;
     /* Text color */
     font-family: sans-serif; /* Example font */
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    
+}
+
+.status:hover{
+    transform: scale(1.05);
 }
 
 .searcher {
     background-color: #ff8844; /* Red background */
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.searcher:hover{
+    transform: scale(1.05);
 }
 
 .founder {
     background-color: #4a95df; /* Blue background */
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.founder:hover{
+    transform: scale(1.05);
 }
 
 .not-found {
@@ -396,6 +419,8 @@ p {
     transform: translateY(-50%);
     border-radius: 50%;
     padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
 }
 
 #pencil:hover {
@@ -460,10 +485,12 @@ button.update {
 }
 
 #item-image{
-    width: 18rem;
-    height: 9.4rem;
+    width: 23rem;
+    height: 16rem;
     /* background-size: cover; */
     object-fit: contain;
     display: block;
 }
+
+
 </style>

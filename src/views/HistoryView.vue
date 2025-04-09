@@ -158,19 +158,25 @@ body {
     border: 0.07rem solid #ccc;
     background-color: white;
     cursor: pointer;
-    width: 6.87rem;  /* Set a fixed width */
+    width: 10rem;  /* Set a fixed width */
     height: 1.57rem;  /* Set a fixed height */
     padding: 0.07rem;  /* Add some padding */
     font-size: 1rem;  /* Ensure text size is the same */
     font-family: 'Inter';
     /* background-color: rgba(251, 240, 230, 1); */
     box-sizing: border-box;
+    margin-left: 15.5rem;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 #item-display {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    padding-left: 12.5rem;  /* Optional: Add space inside the container */
+    padding-right: 12.5rem;
+
 }
 
 #select-bar {
@@ -185,6 +191,11 @@ h5 {
     text-align: center;
     color: grey;
     font-size: 1.5rem;
+}
+
+#card{
+    flex: 0 0 20%;
+
 }
 
 

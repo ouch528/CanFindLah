@@ -439,4 +439,10 @@ textarea::placeholder {
     margin-bottom: 1rem;
     align-items: center;
 }
+
+
+#backward_img:hover {
+    transform: scale(1.1);   /* Slight zoom in */
+    opacity: 0.8;            /* Slight transparency */
+}
 </style>

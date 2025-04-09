@@ -14,7 +14,7 @@
 
         <div style=" justify-content: center; gap: 20px; margin-top: 20px; display: flex;">
             <button :disabled="!hasChanges || uploadingImage" @click="uploadChanges" class="btn primary">Edit Item</button>
-            <button id="back-button" class="btn secondary" @click="goBack">Back</button>
+            <!-- <button id="back-button" class="btn secondary" @click="goBack">Back</button> -->
         </div>
 
     </div>
