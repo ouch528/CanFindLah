@@ -51,21 +51,13 @@
                 <textarea v-model="formData.description" name="desc" rows="5" cols="20" placeholder="Enter Description"></textarea>
                 <br /><br />
 
-                <label for="img">Upload Image </label> <br />
-                <div v-if="imagePreview">
-                    <button @click="removeImage" class="remove-image-btn">&#10006;</button>
-                    <img :src="imagePreview" alt="Uploaded Image" id="image-preview" />
-                </div>
-                <div id="upload-img">
+                <label for="default-upload">Upload Image </label>
+                <div class="upload-container">
                     <input type="file" @change="handleFileUpload" id="default-upload" accept="image/*" />
                     <label for="default-upload">
                         <img src="@/assets/upload.png" alt="Upload Icon" id="upload-icon" />
                         <span id="instruction">{{ instruction }}</span>
                     </label>
-                    <br /><br />
-                    <!-- <div v-if="imagePreview">
-                        <img :src="imagePreview" alt="Uploaded Image" id="image-preview" />
-                    </div> -->
                 </div>
 
                 <div class="save">
@@ -343,11 +335,16 @@ form {
     line-height: 2;
     border: none;
     box-sizing: border-box;
+    color: black;
 }
 
 .formli textarea {
-    height: 6.0625rem;
+    min-height: 2rem;
+    max-height: 6.0625rem;
+    min-width: 24.8125rem;
+    max-width: 24.8125rem;
     font-family: Arial;
+    font-size: 0.875rem;
     padding-left: 0.75rem;
 }
 
@@ -374,13 +371,14 @@ textarea::placeholder {
 }
 
 #savebutton {
-    width: 5.125rem;
+    width: 5.5rem;
     height: 2rem;
     border-radius: 0.625rem;
     background-color: #ff8844;
     color: black;
     font-weight: 600;
     border: none;
+    font-size: 1rem;
 }
 
 #backward_img {
@@ -390,29 +388,38 @@ textarea::placeholder {
     margin-top: 1rem;
 }
 
-#upload-img {
-    background-color: rgba(251, 240, 230, 1);
+.upload-container {
     margin-left: 5.8125rem;
-    margin-right: 5.8125rem;
+    width: 24.8125rem;
+    background-color: rgba(251, 240, 230, 1);
     border-radius: 0.625rem;
     height: 2rem;
     display: flex;
+    justify-content: start;
+    position: relative;
+    cursor: pointer;
+}
+
+.upload-container label {
+    margin-left: 0;
+    display: flex;
     align-items: center;
+    justify-content: start;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
 }
 
 #upload-icon {
-    margin-left: -5.0625rem;
+    width: 1rem;
+    height: 1rem;
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
 }
 
 #instruction {
-    line-height: 2rem;
     color: #888;
     font-size: 0.875rem;
-    padding-left: 0.75rem;
-    opacity: 0.7;
-    font-weight: 400;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    align-items: center;
+    font-weight: 200;
 }
 </style>
