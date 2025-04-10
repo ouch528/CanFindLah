@@ -113,6 +113,9 @@ export default {
             this.formData.image = null
             this.imagePreview = null // Remove the preview
             this.instruction = 'Please attach photo of the item'
+
+            const fileInput = document.getElementById('default-upload')
+            fileInput.value = '' // Reset the file input value
         },
 
         async saveFoundItem() {

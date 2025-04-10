@@ -11,82 +11,121 @@ export async function findMatchingItems(formData) {
     console.log('Form Data:', formData) // Log formData to see if datetime is there
 
     try {
-        // Ensure 'datetime' is present and is a valid string (it should be 'datetime' instead of 'date_time_lost')
         const dateTimeLostString = formData.datetime // Use 'datetime' here
         if (!dateTimeLostString || typeof dateTimeLostString !== 'string') {
             throw new Error("'datetime' is missing or not a valid string.")
         }
 
-        // Log the value of datetime to ensure it's what we expect
         console.log('datetime:', dateTimeLostString)
 
-        // Convert the datetime string to a JavaScript Date object
         const dateTimeLost = new Date(dateTimeLostString)
 
-        // Ensure the string is a valid date
         if (isNaN(dateTimeLost.getTime())) {
             throw new Error("'datetime' is not a valid date string.")
         }
 
         console.log('Parsed datetime:', dateTimeLost)
 
-        // Add 7 days to the lost date
         const sevenDaysAfterLost = new Date(dateTimeLost)
         sevenDaysAfterLost.setDate(dateTimeLost.getDate() + 7)
 
-        // Reference to the 'Found Item' collection
         const foundItemRef = collection(db, 'Found Item')
 
-        // Simplified Firestore query to search based only on category (no need for composite index)
+        // First query: Match by category and colour
         const q = query(
             foundItemRef,
             where('category', '==', formData.category), // Query by category only
+            where('colour', '==', formData.color), // Query by colour too
         )
 
-        console.log('Firestore query:', q)
+        console.log('Firestore query (category & colour):', q)
 
-        // Execute the query and get the documents
         const querySnapshot = await getDocs(q)
 
-        // Prepare an array to store the results
         let results = []
 
-        querySnapshot.forEach((doc) => {
-            const docData = doc.data()
+        // If no items found by both category and colour, proceed with category only
+        if (querySnapshot.empty) {
+            console.log('No items found matching category and colour. Trying category only...')
+            // Perform the query for category only
+            const categoryQuery = query(foundItemRef, where('category', '==', formData.category))
 
-            // Check if 'date_time_found' is a Firestore Timestamp and convert it to a Date
-            let dateTimeFound = docData.date_time_found
-            if (dateTimeFound && dateTimeFound.toDate) {
-                dateTimeFound = dateTimeFound.toDate() // If it's a Firestore Timestamp, convert to Date
-            } else {
-                dateTimeFound = new Date(dateTimeFound) // Otherwise, assume it's a Date or string
+            const categorySnapshot = await getDocs(categoryQuery)
+
+            // If still no items found, just return
+            if (categorySnapshot.empty) {
+                console.log('No items found matching category alone.')
+                return []
             }
 
-            // Check if the category is 'others' and compare descriptions
-            let descriptionMatch = true // Default to true if no description comparison is needed
-            if ((formData.category === 'others' || formData.category === 'Student Card') && docData.description) {
-                const lostDescriptionWords = formData.description?.toLowerCase().match(/\b\w+\b/g) || []
-                const foundDescriptionWords = docData.description?.toLowerCase().match(/\b\w+\b/g) || []
+            // Check descriptions for items found by category alone
+            categorySnapshot.forEach((doc) => {
+                const docData = doc.data()
 
-                console.log('Lost description words:', lostDescriptionWords)
-                console.log('Found description words:', foundDescriptionWords)
+                // Handle description comparison
+                let descriptionMatch = true // Default to true if no description comparison is needed
+                if (formData.category === 'others' && docData.description) {
+                    const lostDescriptionWords = formData.description?.toLowerCase().match(/\b\w+\b/g) || []
+                    const foundDescriptionWords = docData.description?.toLowerCase().match(/\b\w+\b/g) || []
 
-                // Check if any lost description word is in the found description
-                descriptionMatch = lostDescriptionWords.some((lostWord) => foundDescriptionWords.includes(lostWord))
-            }
+                    console.log('Lost description words:', lostDescriptionWords)
+                    console.log('Found description words:', foundDescriptionWords)
 
-            // Now, perform the additional filtering on client-side based on color, claimed_status, and the date range
-            if (
-                docData.colour === formData.color &&
-                docData.claimed_status === 'Not Found Yet' &&
-                dateTimeFound >= dateTimeLost && // Check if found date is after or equal to lost date
-                dateTimeFound <= sevenDaysAfterLost && // Check if found date is within 7 days
-                descriptionMatch // Check if description matches (only for 'others' category)
-            ) {
-                console.log('Found matching document:', doc.id, docData)
-                results.push({ id: doc.id, ...docData })
-            }
-        })
+                    // Check if any word in the lost description exists in the found description
+                    descriptionMatch = lostDescriptionWords.some((lostWord) => foundDescriptionWords.includes(lostWord))
+                }
+
+                // Check if the date is within 7 days
+                let dateTimeFound = docData.date_time_found
+                if (dateTimeFound && dateTimeFound.toDate) {
+                    dateTimeFound = dateTimeFound.toDate()
+                } else {
+                    dateTimeFound = new Date(dateTimeFound)
+                }
+
+                // Apply 7 days rule
+                if (dateTimeFound >= dateTimeLost && dateTimeFound <= sevenDaysAfterLost && descriptionMatch) {
+                    console.log('Found matching document (category only):', doc.id, docData)
+                    results.push({ id: doc.id, ...docData })
+                }
+            })
+        } else {
+            // Handle the case where category and colour match
+            querySnapshot.forEach((doc) => {
+                const docData = doc.data()
+
+                let dateTimeFound = docData.date_time_found
+                if (dateTimeFound && dateTimeFound.toDate) {
+                    dateTimeFound = dateTimeFound.toDate()
+                } else {
+                    dateTimeFound = new Date(dateTimeFound)
+                }
+
+                let descriptionMatch = true // Default to true if no description comparison is needed
+                if ((formData.category === 'others' || formData.category === 'Student Card') && docData.description) {
+                    const lostDescriptionWords = formData.description?.toLowerCase().match(/\b\w+\b/g) || []
+                    const foundDescriptionWords = docData.description?.toLowerCase().match(/\b\w+\b/g) || []
+
+                    console.log('Lost description words:', lostDescriptionWords)
+                    console.log('Found description words:', foundDescriptionWords)
+
+                    // Check if any lost description word is in the found description
+                    descriptionMatch = lostDescriptionWords.some((lostWord) => foundDescriptionWords.includes(lostWord))
+                }
+
+                // Apply 7 days rule
+                if (
+                    docData.colour === formData.color &&
+                    docData.claimed_status === 'Not Found Yet' &&
+                    dateTimeFound >= dateTimeLost && // Check if found date is after or equal to lost date
+                    dateTimeFound <= sevenDaysAfterLost && // Check if found date is within 7 days
+                    descriptionMatch // Check if description matches (only for 'others' category)
+                ) {
+                    console.log('Found matching document:', doc.id, docData)
+                    results.push({ id: doc.id, ...docData })
+                }
+            })
+        }
 
         console.log('Matching found items:', results)
 

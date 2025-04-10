@@ -102,17 +102,6 @@ p {
     line-height: 1.2rem;
 }
 
-/* .loading-spinner {
-    position: absolute;
-    top: 25%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 1.5rem;
-    color: #757575;
-    z-index: 2;
-    color: red;
-} */
-
 .loading-spinner {
     position: absolute;
     top: 25%;
