@@ -64,15 +64,14 @@ export async function findMatchingItems(formData) {
 
             // Check if the category is 'others' and compare descriptions
             let descriptionMatch = true // Default to true if no description comparison is needed
-            if (formData.category === 'others' && docData.description) {
-                // Use regex to match words from both the lost and found descriptions
-                const lostDescriptionWords = formData.description.toLowerCase().match(/\b\w+\b/g) // Matches all word characters (alphanumeric + underscores)
-                const foundDescriptionWords = docData.description.toLowerCase().match(/\b\w+\b/g) // Matches all word characters (alphanumeric + underscores)
+            if ((formData.category === 'others' || formData.category === 'Student Card') && docData.description) {
+                const lostDescriptionWords = formData.description?.toLowerCase().match(/\b\w+\b/g) || []
+                const foundDescriptionWords = docData.description?.toLowerCase().match(/\b\w+\b/g) || []
 
                 console.log('Lost description words:', lostDescriptionWords)
                 console.log('Found description words:', foundDescriptionWords)
 
-                // Check if any of the lost description words are present in the found description
+                // Check if any lost description word is in the found description
                 descriptionMatch = lostDescriptionWords.some((lostWord) => foundDescriptionWords.includes(lostWord))
             }
 

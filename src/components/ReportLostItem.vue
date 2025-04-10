@@ -12,7 +12,8 @@
                 <label for="cat">Category </label> <br />
                 <select name="cat" id="cat" v-model="formData.category">
                     <option value="">--Please choose the category--</option>
-                    <option value="Card">Card</option>
+                    <option value="Student Card">Student Card</option>
+                    <option value="Bank Card">Bank Card</option>
                     <option value="Waterbottle">Waterbottle</option>
                     <option value="Electronics">Electronics</option>
                     <option value="Stationary">Stationary</option>
@@ -25,20 +26,23 @@
                 <br />
 
                 <label for="col">Colour </label> <br />
-                <select v-model="formData.color" id="col" required>
-                    <option value="">--Please choose the colour--</option>
-                    <option value="Red">Red</option>
-                    <option value="Green">Green</option>
-                    <option value="Blue">Blue</option>
-                    <option value="Yellow">Yellow</option>
-                    <option value="Black">Black</option>
-                    <option value="White">White</option>
-                    <option value=" ">Others</option>
+                <select v-model="formData.color" id="col" :disabled="formData.category === 'Student Card'" required>
+                    <option value="" disabled>
+                        {{ formData.category === 'Student Card' ? 'Colour not required for Student Cards' : '--Please choose the colour--' }}
+                    </option>
+                    <option v-if="formData.category !== 'Card'" value="Red">Red</option>
+                    <option v-if="formData.category !== 'Card'" value="Green">Green</option>
+                    <option v-if="formData.category !== 'Card'" value="Blue">Blue</option>
+                    <option v-if="formData.category !== 'Card'" value="Yellow">Yellow</option>
+                    <option v-if="formData.category !== 'Card'" value="Black">Black</option>
+                    <option v-if="formData.category !== 'Card'" value="White">White</option>
+                    <option v-if="formData.category !== 'Card'" value=" ">Others</option>
                 </select>
+
                 <br /><br />
 
                 <label for="brand">Brand </label> <br />
-                <input type="text" id="brand" v-model="formData.brand" required placeholder="Enter Brand" />
+                <input type="text" id="brand" v-model="formData.brand" required :placeholder="formData.category === 'Student Card' ? 'Not required for student cards' : 'Enter Brand'" :disabled="formData.category === 'Card'" />
                 <br /><br />
 
                 <label for="loc">Location Lost </label> <br />
@@ -50,7 +54,7 @@
                 <br /><br />
 
                 <label for="desc">Description </label> <br />
-                <textarea name="desc" v-model="formData.description" rows="5" cols="20" placeholder="Enter Description">Enter Description</textarea>
+                <textarea name="desc" v-model="formData.description" rows="5" cols="20" :placeholder="formData.category === 'Student Card' ? 'Enter name and student number on the card ' : 'Enter Description'"></textarea>
                 <br /><br />
 
                 <div class="save">
@@ -123,7 +127,14 @@ export default {
         },
 
         validateForm() {
-            if (!this.formData.category || !this.formData.color || !this.formData.brand || !this.formData.location || !this.formData.datetime || !this.formData.description) {
+            if (
+                !this.formData.category ||
+                (!this.formData.color && this.formData.category !== 'Student Card') || // <-- updated
+                (!this.formData.brand && this.formData.category !== 'Student Card') ||
+                !this.formData.location ||
+                !this.formData.datetime ||
+                !this.formData.description
+            ) {
                 alert('Please fill all required fields.')
                 return false
             }
@@ -191,6 +202,7 @@ form {
     height: 6.0625rem;
     font-family: Arial;
     padding-left: 0.75rem;
+    resize: none;
 }
 
 select,
