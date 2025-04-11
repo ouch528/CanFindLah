@@ -213,13 +213,18 @@ form {
     line-height: 2;
     border: none;
     box-sizing: border-box;
+    color: black;
 }
 
 .formli textarea {
-    height: 6.0625rem;
+    min-height: 2rem;
+    max-height: 6.0625rem;
+    min-width: 24.8125rem;
+    max-width: 24.8125rem;
     font-family: Arial;
     padding-left: 0.75rem;
     resize: none;
+    font-size: 0.875rem;
 }
 
 select,
@@ -245,13 +250,14 @@ textarea::placeholder {
 }
 
 #savebutton {
-    width: 5.125rem;
+    width: 5.5rem;
     height: 2rem;
     border-radius: 0.625rem;
     background-color: #ff8844;
     color: black;
     font-weight: 600;
     border: none;
+    font-size: 1rem;
 }
 
 #backward_img {

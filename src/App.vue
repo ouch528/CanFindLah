@@ -24,3 +24,47 @@ const isAuthPage = computed(() => route.path === '/login' || route.path === '/si
     <!-- <NavBar /> -->
     <RouterView />
 </template>
+
+<script>
+import { signOut } from 'firebase/auth'
+import { auth } from './firebase'
+
+export default {
+    data() {
+        return {
+            inactivityTimer: null,
+            timeOutDuration: 15 * 60 * 1000 // 15 minutes
+        }
+    },
+    mounted() {
+        this.startInactivityTracking()
+    },
+    beforeUnmount() {
+        this.stopInactivityTracking()
+    },
+    methods: {
+        startInactivityTracking() {
+            this.resetInactivityTimer();
+            window.addEventListener("mousemove", this.resetInactivityTimer)
+            window.addEventListener("keydown", this.resetInactivityTimer)
+            window.addEventListener("scroll", this.resetInactivityTimer)
+            window.addEventListener("click", this.resetInactivityTimer)
+        },
+        resetInactivityTimer() {
+            clearTimeout(this.inactivityTimer)
+            this.inactivityTimer = setTimeout(async () => {
+                alert("You've been logged out due to inactivity.")
+                await signOut(auth)
+                this.$router.push("/login")
+            }, this.timeOutDuration)
+        }, 
+        stopInactivityTracking() {
+            clearTimeout(this.inactivityTimer)
+            window.removeEventListener("mousemove", this.resetInactivityTimer)
+            window.removeEventListener("keydown", this.resetInactivityTimer)
+            window.removeEventListener("scroll", this.resetInactivityTimer)
+            window.removeEventListener("click", this.resetInactivityTimer)
+        }
+    }
+}
+</script>
