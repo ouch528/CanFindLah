@@ -55,6 +55,10 @@
                 <br /><br />
 
                 <label for="default-upload">Upload Image </label>
+                <div v-if="imagePreview">
+                    <button @click="removeImage" class="remove-image-btn">&#10006;</button>
+                    <img :src="imagePreview" alt="Uploaded Image" id="image-preview" />
+                </div>
                 <div class="upload-container">
                     <input type="file" @change="handleFileUpload" id="default-upload" accept="image/*" />
                     <label for="default-upload">
@@ -285,8 +289,7 @@ form {
 }
 
 .formli textarea {
-    min-height: 2rem;
-    max-height: 6.0625rem;
+    height: 6.0625rem;
     min-width: 24.8125rem;
     max-width: 24.8125rem;
     font-family: Arial;

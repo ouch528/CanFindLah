@@ -110,11 +110,15 @@ export default {
 
                     console.log('User ID:', userStore.userId)
                     const userRef = doc(db, 'History', userStore.userId)
-                    
+
                     // Use setDoc with merge:true to create/update document
-                    await setDoc(userRef, {
-                        lost_item_id_list: arrayUnion(docRef.id)
-                    }, { merge: true })
+                    await setDoc(
+                        userRef,
+                        {
+                            lost_item_id_list: arrayUnion(docRef.id),
+                        },
+                        { merge: true },
+                    )
 
                     const lostItemId = docRef.id
 
@@ -145,14 +149,7 @@ export default {
         },
 
         validateForm() {
-            if (
-                !this.formData.category ||
-                (!this.formData.color && this.formData.category !== 'Student Card') ||
-                (!this.formData.brand && this.formData.category !== 'Student Card') ||
-                !this.formData.location ||
-                !this.formData.datetime ||
-                !this.formData.description
-            ) {
+            if (!this.formData.category || (!this.formData.color && this.formData.category !== 'Student Card') || (!this.formData.brand && this.formData.category !== 'Student Card') || !this.formData.location || !this.formData.datetime || !this.formData.description) {
                 alert('Please fill all required fields.')
                 return false
             }
@@ -218,8 +215,7 @@ form {
 }
 
 .formli textarea {
-    min-height: 2rem;
-    max-height: 6.0625rem;
+    height: 6.0625rem;
     min-width: 24.8125rem;
     max-width: 24.8125rem;
     font-family: Arial;
