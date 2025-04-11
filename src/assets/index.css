@@ -1,8 +1,9 @@
-html, body, #app {
-    background: linear-gradient(to bottom, white, #F1C39C);
+html,
+body,
+#app {
+    background: linear-gradient(to bottom, white, #f1c39c);
     font-family: 'Inter';
     min-height: 100vh;
-    height: 100%;
     margin: 0;
     padding: 0;
 }

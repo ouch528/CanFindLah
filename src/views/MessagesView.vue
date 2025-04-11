@@ -69,7 +69,6 @@ export default {
     height: 80vh;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(to bottom, white, #f1c39c);
     overflow: hidden;
 }
 

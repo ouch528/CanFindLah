@@ -330,6 +330,11 @@ textarea::placeholder {
     border: none;
     margin-bottom: 1rem;
     font-size: 1rem;
+    cursor: pointer;
+}
+
+#savebutton:hover {
+    transform: scale(1.1); /* Slight zoom in */
 }
 
 #backward_img {

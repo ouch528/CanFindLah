@@ -1,23 +1,16 @@
 <template>
     <div class="history-item">
-        <!-- <h3>Small tortoise toy</h3>
-        <p>Category: Toy</p>
-        <p>Colour: Unknown</p>
-        <p>Brand: Unknown</p>
-        <p>Location: Fair Price, Utown</p>
-        <p>Date & Time: 24/02/2025, 7:20pm </p>
-        <p>Description: Small Tortoise found outside fairpirce in utown</p>
-        <div>
-            <p class = "status"> Not Found Yet</p>
-            <p class = "you-are">Founder</p>
-        </div> -->
         <div class="image-container">
-            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError" id = "item-image"/>
-            <img v-else :src ="failed_image"/>
+            <!-- Show loading spinner if both isLoading is true and imageUrl exists -->
+            <div v-if="isLoading && imageUrl" class="loading-spinner"></div>
+
+            <!-- Display the image or fallback image -->
+            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" id="item-image" @load="onImageLoad" @error="handleImageError" />
+            <img v-else src="@/assets/image_not_found.png" />
+
             <router-link to="/edit?status_edit_item=searcher&edit_item_id=YsmFFHlbIil3k4M7W1qj&image=">
                 <div class="alert-icon">!</div>
             </router-link>
-            
         </div>
 
         <h3>{{ item.name }}</h3>
@@ -25,8 +18,8 @@
         <p><strong>Colour: </strong>{{ item.colour }}</p>
         <p><strong>Brand: </strong>{{ item.brand }}</p>
         <p><strong>Location: </strong>{{ item.location }}</p>
-        <p v-if=" status == 'founder'"><strong>Date & Time: </strong>{{ item.date_time_found.replace('T', ' ') }}</p>
-        <p v-if=" status == 'searcher'"><strong>Date & Time: </strong>{{ item.date_time_lost.replace('T', ' ') }}</p>
+        <p v-if="status == 'founder'"><strong>Date & Time: </strong>{{ item.date_time_found.replace('T', ' ') }}</p>
+        <p v-if="status == 'searcher'"><strong>Date & Time: </strong>{{ item.date_time_lost.replace('T', ' ') }}</p>
         <p><strong>Description: </strong>{{ item.description }}</p>
         <br />
         <!-- <p>{{ itemId }}</p> -->
@@ -45,8 +38,6 @@
                 </div>
             </div>
         </div>
-        
-        
     </div>
 </template>
 
@@ -56,7 +47,7 @@ import { getFirestore } from 'firebase/firestore'
 import { ref, getDownloadURL, getStorage, deleteObject } from 'firebase/storage'
 import { collection, getDoc, doc, deleteDoc, updateDoc, arrayRemove } from 'firebase/firestore'
 import 'primeicons/primeicons.css'
-import { useUserStore } from "@/stores/user-store";
+import { useUserStore } from '@/stores/user-store'
 
 const db = getFirestore(app)
 
@@ -75,6 +66,7 @@ export default {
             showMenu: false,
             item_id: '',
             failed_image: '',
+            isLoading: true,
             // lost_item: 1,// Will store item details, set as 1 if null will wrong idk why
         }
     },
@@ -88,7 +80,7 @@ export default {
         await this.fetchItemDetails_lost() // Fetch item details when component is created
         // const storage = getStorage();
         //             console.log(this.found_item_Id)
-                    
+
         //             const docRef = doc(db, 'Found Item', "zY5xtPpDQFuEvQds4UVw")
         //             const docSnap = await getDoc(docRef);
         //             const data = docSnap.data()
@@ -107,6 +99,14 @@ export default {
     },
 
     methods: {
+        onImageLoad() {
+            this.isLoading = false
+        },
+        // Called if the image fails to load
+        onImageError() {
+            this.isLoading = false
+        },
+
         async fetchItemDetails() {
             console.log('hmm')
             if (!this.found_item_Id) return // Ensure itemId is valid
@@ -207,13 +207,13 @@ export default {
 
         async deleteItem() {
             if (this.item.claimed_status == 'Matched') {
-                alert("You cannot delete a Matched Item")
+                alert('You cannot delete a Matched Item')
                 return
             }
-            if (confirm("Are you sure you want to delete this item") == true) {
+            if (confirm('Are you sure you want to delete this item') == true) {
                 try {
                     alert('Delete item clicked')
-                    const userStore = useUserStore();
+                    const userStore = useUserStore()
                     const user_id = userStore.userId
                     if (this.status == 'searcher') {
                         // console.log(this.item)
@@ -225,24 +225,26 @@ export default {
                         })
                         await deleteDoc(docRef)
                     } else {
-                        const storage = getStorage();
+                        const storage = getStorage()
                         console.log(this.found_item_Id)
-                        
+
                         const docRef = doc(db, 'Found Item', this.found_item_Id)
-                        const docSnap = await getDoc(docRef);
+                        const docSnap = await getDoc(docRef)
                         const data = docSnap.data()
-                        const desertRef = ref(storage, `${data.photo_directory}`);
+                        const desertRef = ref(storage, `${data.photo_directory}`)
                         console.log(desertRef)
-                        deleteObject(desertRef).then(() => {
-                        // File deleted successfully
-                        }).catch((error) => {
-                        console.log(error)
-                        });
+                        deleteObject(desertRef)
+                            .then(() => {
+                                // File deleted successfully
+                            })
+                            .catch((error) => {
+                                console.log(error)
+                            })
                         const userRef = doc(db, 'History', user_id)
                         await updateDoc(userRef, {
                             found_item_id_list: arrayRemove(this.found_item_Id), // Remove the item ID from the array
                         })
-                        console.log("yes")
+                        console.log('yes')
                         await deleteDoc(docRef)
                     }
                     this.$emit('item-deleted')
@@ -316,8 +318,8 @@ export default {
     padding: 1rem;
     border: 0.0625rem solid #ccc;
     /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
+    border-radius: 0.5rem;
 }
-
 
 .you-are {
     display: inline;
@@ -342,14 +344,13 @@ p {
     color: grey;
     /* display: inline; */
     font-size: 1rem;
-  
 }
 
 .boxes {
     display: inline-flex; /* Arrange boxes horizontally */
     align-items: center; /* Vertically align items */
     gap: 0.625rem; /* Space between boxes */
-
+    width: 19rem;
 }
 
 .status {
@@ -360,10 +361,9 @@ p {
     font-family: sans-serif; /* Example font */
     /* cursor: pointer; */
     transition: all 0.3s ease-in-out;
-    
 }
 
-.status:hover{
+.status:hover {
     transform: scale(1.05);
 }
 
@@ -373,7 +373,7 @@ p {
     transition: all 0.3s ease-in-out;
 }
 
-.searcher:hover{
+.searcher:hover {
     transform: scale(1.05);
 }
 
@@ -383,7 +383,7 @@ p {
     transition: all 0.3s ease-in-out;
 }
 
-.founder:hover{
+.founder:hover {
     transform: scale(1.05);
 }
 
@@ -409,8 +409,13 @@ p {
     /* max-width: 100%;
     height: auto;
     object-fit: contain; */
-    width: 9.4rem;
-    height: 9.4rem;
+    /* width: 9.4rem;
+    height: 9.4rem; */
+    min-height: 13rem;
+    max-height: 13rem;
+    width: 100%;
+    object-fit: contain;
+    display: block;
 }
 
 #pencil {
@@ -455,7 +460,6 @@ p {
     background-color: #e0e0e0; /* Slightly darker on hover */
 }
 
-
 .similar {
     text-align: center;
 }
@@ -464,10 +468,10 @@ button.update {
     border: none;
 }
 
-.row-wrap{
+.row-wrap {
     display: flex;
-  justify-content: space-between;
-  align-items: center;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .alert-icon {
@@ -481,7 +485,7 @@ button.update {
     padding: 0.3rem 0.6rem;
     font-size: 1rem;
     z-index: 5;
-    box-shadow: 0 0 0.32rem rgba(0,0,0,0.2);
+    box-shadow: 0 0 0.32rem rgba(0, 0, 0, 0.2);
     cursor: pointer;
     transition: all 0.3s ease-in-out;
 }
@@ -490,13 +494,35 @@ button.update {
     transform: scale(1.3);
 }
 
-#item-image{
-    width: 23rem;
-    height: 16rem;
-    /* background-size: cover; */
+#item-image {
+    min-height: 13rem;
+    max-height: 13rem;
+    width: 100%;
     object-fit: contain;
     display: block;
 }
 
+.loading-spinner {
+    position: absolute;
+    top: 25%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 3rem; /* Size of the spinner */
+    height: 3rem;
+    border: 4px solid #f3f3f3; /* Light grey border */
+    border-top: 4px solid #3498db; /* Blue color for the spinner */
+    border-radius: 50%;
+    animation: spin 1s linear infinite; /* Animation for spinning */
+    z-index: 2; /* Ensure the spinner is on top */
+}
 
+/* Keyframes for spinning animation */
+@keyframes spin {
+    0% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
 </style>

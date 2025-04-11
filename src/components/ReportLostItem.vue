@@ -255,6 +255,11 @@ textarea::placeholder {
     font-weight: 600;
     border: none;
     font-size: 1rem;
+    cursor: pointer;
+}
+
+#savebutton:hover {
+    transform: scale(1.1); /* Slight zoom in */
 }
 
 #backward_img {
