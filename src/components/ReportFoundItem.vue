@@ -73,8 +73,6 @@
 </template>
 
 <script>
-import { collection, addDoc } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { collection, addDoc, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useUserStore } from '@/stores/user-store'
