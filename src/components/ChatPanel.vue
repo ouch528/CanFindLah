@@ -11,8 +11,21 @@
         </button>
         <div v-if="dropdownOpen" class="dropdown-menu">
           <button class="dropdown-item" @click="onDeleteConversation(partnerID)">Delete Conversation</button>
-          <button class="dropdown-item" @click="onItemReturned(partnerID)">
+
+          <button 
+            v-if="itemStatus !== 'Not Found Yet'" 
+            class="dropdown-item" 
+            @click="onItemReturned(partnerID)"
+          >
             {{ itemStatus === 'Matched' ? 'Item Returned' : 'Undo Item Returned' }}
+          </button>
+
+          <button 
+            v-if="itemStatus !== 'Returned'" 
+            class="dropdown-item" 
+            @click="onItemNotMine(partnerID)"
+          >
+            {{ itemStatus === 'Matched' ? 'Item Not Mine' : 'Undo Item Not Mine' }}
           </button>
         </div>
       </div>
@@ -94,6 +107,27 @@
         </button>
       </div>
     </form>
+    <!-- Custom Modal for Return Prompt -->
+    <div v-if="showReturnPrompt" class="modal-backdrop">
+      <div class="modal">
+        <p>Has the item been returned to its owner?</p>
+        <div class="modal-actions">
+          <button @click="onReturnSelected(true)">Yes</button>
+          <button @click="onReturnSelected(false)">No</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Modal for Deletion Warning -->
+    <div v-if="showDeletionWarning" class="modal-backdrop">
+      <div class="modal">
+        <p>Warning: the conversation will be permanently deleted. Do you wish to proceed?</p>
+        <div class="modal-actions">
+          <button @click="onDeletionWarningSelected(true)">Yes</button>
+          <button @click="onDeletionWarningSelected(false)">No</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -129,7 +163,8 @@ export default {
   },
   setup(props) {
     const partnerDisplayName = ref('');
-
+    const showReturnPrompt = ref(false);
+    const showDeletionWarning = ref(false);
     const messages = ref([]);
     const newMessage = ref('');
     const file = ref(null);
@@ -163,10 +198,36 @@ export default {
       document.removeEventListener('click', handleClickOutside);
     });
     
+    const onReturnSelected = async (answer) => {
+      if (answer) {
+        // If user clicks “Yes”: set status to “Returned” and delete the conversation
+        itemStatus.value = "Returned";
+        await deleteConversation(props.partnerID);
+        dropdownOpen.value = false;
+        showReturnPrompt.value = false;
+      } else {
+        // If user clicks “No”: hide this modal, show the deletion warning instead
+        showReturnPrompt.value = false;
+        showDeletionWarning.value = true;
+      }
+    };
+
+    const onDeletionWarningSelected = async (answer) => {
+      if (answer) {
+        // If user clicks “Yes” on warning: set status to “Not Found Yet” and delete
+        itemStatus.value = "Not Found Yet";
+        await deleteConversation(props.partnerID);
+        dropdownOpen.value = false;
+        showDeletionWarning.value = false;
+      } else {
+        // If user clicks “No”: simply close the warning and do nothing
+        showDeletionWarning.value = false;
+        dropdownOpen.value = false;
+      }
+    };
+
     const deleteConversation = async (partnerID) => {
-      const confirmDelete = confirm(`Are you sure you want to delete the conversation with this user?`);
-      if (!confirmDelete) return;
-    
+      // Remove the confirm(...) here if you no longer need it
       const conversationId = [props.currentUserID, partnerID].sort().join('-');
       const messagesRef = collection(db, 'conversations', conversationId, 'messages');
       const messagesSnapshot = await getDocs(messagesRef);
@@ -178,11 +239,11 @@ export default {
       await deleteDoc(doc(db, 'conversations', conversationId));
     };
     
-    const onDeleteConversation = (partnerID) => {
-      deleteConversation(partnerID);
-      dropdownOpen.value = false;
+    const onDeleteConversation = async (partnerID) => {
+      // Show the custom modal asking if the item has been returned
+      showReturnPrompt.value = true;
     };
-    
+  
     const onItemReturned = (partnerID) => {
       if (itemStatus.value === 'Matched') {
         itemStatus.value = 'Returned';
@@ -191,6 +252,16 @@ export default {
       }
       dropdownOpen.value = false;
     };
+
+    const onItemNotMine = (partnerID) => {
+      if (itemStatus.value === 'Matched') {
+        itemStatus.value = 'Not Found Yet';
+      } else {
+        itemStatus.value = 'Matched';
+      }
+      dropdownOpen.value = false;
+    };
+
     const updatedMessageIds = new Set();
     watch(() => props.partnerID, () => {
       fetchPartnerName();
@@ -409,8 +480,13 @@ export default {
       toggleDropdown,
       onDeleteConversation,
       onItemReturned,
+      onItemNotMine,
       dropdownContainer,
-      itemStatus
+      itemStatus,
+      showReturnPrompt,
+      showDeletionWarning,
+      onReturnSelected,
+      onDeletionWarningSelected,
     };
   }
 };
@@ -720,7 +796,6 @@ export default {
 .dropdown-item:hover {
   background-color: #f5f5f5;
 }
-</style>
 .item-status {
   display: inline-block;
   margin-right: 8px;
@@ -728,3 +803,45 @@ export default {
   color: #333;
   vertical-align: middle;
 }
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center; /* Center horizontally */
+  align-items: center;     /* Center vertically if needed */
+  gap: 1rem;              /* Space between the buttons */
+  margin-top: 1rem;       /* A bit of top margin above the buttons */
+}
+
+.modal-actions button {
+  background-color: #007BFF; /* A pleasing blue shade */
+  color: #fff;
+  font-size: 1rem; /* Increase text size */
+  padding: 0.6rem 1.2rem; /* Increase button padding */
+  border-radius: 6px; /* Slightly rounded corners */
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modal-actions button:hover {
+  background-color: #0056b3; /* Darken on hover */
+}
+</style>
