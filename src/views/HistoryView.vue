@@ -187,7 +187,7 @@ body {
 }
 
 h5 {
-    font-family: Arial;
+    font-family: Inter;
     text-align: center;
     color: grey;
     font-size: 1.5rem;

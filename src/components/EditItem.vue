@@ -25,7 +25,7 @@
         <!-- <p>{{ $route.params.edit_item.name }}</p> -->
         <div class = "edit-item"> 
             <h3 class = "item-name">{{ item.name }}</h3>
-            <p class = "word">Category:</p><p class = "edit-box"><select id="item" v-model="item.category" @change = "markAsChanged">
+            <p class = "word">Category</p><p class = "edit-box"><select id="item" v-model="item.category" @change = "markAsChanged">
                         <option value="Card">Card</option>
                         <option value="Waterbottle">Waterbottle</option>
                         <option value="Electronics">Electronics</option>
@@ -34,7 +34,7 @@
                         <option value="Clothing">Clothing</option>
                         <option value="Others">Others</option>
                     </select></p>
-            <p class = "word">Colour:</p> <p class = "edit-box"><select v-model="item.colour" id="item" @change = "markAsChanged">
+            <p class = "word">Colour</p> <p class = "edit-box"><select v-model="item.colour" id="item" @change = "markAsChanged">
                         <option value="Red">Red</option>
                         <option value="Green">Green</option>
                         <option value="Blue">Blue</option>
@@ -48,12 +48,12 @@
             </p> -->
                     
             <!-- <p>Colour: <input type="text" id="item" v-model="item.colour" @input="markAsChanged" /></p> -->
-            <p class = "word">Brand:</p> <p class = "edit-box"><input type="text" id="item" v-model="item.brand" @input="markAsChanged" /></p>
-            <p class = "word">Location:</p> <p class = "edit-box"><input type="text" id="item" v-model="item.location" @input="markAsChanged" /></p>
+            <p class = "word">Brand</p> <p class = "edit-box"><input type="text" id="item" v-model="item.brand" @input="markAsChanged" /></p>
+            <p class = "word">Location</p> <p class = "edit-box"><input type="text" id="item" v-model="item.location" @input="markAsChanged" /></p>
             <!-- <p>Date & Time: <input type="text" id="item" v-model="item.date_time_lost" @input="markAsChanged" /></p> -->
-            <p v-if = "status == 'founder'" class = "word">Date & Time:</p><p class = "edit-box" v-if = "status == 'founder'"> <input type="datetime-local" id="item" v-model="item.date_time_found" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
-            <p v-if= "status == 'searcher'" class = "word">Date & Time:</p><p class = "edit-box" v-if= "status == 'searcher'"><input type="datetime-local" id="item" v-model="item.date_time_lost" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
-            <p class = "word">Description:</p><p class = "edit-box"><textarea type="text" id="des" v-model="item.description" @input="markAsChanged"></textarea></p>
+            <p v-if = "status == 'founder'" class = "word">Date & Time</p><p class = "edit-box" v-if = "status == 'founder'"> <input type="datetime-local" id="item" v-model="item.date_time_found" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
+            <p v-if= "status == 'searcher'" class = "word">Date & Time</p><p class = "edit-box" v-if= "status == 'searcher'"><input type="datetime-local" id="item" v-model="item.date_time_lost" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
+            <p class = "word">Description</p><p class = "edit-box"><textarea type="text" id="des" v-model="item.description" @input="markAsChanged"></textarea></p>
             <!-- <p>{{ itemId }}</p> -->
             <br>
 

@@ -245,7 +245,7 @@ textarea::placeholder {
     margin-top: 1rem;
 }
 
-#backward_img:hover {
+#backward-img:hover {
     transform: scale(1.1);   /* Slight zoom in */
     opacity: 0.8;            /* Slight transparency */
 }

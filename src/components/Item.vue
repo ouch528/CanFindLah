@@ -358,7 +358,7 @@ p {
     color: black;
     /* Text color */
     font-family: sans-serif; /* Example font */
-    cursor: pointer;
+    /* cursor: pointer; */
     transition: all 0.3s ease-in-out;
     
 }
@@ -369,7 +369,7 @@ p {
 
 .searcher {
     background-color: #ff8844; /* Red background */
-    cursor: pointer;
+    /* cursor: pointer; */
     transition: all 0.3s ease-in-out;
 }
 
@@ -379,7 +379,7 @@ p {
 
 .founder {
     background-color: #4a95df; /* Blue background */
-    cursor: pointer;
+    /* cursor: pointer; */
     transition: all 0.3s ease-in-out;
 }
 
@@ -471,17 +471,23 @@ button.update {
 }
 
 .alert-icon {
-  position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  background-color: red;
-  color: white;
-  font-weight: bold;
-  border-radius: 50%;
-  padding: 0.3rem 0.6rem;
-  font-size: 1rem;
-  z-index: 5;
-  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: red;
+    color: white;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 0.3rem 0.6rem;
+    font-size: 1rem;
+    z-index: 5;
+    box-shadow: 0 0 0.32rem rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.alert-icon:hover {
+    transform: scale(1.3);
 }
 
 #item-image{
