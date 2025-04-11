@@ -6,7 +6,7 @@
 
             <!-- Display the image or fallback image -->
             <img v-if="imageUrl" :src="imageUrl" alt="Item Image" id="item-image" @load="onImageLoad" @error="handleImageError" />
-            <img v-else src="@/assets/image_not_found.png" />
+            <img v-else src="@/assets/still_finding_yet.jpg" />
 
             <router-link to="/edit?status_edit_item=searcher&edit_item_id=YsmFFHlbIil3k4M7W1qj&image=">
                 <div class="alert-icon">!</div>
