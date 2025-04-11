@@ -12,33 +12,37 @@
                 <label for="cat">Category </label> <br />
                 <select name="cat" id="cat" v-model="formData.category">
                     <option value="">--Please choose the category--</option>
-                    <option value="card">Card</option>
-                    <option value="waterbottle">Waterbottle</option>
-                    <option value="electronics">Electronics</option>
-                    <option value="stationary">Stationary</option>
-                    <option value="toys">Toys</option>
-                    <option value="clothing">Clothing</option>
-                    <option value="others">Others</option>
+                    <option value="Student Card">Student Card</option>
+                    <option value="Bank Card">Bank Card</option>
+                    <option value="Waterbottle">Waterbottle</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Stationary">Stationary</option>
+                    <option value="Toys">Toys</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Others">Others</option>
                 </select>
 
                 <br />
                 <br />
 
                 <label for="col">Colour </label> <br />
-                <select v-model="formData.color" id="col" required>
-                    <option value="">--Please choose the colour--</option>
-                    <option value="red">Red</option>
-                    <option value="green">Green</option>
-                    <option value="blue">Blue</option>
-                    <option value="yellow">Yellow</option>
-                    <option value="black">Black</option>
-                    <option value="white">White</option>
-                    <option value=" ">Others</option>
+                <select v-model="formData.color" id="col" :disabled="formData.category === 'Student Card'" required>
+                    <option value="" disabled>
+                        {{ formData.category === 'Student Card' ? 'Colour not required for Student Cards' : '--Please choose the colour--' }}
+                    </option>
+                    <option v-if="formData.category !== 'Card'" value="Red">Red</option>
+                    <option v-if="formData.category !== 'Card'" value="Green">Green</option>
+                    <option v-if="formData.category !== 'Card'" value="Blue">Blue</option>
+                    <option v-if="formData.category !== 'Card'" value="Yellow">Yellow</option>
+                    <option v-if="formData.category !== 'Card'" value="Black">Black</option>
+                    <option v-if="formData.category !== 'Card'" value="White">White</option>
+                    <option v-if="formData.category !== 'Card'" value=" ">Others</option>
                 </select>
+
                 <br /><br />
 
                 <label for="brand">Brand </label> <br />
-                <input type="text" id="brand" v-model="formData.brand" required placeholder="Enter Brand" />
+                <input type="text" id="brand" v-model="formData.brand" required :placeholder="formData.category === 'Student Card' ? 'Not required for student cards' : 'Enter Brand'" :disabled="formData.category === 'Card'" />
                 <br /><br />
 
                 <label for="loc">Location Lost </label> <br />
@@ -50,7 +54,7 @@
                 <br /><br />
 
                 <label for="desc">Description </label> <br />
-                <textarea name="desc" v-model="formData.description" rows="5" cols="20" placeholder="Enter Description">Enter Description</textarea>
+                <textarea name="desc" v-model="formData.description" rows="5" cols="20" :placeholder="formData.category === 'Student Card' ? 'Enter name and student number on the card ' : 'Enter Description'"></textarea>
                 <br /><br />
 
                 <div class="save">
@@ -62,10 +66,7 @@
 </template>
 
 <script>
-// import firebaseApp from '../firebase.js'
-// import { getFirestore } from 'firebase/firestore'
 import { collection, addDoc } from 'firebase/firestore'
-// const db = getFirestore(firebaseApp)
 import { db } from '../firebase.js'
 
 export default {
@@ -86,7 +87,7 @@ export default {
         async saveLostItem() {
             if (this.validateForm()) {
                 try {
-                    await addDoc(collection(db, 'Lost Item'), {
+                    const docRef = await addDoc(collection(db, 'Lost Item'), {
                         brand: this.formData.brand,
                         category: this.formData.category,
                         claimed_status: 'Not Found Yet',
@@ -98,6 +99,11 @@ export default {
                         name: `${this.formData.color} ${this.formData.category}`,
                     })
 
+                    const lostItemId = docRef.id
+
+                    // const formDataCopy = { ...this.formData }
+                    const formDataCopy = { ...this.formData }
+
                     this.formData = {
                         category: '',
                         color: '',
@@ -106,8 +112,13 @@ export default {
                         datetime: '',
                         description: '',
                     }
+                    console.log('Form Data:', formDataCopy)
+                    alert('Item reported successfully! Redirecting to check for similar items found')
 
-                    alert('Item reported successfully!')
+                    this.$router.push({
+                        name: 'matching',
+                        query: { lostItem: JSON.stringify(formDataCopy), id: lostItemId },
+                    })
                 } catch (error) {
                     console.error('Error saving item:', error)
                     alert('Failed to report item. Please try again.')
@@ -116,7 +127,14 @@ export default {
         },
 
         validateForm() {
-            if (!this.formData.category || !this.formData.color || !this.formData.brand || !this.formData.location || !this.formData.datetime || !this.formData.description) {
+            if (
+                !this.formData.category ||
+                (!this.formData.color && this.formData.category !== 'Student Card') || // <-- updated
+                (!this.formData.brand && this.formData.category !== 'Student Card') ||
+                !this.formData.location ||
+                !this.formData.datetime ||
+                !this.formData.description
+            ) {
                 alert('Please fill all required fields.')
                 return false
             }
@@ -184,6 +202,7 @@ form {
     height: 6.0625rem;
     font-family: Arial;
     padding-left: 0.75rem;
+    resize: none;
 }
 
 select,
