@@ -25,7 +25,7 @@
             class="dropdown-item" 
             @click="onItemNotMine"
           >
-            {{ itemStatus === 'Matched' ? 'Item Not Mine' : 'Undo Item Not Mine' }}
+            {{ itemStatus === 'Matched' ? 'Undo Match' : 'Match' }}
           </button>
         </div>
       </div>
@@ -222,12 +222,15 @@ export default {
 
     const onReturnSelected = async (answer) => {
       if (answer) {
+        // Update the item status to "Returned"
         await updateDoc(doc(db, 'conversations', props.conversationId), {
           itemStatus: 'Returned'
         });
-        await deleteConversation();
+        // Show the deletion warning modal
         showReturnPrompt.value = false;
+        showDeletionWarning.value = true;
       } else {
+        // If "No" is selected, show the deletion warning directly
         showReturnPrompt.value = false;
         showDeletionWarning.value = true;
       }
@@ -235,16 +238,38 @@ export default {
     };
 
     const onDeletionWarningSelected = async (answer) => {
-      if (answer) {
-        await updateDoc(doc(db, 'conversations', props.conversationId), {
-          itemStatus: 'Not Found Yet'
-        });
-        await deleteConversation();
+      try {
+        if (answer) {
+          // Check if the conversation document exists
+          const conversationRef = doc(db, 'conversations', props.conversationId);
+          const docSnap = await getDoc(conversationRef);
+
+          if (!docSnap.exists()) {
+            console.warn(`Conversation with ID ${props.conversationId} does not exist.`);
+            router.push('/conversations');
+            return;
+          }
+
+          // If the user confirms deletion, update itemStatus to 'Not Found Yet' if it wasn't "Returned"
+          if (itemStatus.value !== 'Returned') {
+            await updateDoc(conversationRef, {
+              itemStatus: 'Not Found Yet'
+            });
+          }
+          // Now delete the conversation
+          await deleteConversation();
+          // Navigate to a different route (e.g., conversation list)
+          router.push('/conversations'); // Adjust the route as needed
+        }
+      } catch (error) {
+        console.error('Error during deletion process:', error);
+        alert('An error occurred while deleting the conversation.');
+        router.push('/conversations');
+      } finally {
+        // Always hide the modal, even if an error occurs
         showDeletionWarning.value = false;
-      } else {
-        showDeletionWarning.value = false;
+        dropdownOpen.value = false;
       }
-      dropdownOpen.value = false;
     };
 
     const deleteConversation = async () => {
