@@ -12,33 +12,37 @@
                 <label for="cat">Category </label> <br />
                 <select name="cat" id="cat" v-model="formData.category">
                     <option value="">--Please choose the category--</option>
-                    <option value="card">Card</option>
-                    <option value="waterbottle">Waterbottle</option>
-                    <option value="electronics">Electronics</option>
-                    <option value="stationary">Stationary</option>
-                    <option value="toys">Toys</option>
-                    <option value="clothing">Clothing</option>
-                    <option value="others">Others</option>
+                    <option value="Student Card">Student Card</option>
+                    <option value="Bank Card">Bank Card</option>
+                    <option value="Waterbottle">Waterbottle</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Stationary">Stationary</option>
+                    <option value="Toys">Toys</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Others">Others</option>
                 </select>
 
                 <br />
                 <br />
 
                 <label for="col">Colour </label> <br />
-                <select v-model="formData.color" id="col" required>
-                    <option value="">--Please choose the colour--</option>
-                    <option value="red">Red</option>
-                    <option value="green">Green</option>
-                    <option value="blue">Blue</option>
-                    <option value="yellow">Yellow</option>
-                    <option value="black">Black</option>
-                    <option value="white">White</option>
-                    <option value=" ">Others</option>
+                <select v-model="formData.color" id="col" :disabled="formData.category === 'Student Card'" required>
+                    <option value="" disabled>
+                        {{ formData.category === 'Student Card' ? 'Colour not required for Student Cards' : '--Please choose the colour--' }}
+                    </option>
+                    <option v-if="formData.category !== 'Student Card'" value="Red">Red</option>
+                    <option v-if="formData.category !== 'Student Card'" value="Green">Green</option>
+                    <option v-if="formData.category !== 'Student Card'" value="Blue">Blue</option>
+                    <option v-if="formData.category !== 'Student Card'" value="Yellow">Yellow</option>
+                    <option v-if="formData.category !== 'Student Card'" value="Black">Black</option>
+                    <option v-if="formData.category !== 'Student Card'" value="White">White</option>
+                    <option v-if="formData.category !== 'Student Card'" value=" ">Others</option>
                 </select>
+
                 <br /><br />
 
                 <label for="brand">Brand </label> <br />
-                <input type="text" id="brand" v-model="formData.brand" required placeholder="Enter Brand" />
+                <input type="text" id="brand" v-model="formData.brand" required :placeholder="formData.category === 'Student Card' ? 'Not required for student cards' : 'Enter Brand'" :disabled="formData.category === 'Student Card'" />
                 <br /><br />
 
                 <label for="loc">Location Lost </label> <br />
@@ -50,7 +54,7 @@
                 <br /><br />
 
                 <label for="desc">Description </label> <br />
-                <textarea name="desc" v-model="formData.description" rows="5" cols="20" placeholder="Enter Description">Enter Description</textarea>
+                <textarea name="desc" v-model="formData.description" rows="5" cols="20" :placeholder="formData.category === 'Student Card' ? 'Enter name and student number on the card ' : 'Enter Description'"></textarea>
                 <br /><br />
 
                 <div class="save">
@@ -62,11 +66,9 @@
 </template>
 
 <script>
-// import firebaseApp from '../firebase.js'
-// import { getFirestore } from 'firebase/firestore'
-import { collection, addDoc } from 'firebase/firestore'
-// const db = getFirestore(firebaseApp)
+import { collection, addDoc, doc, setDoc, arrayUnion, getDoc } from 'firebase/firestore'
 import { db } from '../firebase.js'
+import { useUserStore } from '@/stores/user-store'
 
 export default {
     data() {
@@ -86,7 +88,13 @@ export default {
         async saveLostItem() {
             if (this.validateForm()) {
                 try {
-                    await addDoc(collection(db, 'Lost Item'), {
+                    const userStore = useUserStore()
+                    const userEmailRef = doc(db, 'users', userStore.userId)
+                    const docSnap = await getDoc(userEmailRef)
+                    const userData = docSnap.data()
+                    const userEmail = userData.email
+
+                    const docRef = await addDoc(collection(db, 'Lost Item'), {
                         brand: this.formData.brand,
                         category: this.formData.category,
                         claimed_status: 'Not Found Yet',
@@ -96,7 +104,25 @@ export default {
                         lost_item_id: 'empty for now',
                         location: this.formData.location,
                         name: `${this.formData.color} ${this.formData.category}`,
+                        email: userEmail,
+                        reporter_id: userStore.userId,
                     })
+
+                    console.log('User ID:', userStore.userId)
+                    const userRef = doc(db, 'History', userStore.userId)
+
+                    // Use setDoc with merge:true to create/update document
+                    await setDoc(
+                        userRef,
+                        {
+                            lost_item_id_list: arrayUnion(docRef.id),
+                        },
+                        { merge: true },
+                    )
+
+                    const lostItemId = docRef.id
+
+                    const formDataCopy = { ...this.formData }
 
                     this.formData = {
                         category: '',
@@ -106,9 +132,16 @@ export default {
                         datetime: '',
                         description: '',
                     }
+                    console.log('Form Data:', formDataCopy)
+                    alert('Item reported successfully! Redirecting to check for similar items found')
 
-                    alert('Item reported successfully!')
+                    this.$router.push({
+                        name: 'matching',
+                        query: { lostItem: JSON.stringify(formDataCopy), id: lostItemId },
+                    })
                 } catch (error) {
+                    const userStore = useUserStore()
+                    console.log('User ID:', userStore.userId)
                     console.error('Error saving item:', error)
                     alert('Failed to report item. Please try again.')
                 }
@@ -116,7 +149,7 @@ export default {
         },
 
         validateForm() {
-            if (!this.formData.category || !this.formData.color || !this.formData.brand || !this.formData.location || !this.formData.datetime || !this.formData.description) {
+            if (!this.formData.category || (!this.formData.color && this.formData.category !== 'Student Card') || (!this.formData.brand && this.formData.category !== 'Student Card') || !this.formData.location || !this.formData.datetime || !this.formData.description) {
                 alert('Please fill all required fields.')
                 return false
             }
@@ -178,12 +211,17 @@ form {
     line-height: 2;
     border: none;
     box-sizing: border-box;
+    color: black;
 }
 
 .formli textarea {
     height: 6.0625rem;
+    min-width: 24.8125rem;
+    max-width: 24.8125rem;
     font-family: Arial;
     padding-left: 0.75rem;
+    resize: none;
+    font-size: 0.875rem;
 }
 
 select,
@@ -209,13 +247,19 @@ textarea::placeholder {
 }
 
 #savebutton {
-    width: 5.125rem;
+    width: 5.5rem;
     height: 2rem;
     border-radius: 0.625rem;
     background-color: #ff8844;
     color: black;
     font-weight: 600;
     border: none;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+#savebutton:hover {
+    transform: scale(1.1); /* Slight zoom in */
 }
 
 #backward_img {
@@ -223,5 +267,10 @@ textarea::placeholder {
     height: 2.125rem;
     margin-left: 1rem;
     margin-top: 1rem;
+}
+
+#backward-img:hover {
+    transform: scale(1.1); /* Slight zoom in */
+    opacity: 0.8; /* Slight transparency */
 }
 </style>

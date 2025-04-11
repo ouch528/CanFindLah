@@ -1,54 +1,56 @@
 <template>
-    <div class="container">
-        <div class="text-section">
-            <h3 id="welcome-msg">Welcome, {{ userName }}.</h3>
+    <div class="content-wrapper">
+        <div class="container">
+            <div class="text-section">
+                <h3 id="welcome-msg" ref="welcomeText"></h3>
 
-            <h1 id="main-msg">
-                Find and <br />
-                Recover with <br />
-                Ease.
-            </h1>
+                <h1 id="main-msg">
+                    Find and <br />
+                    Recover with <br />
+                    Ease.
+                </h1>
+            </div>
+
+            <div class="nav-section">
+                <RouterLink to="/report_lost">
+                    <div id="lost-item-nav">
+                        <img src="@/assets/lost_item_icon.png" />
+                        Report Lost Item
+                    </div>
+                </RouterLink>
+
+                <br />
+
+                <RouterLink to="/report_found">
+                    <div id="found-item-nav">
+                        <img src="@/assets/found_item_icon.png" />
+                        Report Found Item
+                    </div>
+                </RouterLink>
+            </div>
         </div>
 
-        <div class="nav-section">
-            <RouterLink to="/report_lost">
-                <div id="lost-item-nav">
-                    <img src="@/assets/lost_item_icon.png" />
-                    Report Lost Item
-                </div>
-            </RouterLink>
+        <div class="stats">
+            <div id="claimed">
+                <h1>{{ claimed }}</h1>
+                <h3>Items Claimed</h3>
+            </div>
 
-            <br />
+            <div id="found">
+                <h1>{{ found }}</h1>
+                <h3>Items Found</h3>
+            </div>
 
-            <RouterLink to="/report_found">
-                <div id="found-item-nav">
-                    <img src="@/assets/found_item_icon.png" />
-                    Report Found Item
-                </div>
-            </RouterLink>
+            <div id="yet">
+                <h1>{{ yetToBeClaimed }}</h1>
+                <h3>Items Yet to be Claimed</h3>
+            </div>
         </div>
     </div>
-
-    <div class="stats">
-        <div id="claimed">
-            <h1>{{ claimed }}</h1>
-            <h3>Items Claimed</h3>
-        </div>
-
-        <div id="found">
-            <h1>{{ found }}</h1>
-            <h3>Items Found</h3>
-        </div>
-
-        <div id="yet">
-            <h1>{{ yetToBeClaimed }}</h1>
-            <h3>Items Yet to be Claimed</h3>
-        </div>
-    </div>
+    
 </template>
 
 <script>
-// import firebaseApp from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
 import { auth } from '../firebase.js'
@@ -71,24 +73,37 @@ export default {
         }
 
         const claimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', 'Returned'))
-
         onSnapshot(claimedQuery, (snapshot) => {
             this.claimed = snapshot.size
         })
 
         const foundQuery = query(collection(db, 'Lost Item'), where('claimed_status', '==', 'Returned'))
-
         onSnapshot(foundQuery, (snapshot) => {
             this.found = snapshot.size
         })
 
         const yetToBeClaimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', 'Not Found Yet'))
-
         onSnapshot(yetToBeClaimedQuery, (snapshot) => {
             this.yetToBeClaimed = snapshot.size
         })
-    },
 
+        // Use $nextTick to ensure DOM is updated and the ref is available
+        this.$nextTick(() => {
+            const fullText = `Welcome, ${this.userName}.`
+            let i = 0
+            const interval = setInterval(() => {
+                // Always check if the element exists before modifying it
+                if (this.$refs.welcomeText) {
+                    if (i < fullText.length) {
+                        this.$refs.welcomeText.textContent += fullText.charAt(i)
+                        i++
+                    } else {
+                        clearInterval(interval)
+                    }
+                }
+            }, 30)
+        })
+    },
     methods: {},
 }
 </script>
@@ -102,11 +117,27 @@ a {
     text-decoration: none;
 }
 
+.content-wrapper {
+    max-width: 1440px;
+    margin: 0 auto;
+}
+
 #main-msg {
     line-height: 1.25;
     font-weight: 700;
     text-align: left;
     font-size: 4.375rem;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 1s ease-out forwards;
+    animation-delay: 0.3s;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 #welcome-msg {
@@ -148,6 +179,10 @@ a {
     align-items: center;
     justify-content: center;
     text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 1s ease-out forwards;
+    animation-delay: 0.3s;
 }
 
 #lost-item-nav {

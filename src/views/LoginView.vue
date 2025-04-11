@@ -1,8 +1,8 @@
 <template>
-    <!-- <div class="logo-container">
+    <div class="logo-container">
         <img src="@/assets/CFL_logo.png" alt="CanFindLah" />
         <span>CanFindLah</span>
-    </div> -->
+    </div>
     <div class="main-container">
         <div class="left-panel">
             <img src="../assets/CFL_signup.png" id="illustration" alt="illustration" />
@@ -23,13 +23,15 @@
                             <i :class="showPassword ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
                         </span>
                     </div>
+                    <p id="forgot-password"><span @click="forgotPassword">Forgot password?</span></p>
                     <br />
 
                     <button type="submit">Login</button>
                     <br />
 
                     <p class="error-message">{{ errorMessage }}</p>
-                    <p id="directToSignup">Don't have an account? <router-link style="text-decoration: none; color: #2c73eb" to="/signup">Sign up here</router-link></p>
+                    <p v-if="needsVerification" id="prompt">Haven't received the verification email? <span @click="resendVerificationEmail" style="color: #2c73eb; cursor: pointer"> Click here to resend </span></p>
+                    <p id="prompt">Don't have an account? <router-link style="text-decoration: none; color: #2c73eb" to="/signup">Sign up here</router-link></p>
                 </form>
             </div>
         </div>
@@ -37,8 +39,10 @@
 </template>
 
 <script>
-import { signInWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '../firebase'
+import { useUserStore } from '@/stores/user-store'
+import { signInWithEmailAndPassword, signOut, sendEmailVerification, sendPasswordResetEmail, fetchSignInMethodsForEmail } from 'firebase/auth'
+import { auth, db } from '../firebase'
+import { doc, setDoc, serverTimestamp, updateDoc, getDoc } from 'firebase/firestore'
 
 export default {
     data() {
@@ -47,19 +51,119 @@ export default {
             password: '',
             showPassword: false,
             errorMessage: '',
+            needsVerification: false,
+            unverifiedUser: null,
         }
     },
     methods: {
         togglePassword() {
             this.showPassword = !this.showPassword
         },
-        async loginUser() {
+        async forgotPassword() {
+            if (!this.email) {
+                alert('Please enter your email address first.')
+                return
+            }
+            const confirmed = confirm('Reset password? A password reset email will be sent to your inbox')
+            if (!confirmed) return
+
             try {
-                await signInWithEmailAndPassword(auth, this.email, this.password)
+                const methods = await fetchSignInMethodsForEmail(auth, this.email)
+
+                await sendPasswordResetEmail(auth, this.email)
+                alert('If your email exists, a reset link will be sent.')
+            } catch (error) {
+                console.error('Reset error: ', error)
+                if (error.code === 'auth/invalid-email') {
+                    this.errorMessage = 'Please enter a valid email address.'
+                } else {
+                    this.errorMessage = 'Failed to send reset email. Please try again.'
+                }
+            }
+        },
+        async loginUser() {
+            const attempts = doc(db, 'Login Attempts', this.email)
+            const attemptsSnap = await getDoc(attempts)
+            const now = new Date()
+            let newFailCount = 1
+
+            if (attemptsSnap.exists()) {
+                const { failCount, lastAttempt } = attemptsSnap.data()
+                const diff = (now - lastAttempt.toDate()) / 1000
+
+                // For users whose accounts have already been locked, prevent them from logging in
+                if (failCount >= 5 && diff < 600) {
+                    const remainingMinutes = Math.ceil((600 - diff) / 60)
+
+                    this.errorMessage = `Account temporarily locked due to too many failed attempts. Please try again in ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}.`
+                    return
+                }
+            }
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, this.email, this.password)
+
+                // user has not verified email
+                if (!auth.currentUser.emailVerified) {
+                    this.unverifiedUser = auth.currentUser
+                    alert('Please verify your email before logging in.')
+                    this.needsVerification = true
+                    this.errorMessage = 'Please verify your email before logging in.'
+                    await signOut(auth)
+                    return
+                }
+
+                const user = userCredential.user
+                const userId = user.uid
+                const userStore = useUserStore()
+                userStore.setUserId(userId)
+
+                // sucessful login, reset the counter
+                await setDoc(attempts, {
+                    failCount: 0,
+                    lastAttempt: serverTimestamp(),
+                })
+
                 alert('Login successful! Redirecting to home page.')
                 this.$router.push('/')
             } catch (error) {
-                this.errorMessage = 'Invalid email or password. Please try again.'
+                if (attemptsSnap.exists()) {
+                    const { failCount, lastAttempt } = attemptsSnap.data()
+                    const diff = (now - lastAttempt.toDate()) / 1000 // in seconds
+
+                    if (diff < 300) {
+                        // last failed login attempt was less than 5 minutes
+                        newFailCount = failCount + 1 // increment fail count
+                    }
+                }
+
+                await setDoc(attempts, {
+                    failCount: newFailCount,
+                    lastAttempt: serverTimestamp(),
+                })
+
+                // First time they got locked
+                if (newFailCount > 5) {
+                    // == 6 condition works too
+                    alert('Too many failed attempts. Account temporarily locked.')
+                    this.errorMessage = 'Account temporarily locked. Please try again in 10 minutes.'
+                } else {
+                    this.errorMessage = 'Invalid email or password. Please try again.'
+                }
+            }
+        },
+        async resendVerificationEmail() {
+            try {
+                const user = this.unverifiedUser
+                if (!user) {
+                    this.errorMessage = 'User info expired. Please log in again.'
+                    return
+                }
+                await sendEmailVerification(user)
+                this.errorMessage = 'Verification email sent! Please check your inbox.'
+            } catch (error) {
+                console.error(error)
+                this.errorMessage = 'Failed to resend verification email. Please try again.'
             }
         },
     },
@@ -129,7 +233,7 @@ h1 {
 
 .error-message {
     margin-top: 0px;
-    margin-bottom: 5px;
+    margin-bottom: 15px;
     color: red;
 }
 
@@ -204,7 +308,18 @@ p {
     font-size: 1.25rem;
 }
 
-#directToSignup {
+#forgot-password {
+    margin-top: 0px;
+    font-size: 1rem;
+    text-align: right;
+    color: #8692a6;
+}
+
+#forgot-password span {
+    cursor: pointer;
+}
+
+#prompt {
     text-align: center;
 }
 </style>

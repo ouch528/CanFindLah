@@ -1,8 +1,8 @@
 <template>
-    <!-- <div class="logo-container">
+    <div class="logo-container">
         <img src="@/assets/CFL_logo.png" alt="CanFindLah" />
         <span>CanFindLah</span>
-    </div> -->
+    </div>
     <div class="main-container">
         <div class="left-panel">
             <img src="../assets/CFL_signup.png" id="illustration" alt="illustration" />
@@ -56,7 +56,7 @@
 <script>
 import { auth, createUserWithEmailAndPassword, db } from '../firebase'
 import { doc, setDoc } from 'firebase/firestore'
-import { signOut } from 'firebase/auth'
+import { signOut, sendEmailVerification } from 'firebase/auth'
 
 export default {
     data() {
@@ -105,8 +105,15 @@ export default {
                     createdAt: new Date(),
                 })
 
+                await setDoc(doc(db, 'History', user.uid), {
+                    user_id: user.uid,
+                    found_item_id_list: [],
+                    lost_item_id_list: [],
+                })
+                await sendEmailVerification(user)
+
                 await signOut(auth)
-                alert('Signup sucessful! Redirecting to login.')
+                alert('Signup sucessful! A verification email has been sent to your inbox. Please verify your email before logging in.')
                 this.$router.push('/login')
             } catch (error) {
                 if (error.code == 'auth/email-already-in-use') {
