@@ -45,16 +45,18 @@ export default {
             try {
                 const userStore = useUserStore();
                 console.log("User ID:", userStore.userId);
-                // const his = doc(db, 'History', 'fAQOn1Iz4YfOKk8c9B8zvQSItcy1') // Firestore document reference
                 const his = doc(db, 'History', userStore.userId)
                 const docSnap = await getDoc(his) // Wait for document fetch
 
                 if (docSnap.exists()) {
-                    this.found_item_Ids = docSnap.data().found_item_id_list // Update state
-                    this.lost_item_Ids = docSnap.data().lost_item_id_list
-                    this.found_item_Ids.reverse()
-                    this.lost_item_Ids.reverse()
-                    // console.log("Fetched Items:", this.itemIds);
+                    this.found_item_Ids = docSnap.data().found_item_id_list || []
+                    this.lost_item_Ids = docSnap.data().lost_item_id_list || []
+                    if (this.found_item_Ids.length) {
+                        this.found_item_Ids.reverse()
+                    }
+                    if (this.lost_item_Ids.length) {
+                        this.lost_item_Ids.reverse()
+                    }
                     console.log(this.lost_item_Ids)
                 } else {
                     console.log('No such document!')

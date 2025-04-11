@@ -51,7 +51,6 @@
 </template>
 
 <script>
-// import firebaseApp from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
 import { collection, query, where, onSnapshot } from 'firebase/firestore'
 import { auth } from '../firebase.js'
@@ -74,35 +73,37 @@ export default {
         }
 
         const claimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', 'Returned'))
-
         onSnapshot(claimedQuery, (snapshot) => {
             this.claimed = snapshot.size
         })
 
         const foundQuery = query(collection(db, 'Lost Item'), where('claimed_status', '==', 'Returned'))
-
         onSnapshot(foundQuery, (snapshot) => {
             this.found = snapshot.size
         })
 
         const yetToBeClaimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', 'Not Found Yet'))
-
         onSnapshot(yetToBeClaimedQuery, (snapshot) => {
             this.yetToBeClaimed = snapshot.size
         })
 
-        const fullText = `Welcome, ${this.userName}.`
-        let i = 0
-        const interval = setInterval(() => {
-            if (i < fullText.length) {
-            this.$refs.welcomeText.textContent += fullText.charAt(i)
-            i++
-            } else {
-            clearInterval(interval)
-            }
-        }, 30)
+        // Use $nextTick to ensure DOM is updated and the ref is available
+        this.$nextTick(() => {
+            const fullText = `Welcome, ${this.userName}.`
+            let i = 0
+            const interval = setInterval(() => {
+                // Always check if the element exists before modifying it
+                if (this.$refs.welcomeText) {
+                    if (i < fullText.length) {
+                        this.$refs.welcomeText.textContent += fullText.charAt(i)
+                        i++
+                    } else {
+                        clearInterval(interval)
+                    }
+                }
+            }, 30)
+        })
     },
-
     methods: {},
 }
 </script>

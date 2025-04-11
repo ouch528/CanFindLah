@@ -30,19 +30,19 @@
                     <option value="" disabled>
                         {{ formData.category === 'Student Card' ? 'Colour not required for Student Cards' : '--Please choose the colour--' }}
                     </option>
-                    <option v-if="formData.category !== 'Card'" value="Red">Red</option>
-                    <option v-if="formData.category !== 'Card'" value="Green">Green</option>
-                    <option v-if="formData.category !== 'Card'" value="Blue">Blue</option>
-                    <option v-if="formData.category !== 'Card'" value="Yellow">Yellow</option>
-                    <option v-if="formData.category !== 'Card'" value="Black">Black</option>
-                    <option v-if="formData.category !== 'Card'" value="White">White</option>
-                    <option v-if="formData.category !== 'Card'" value=" ">Others</option>
+                    <option v-if="formData.category !== 'Student Card'" value="Red">Red</option>
+                    <option v-if="formData.category !== 'Student Card'" value="Green">Green</option>
+                    <option v-if="formData.category !== 'Student Card'" value="Blue">Blue</option>
+                    <option v-if="formData.category !== 'Student Card'" value="Yellow">Yellow</option>
+                    <option v-if="formData.category !== 'Student Card'" value="Black">Black</option>
+                    <option v-if="formData.category !== 'Student Card'" value="White">White</option>
+                    <option v-if="formData.category !== 'Student Card'" value=" ">Others</option>
                 </select>
 
                 <br /><br />
 
                 <label for="brand">Brand </label> <br />
-                <input type="text" id="brand" v-model="formData.brand" required :placeholder="formData.category === 'Student Card' ? 'Not required for student cards' : 'Enter Brand'" :disabled="formData.category === 'Card'" />
+                <input type="text" id="brand" v-model="formData.brand" required :placeholder="formData.category === 'Student Card' ? 'Not required for student cards' : 'Enter Brand'" :disabled="formData.category === 'Student Card'" />
                 <br /><br />
 
                 <label for="loc">Location Lost </label> <br />
@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { collection, addDoc, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore'
+import { collection, addDoc, doc, setDoc, arrayUnion, getDoc } from 'firebase/firestore'
 import { db } from '../firebase.js'
 import { useUserStore } from '@/stores/user-store'
 
@@ -110,13 +110,14 @@ export default {
 
                     console.log('User ID:', userStore.userId)
                     const userRef = doc(db, 'History', userStore.userId)
-                    await updateDoc(userRef, {
-                        lost_item_id_list: arrayUnion(docRef.id),
-                    })
+                    
+                    // Use setDoc with merge:true to create/update document
+                    await setDoc(userRef, {
+                        lost_item_id_list: arrayUnion(docRef.id)
+                    }, { merge: true })
 
                     const lostItemId = docRef.id
 
-                    // const formDataCopy = { ...this.formData }
                     const formDataCopy = { ...this.formData }
 
                     this.formData = {
@@ -146,7 +147,7 @@ export default {
         validateForm() {
             if (
                 !this.formData.category ||
-                (!this.formData.color && this.formData.category !== 'Student Card') || // <-- updated
+                (!this.formData.color && this.formData.category !== 'Student Card') ||
                 (!this.formData.brand && this.formData.category !== 'Student Card') ||
                 !this.formData.location ||
                 !this.formData.datetime ||
