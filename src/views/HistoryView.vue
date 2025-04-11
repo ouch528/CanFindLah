@@ -5,6 +5,7 @@ import { app } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
 import { collection, getDoc, doc, deleteDoc } from 'firebase/firestore'
 const db = getFirestore(app)
+import { useUserStore } from "@/stores/user-store";
 
 export default {
     components: {
@@ -42,7 +43,10 @@ export default {
 
         async fetchItems() {
             try {
-                const his = doc(db, 'History', 'fAQOn1Iz4YfOKk8c9B8zvQSItcy1') // Firestore document reference
+                const userStore = useUserStore();
+                console.log("User ID:", userStore.userId);
+                // const his = doc(db, 'History', 'fAQOn1Iz4YfOKk8c9B8zvQSItcy1') // Firestore document reference
+                const his = doc(db, 'History', userStore.userId)
                 const docSnap = await getDoc(his) // Wait for document fetch
 
                 if (docSnap.exists()) {
@@ -89,7 +93,7 @@ export default {
         <!-- user_id is for future when user configuration is implemented (when delete need update the history via user id) -->
         <Item v-for="found_item_Id in found_item_Ids" :key="found_item_Id" :found_item_Id="found_item_Id" :user_id="user_id" v-if="status == 'all' || status == 'founder'" @item-deleted="fetchItems" id="card" />
 
-        <Item v-for="lost_item_Id in lost_item_Ids" :key="lost_item_Id" :lost_item_Id="lost_item_Id" :user_id="user_id" v-if="status == 'all' || status == 'searcher'" @item-deleted="fetchItems" />
+        <Item v-for="lost_item_Id in lost_item_Ids" :key="lost_item_Id" :lost_item_Id="lost_item_Id" :user_id="user_id" v-if="status == 'all' || status == 'searcher'" @item-deleted="fetchItems" id = "card"/>
         <!-- <Item /> -->
     </div>
 
@@ -148,30 +152,51 @@ body {
     font-family: Inter;
 }
 
-select {
-    padding: 0.32rem 0.38rem;
-    border-radius: 0.32rem;
+#select-bar select {
+    /* padding: 0.32rem 0.38rem; */
+    border-radius: 0.5rem;
     border: 0.07rem solid #ccc;
     background-color: white;
     cursor: pointer;
+    width: 10rem;  /* Set a fixed width */
+    height: 1.57rem;  /* Set a fixed height */
+    padding: 0.07rem;  /* Add some padding */
+    font-size: 1rem;  /* Ensure text size is the same */
+    font-family: 'Inter';
+    /* background-color: rgba(251, 240, 230, 1); */
+    box-sizing: border-box;
+    margin-left: 15.5rem;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 #item-display {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+    padding-left: 12.5rem;  /* Optional: Add space inside the container */
+    padding-right: 12.5rem;
+
 }
 
 #select-bar {
-    justify-content: center;
+    /* justify-content: center; */
+    margin-left: 7.5rem;
     display: flex;
     flex-wrap: wrap;
 }
 
 h5 {
-    font-family: Arial;
+    font-family: Inter;
     text-align: center;
     color: grey;
     font-size: 1.5rem;
 }
+
+#card{
+    flex: 0 0 20%;
+
+}
+
+
 </style>

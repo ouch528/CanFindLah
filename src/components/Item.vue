@@ -1,5 +1,5 @@
 <template>
-    <div class="item">
+    <div class="history-item">
         <!-- <h3>Small tortoise toy</h3>
         <p>Category: Toy</p>
         <p>Colour: Unknown</p>
@@ -12,17 +12,22 @@
             <p class = "you-are">Founder</p>
         </div> -->
         <div class="image-container">
-            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError" />
-            <img v-else :src="failed_image" />
+            <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError" id = "item-image"/>
+            <img v-else :src ="failed_image"/>
+            <router-link to="/edit?status_edit_item=searcher&edit_item_id=YsmFFHlbIil3k4M7W1qj&image=">
+                <div class="alert-icon">!</div>
+            </router-link>
+            
         </div>
 
         <h3>{{ item.name }}</h3>
-        <p>Category: {{ item.category }}</p>
-        <p>Colour: {{ item.colour }}</p>
-        <p>Brand: {{ item.brand }}</p>
-        <p>Location: {{ item.location }}</p>
-        <p>Date & Time: {{ item.date_time_lost }}</p>
-        <p>Description: {{ item.description }}</p>
+        <p><strong>Category: </strong>{{ item.category }}</p>
+        <p><strong>Colour: </strong>{{ item.colour }}</p>
+        <p><strong>Brand: </strong>{{ item.brand }}</p>
+        <p><strong>Location: </strong>{{ item.location }}</p>
+        <p v-if=" status == 'founder'"><strong>Date & Time: </strong>{{ item.date_time_found.replace('T', ' ') }}</p>
+        <p v-if=" status == 'searcher'"><strong>Date & Time: </strong>{{ item.date_time_lost.replace('T', ' ') }}</p>
+        <p><strong>Description: </strong>{{ item.description }}</p>
         <br />
         <!-- <p>{{ itemId }}</p> -->
         <div class="boxes">
@@ -35,20 +40,23 @@
                 <i class="pi pi-pencil" id="pencil" @click="toggleMenu"></i>
 
                 <div v-if="showMenu" class="action-menu">
-                    <button @click="updateItem">Update</button>
+                    <button @click="updateItem">Edit</button>
                     <button @click="deleteItem">Delete</button>
                 </div>
             </div>
         </div>
+        
+        
     </div>
 </template>
 
 <script>
 import { app, storage } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
-import { ref, getDownloadURL } from 'firebase/storage'
+import { ref, getDownloadURL, getStorage, deleteObject } from 'firebase/storage'
 import { collection, getDoc, doc, deleteDoc, updateDoc, arrayRemove } from 'firebase/firestore'
 import 'primeicons/primeicons.css'
+import { useUserStore } from "@/stores/user-store";
 
 const db = getFirestore(app)
 
@@ -78,6 +86,19 @@ export default {
     async created() {
         await this.fetchItemDetails()
         await this.fetchItemDetails_lost() // Fetch item details when component is created
+        // const storage = getStorage();
+        //             console.log(this.found_item_Id)
+                    
+        //             const docRef = doc(db, 'Found Item', "zY5xtPpDQFuEvQds4UVw")
+        //             const docSnap = await getDoc(docRef);
+        //             const data = docSnap.data()
+        //             const desertRef = ref(storage, "found_items/1743705909082");
+        //             console.log(desertRef)
+        //             deleteObject(desertRef).then(() => {
+        //             // File deleted successfully
+        //             }).catch((error) => {
+        //             console.log(error)
+        //             });
     },
 
     watch: {
@@ -161,7 +182,7 @@ export default {
                 alert('You cannot edit a matched item')
                 return
             }
-            alert('Update item clicked')
+            alert('Edit item clicked')
             if (this.status == 'searcher') {
                 this.$router.push({
                     name: 'edit_item',
@@ -185,28 +206,49 @@ export default {
         },
 
         async deleteItem() {
-            try {
-                alert('Delete item clicked')
-                if (this.status == 'searcher') {
-                    // console.log(this.item)
-                    const docRef = doc(db, 'Lost Item', this.lost_item_Id)
-                    const userRef = doc(db, 'History', this.user_id)
-                    await updateDoc(userRef, {
-                        lost_item_id_list: arrayRemove(this.lost_item_Id), // Remove the item ID from the array
-                    })
-                    await deleteDoc(docRef)
-                } else {
-                    console.log(this.found_item_Id)
-                    const docRef = doc(db, 'Found_Item', this.found_item_Id)
-                    const userRef = doc(db, 'History', this.user_id)
-                    await updateDoc(userRef, {
-                        found_item_id_list: arrayRemove(this.found_item_Id), // Remove the item ID from the array
-                    })
-                    await deleteDoc(docRef)
+            if (this.item.claimed_status == 'Matched') {
+                alert("You cannot delete a Matched Item")
+                return
+            }
+            if (confirm("Are you sure you want to delete this item") == true) {
+                try {
+                    alert('Delete item clicked')
+                    const userStore = useUserStore();
+                    const user_id = userStore.userId
+                    if (this.status == 'searcher') {
+                        // console.log(this.item)
+                        const docRef = doc(db, 'Lost Item', this.lost_item_Id)
+                        const userRef = doc(db, 'History', user_id)
+
+                        await updateDoc(userRef, {
+                            lost_item_id_list: arrayRemove(this.lost_item_Id), // Remove the item ID from the array
+                        })
+                        await deleteDoc(docRef)
+                    } else {
+                        const storage = getStorage();
+                        console.log(this.found_item_Id)
+                        
+                        const docRef = doc(db, 'Found Item', this.found_item_Id)
+                        const docSnap = await getDoc(docRef);
+                        const data = docSnap.data()
+                        const desertRef = ref(storage, `${data.photo_directory}`);
+                        console.log(desertRef)
+                        deleteObject(desertRef).then(() => {
+                        // File deleted successfully
+                        }).catch((error) => {
+                        console.log(error)
+                        });
+                        const userRef = doc(db, 'History', user_id)
+                        await updateDoc(userRef, {
+                            found_item_id_list: arrayRemove(this.found_item_Id), // Remove the item ID from the array
+                        })
+                        console.log("yes")
+                        await deleteDoc(docRef)
+                    }
+                    this.$emit('item-deleted')
+                } catch (error) {
+                    console.error('Error deleting document: ', error)
                 }
-                this.$emit('item-deleted')
-            } catch (error) {
-                console.error('Error deleting document: ', error)
             }
 
             this.showMenu = false // Close menu after action
@@ -263,18 +305,19 @@ export default {
 </script>
 
 <style>
-.item {
+.history-item {
     position: relative;
     background-color: white;
     /* right: 500px; */
     border: 0.0625rem;
-    max-width: 15.625rem;
+    /* max-width: 15.625rem; */
     margin: 0.44rem;
     background-color: #fff;
-    padding: 1.25rem;
+    padding: 1rem;
     border: 0.0625rem solid #ccc;
     /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
 }
+
 
 .you-are {
     display: inline;
@@ -299,12 +342,14 @@ p {
     color: grey;
     /* display: inline; */
     font-size: 1rem;
+  
 }
 
 .boxes {
     display: inline-flex; /* Arrange boxes horizontally */
     align-items: center; /* Vertically align items */
     gap: 0.625rem; /* Space between boxes */
+
 }
 
 .status {
@@ -313,14 +358,33 @@ p {
     color: black;
     /* Text color */
     font-family: sans-serif; /* Example font */
+    /* cursor: pointer; */
+    transition: all 0.3s ease-in-out;
+    
+}
+
+.status:hover{
+    transform: scale(1.05);
 }
 
 .searcher {
     background-color: #ff8844; /* Red background */
+    /* cursor: pointer; */
+    transition: all 0.3s ease-in-out;
+}
+
+.searcher:hover{
+    transform: scale(1.05);
 }
 
 .founder {
     background-color: #4a95df; /* Blue background */
+    /* cursor: pointer; */
+    transition: all 0.3s ease-in-out;
+}
+
+.founder:hover{
+    transform: scale(1.05);
 }
 
 .not-found {
@@ -342,10 +406,11 @@ p {
 }
 
 .image-container img {
-    display: inline-block; /* Allow centering with text-align */
-    max-width: 50%; /* Make image responsive */
-    height: 120%;
-    border-radius: 0.32rem; /* Rounded corners for image */
+    /* max-width: 100%;
+    height: auto;
+    object-fit: contain; */
+    width: 9.4rem;
+    height: 9.4rem;
 }
 
 #pencil {
@@ -354,6 +419,8 @@ p {
     transform: translateY(-50%);
     border-radius: 50%;
     padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
 }
 
 #pencil:hover {
@@ -387,4 +454,49 @@ p {
 .action-menu button:hover {
     background-color: #e0e0e0; /* Slightly darker on hover */
 }
+
+
+.similar {
+    text-align: center;
+}
+
+button.update {
+    border: none;
+}
+
+.row-wrap{
+    display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.alert-icon {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background-color: red;
+    color: white;
+    font-weight: bold;
+    border-radius: 50%;
+    padding: 0.3rem 0.6rem;
+    font-size: 1rem;
+    z-index: 5;
+    box-shadow: 0 0 0.32rem rgba(0,0,0,0.2);
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+.alert-icon:hover {
+    transform: scale(1.3);
+}
+
+#item-image{
+    width: 23rem;
+    height: 16rem;
+    /* background-size: cover; */
+    object-fit: contain;
+    display: block;
+}
+
+
 </style>

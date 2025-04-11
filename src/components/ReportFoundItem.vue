@@ -69,7 +69,7 @@
                 </div>
 
                 <div class="save">
-                    <button id="savebutton" type="button" v-on:click="saveFoundItem">Submit</button>
+                    <button id="savebutton" type="button" :disabled="uploading" v-on:click="saveFoundItem">Submit</button>
                 </div>
             </div>
         </form>
@@ -79,6 +79,9 @@
 <script>
 import { collection, addDoc } from 'firebase/firestore'
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { collection, addDoc, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import { useUserStore } from '@/stores/user-store'
 import { storage, db } from '../firebase.js'
 
 export default {
@@ -96,6 +99,7 @@ export default {
             maxDateTime: new Date().toISOString().slice(0, 16),
             imagePreview: null, // To store the image preview URL
             instruction: 'Please attach photo of the item',
+            uploading: false,
         }
     },
     methods: {
@@ -121,15 +125,22 @@ export default {
         async saveFoundItem() {
             if (this.validateForm()) {
                 try {
+                    this.uploading = true
                     let imageUrl = ''
 
                     if (this.formData.image) {
-                        const imageRef = ref(storage, `found_items/${Date.now()}-${this.formData.image.name}`)
+                        var image_file_path = `found_items/${Date.now()}-${this.formData.image.name}`
+                        const imageRef = ref(storage, image_file_path)
                         const snapshot = await uploadBytes(imageRef, this.formData.image)
                         imageUrl = await getDownloadURL(snapshot.ref)
                     }
+                    const userStore = useUserStore()
+                    const userEmailRef = doc(db, 'users', userStore.userId)
+                    const docSnap = await getDoc(userEmailRef)
+                    const userData = docSnap.data()
+                    const userEmail = userData.email
 
-                    await addDoc(collection(db, 'Found Item'), {
+                    const docRef = await addDoc(collection(db, 'Found Item'), {
                         category: this.formData.category,
                         colour: this.formData.color,
                         brand: this.formData.brand,
@@ -140,12 +151,22 @@ export default {
                         claimed_status: 'Not Found Yet',
                         found_item_id: 'empty for now',
                         photo: imageUrl,
+                        photo_directory: image_file_path,
+                        email: userEmail,
+                        reporter_id: userStore.userId,
+                    })
+
+                    console.log('User ID:', userStore.userId)
+                    const userRef = doc(db, 'History', userStore.userId)
+                    await updateDoc(userRef, {
+                        found_item_id_list: arrayUnion(docRef.id),
                     })
 
                     this.resetForm()
                     this.instruction = 'Please attach photo of the item'
                     alert('Item reported successfully!')
 
+                    this.uploading = false
                     this.$router.push('/')
                 } catch (error) {
                     console.error('Error saving item:', error)
@@ -339,5 +360,10 @@ textarea::placeholder {
     margin-top: 1rem;
     margin-bottom: 1rem;
     align-items: center;
+}
+
+#backward_img:hover {
+    transform: scale(1.1); /* Slight zoom in */
+    opacity: 0.8; /* Slight transparency */
 }
 </style>

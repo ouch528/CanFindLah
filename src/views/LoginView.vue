@@ -39,6 +39,7 @@
 <script>
 import { signInWithEmailAndPassword } from 'firebase/auth'
 import { auth } from '../firebase'
+import { useUserStore } from "@/stores/user-store";
 
 export default {
     data() {
@@ -55,11 +56,16 @@ export default {
         },
         async loginUser() {
             try {
-                await signInWithEmailAndPassword(auth, this.email, this.password)
+                const userCredential = await signInWithEmailAndPassword(auth, this.email, this.password)
+                const user = userCredential.user;
+                const userId = user.uid;
+                const userStore = useUserStore();
+                userStore.setUserId(userId);
                 alert('Login successful! Redirecting to home page.')
                 this.$router.push('/')
             } catch (error) {
                 this.errorMessage = 'Invalid email or password. Please try again.'
+                console.log(error)
             }
         },
     },

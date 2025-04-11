@@ -66,8 +66,9 @@
 </template>
 
 <script>
-import { collection, addDoc } from 'firebase/firestore'
+import { collection, addDoc, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore'
 import { db } from '../firebase.js'
+import { useUserStore } from '@/stores/user-store'
 
 export default {
     data() {
@@ -87,6 +88,12 @@ export default {
         async saveLostItem() {
             if (this.validateForm()) {
                 try {
+                    const userStore = useUserStore()
+                    const userEmailRef = doc(db, 'users', userStore.userId)
+                    const docSnap = await getDoc(userEmailRef)
+                    const userData = docSnap.data()
+                    const userEmail = userData.email
+
                     const docRef = await addDoc(collection(db, 'Lost Item'), {
                         brand: this.formData.brand,
                         category: this.formData.category,
@@ -97,6 +104,14 @@ export default {
                         lost_item_id: 'empty for now',
                         location: this.formData.location,
                         name: `${this.formData.color} ${this.formData.category}`,
+                        email: userEmail,
+                        reporter_id: userStore.userId,
+                    })
+
+                    console.log('User ID:', userStore.userId)
+                    const userRef = doc(db, 'History', userStore.userId)
+                    await updateDoc(userRef, {
+                        lost_item_id_list: arrayUnion(docRef.id),
                     })
 
                     const lostItemId = docRef.id
@@ -120,6 +135,8 @@ export default {
                         query: { lostItem: JSON.stringify(formDataCopy), id: lostItemId },
                     })
                 } catch (error) {
+                    const userStore = useUserStore()
+                    console.log('User ID:', userStore.userId)
                     console.error('Error saving item:', error)
                     alert('Failed to report item. Please try again.')
                 }
@@ -242,5 +259,10 @@ textarea::placeholder {
     height: 2.125rem;
     margin-left: 1rem;
     margin-top: 1rem;
+}
+
+#backward-img:hover {
+    transform: scale(1.1); /* Slight zoom in */
+    opacity: 0.8; /* Slight transparency */
 }
 </style>
