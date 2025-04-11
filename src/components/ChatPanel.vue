@@ -10,9 +10,22 @@
           <img src="@/assets/more.png" alt="More" />
         </button>
         <div v-if="dropdownOpen" class="dropdown-menu">
-          <button class="dropdown-item" @click="onDeleteConversation(partnerID)">Delete Conversation</button>
-          <button class="dropdown-item" @click="onItemReturned(partnerID)">
+          <button class="dropdown-item" @click="onDeleteConversation">Delete Conversation</button>
+
+          <button 
+            v-if="itemStatus !== 'Not Found Yet'" 
+            class="dropdown-item" 
+            @click="onItemReturned"
+          >
             {{ itemStatus === 'Matched' ? 'Item Returned' : 'Undo Item Returned' }}
+          </button>
+
+          <button 
+            v-if="itemStatus !== 'Returned'" 
+            class="dropdown-item" 
+            @click="onItemNotMine"
+          >
+            {{ itemStatus === 'Matched' ? 'Item Not Mine' : 'Undo Item Not Mine' }}
           </button>
         </div>
       </div>
@@ -94,6 +107,27 @@
         </button>
       </div>
     </form>
+    <!-- Custom Modal for Return Prompt -->
+    <div v-if="showReturnPrompt" class="modal-backdrop">
+      <div class="modal">
+        <p>Has the item been returned to its owner?</p>
+        <div class="modal-actions">
+          <button @click="onReturnSelected(true)">Yes</button>
+          <button @click="onReturnSelected(false)">No</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Modal for Deletion Warning -->
+    <div v-if="showDeletionWarning" class="modal-backdrop">
+      <div class="modal">
+        <p>Warning: the conversation will be permanently deleted. Do you wish to proceed?</p>
+        <div class="modal-actions">
+          <button @click="onDeletionWarningSelected(true)">Yes</button>
+          <button @click="onDeletionWarningSelected(false)">No</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -129,18 +163,21 @@ export default {
   },
   setup(props) {
     const partnerDisplayName = ref('');
-
+    const showReturnPrompt = ref(false);
+    const showDeletionWarning = ref(false);
     const messages = ref([]);
     const newMessage = ref('');
     const file = ref(null);
     const filePreview = ref(null);
     const fileName = ref('');
     const isImageFile = ref(false);
-    let unsubscribe = null;
     const messageContainer = ref(null);
     const isSending = ref(false);
     const itemStatus = ref('Matched');
     const dropdownOpen = ref(false);
+    let unsubscribeMessages = null;
+    let unsubscribeConversation = null;
+
     const toggleDropdown = () => {
       dropdownOpen.value = !dropdownOpen.value;
     };
@@ -153,48 +190,99 @@ export default {
       }
     };
 
-    // Add the event listener when the component is mounted
     onMounted(() => {
       document.addEventListener('click', handleClickOutside);
+      fetchConversationData();
+      loadMessages();
+      fetchPartnerName();
     });
 
-    // Remove the event listener when the component is about to unmount
     onBeforeUnmount(() => {
       document.removeEventListener('click', handleClickOutside);
+      if (unsubscribeMessages) unsubscribeMessages();
+      if (unsubscribeConversation) unsubscribeConversation();
     });
-    
-    const deleteConversation = async (partnerID) => {
-      const confirmDelete = confirm(`Are you sure you want to delete the conversation with this user?`);
-      if (!confirmDelete) return;
-    
-      const conversationId = [props.currentUserID, partnerID].sort().join('-');
-      const messagesRef = collection(db, 'conversations', conversationId, 'messages');
-      const messagesSnapshot = await getDocs(messagesRef);
-      const deletePromises = [];
-      messagesSnapshot.forEach((docSnap) => {
-        deletePromises.push(deleteDoc(doc(db, 'conversations', conversationId, 'messages', docSnap.id)));
-      });
-      await Promise.all(deletePromises);
-      await deleteDoc(doc(db, 'conversations', conversationId));
-    };
-    
-    const onDeleteConversation = (partnerID) => {
-      deleteConversation(partnerID);
-      dropdownOpen.value = false;
-    };
-    
-    const onItemReturned = (partnerID) => {
-      if (itemStatus.value === 'Matched') {
-        itemStatus.value = 'Returned';
-      } else {
+
+    // Fetch conversation data including itemStatus
+    const fetchConversationData = () => {
+      const conversationRef = doc(db, 'conversations', props.conversationId);
+      unsubscribeConversation = onSnapshot(conversationRef, (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          itemStatus.value = data.itemStatus || 'Matched';
+        } else {
+          itemStatus.value = 'Matched';
+          console.warn(`Conversation with ID ${props.conversationId} does not exist.`);
+        }
+      }, (error) => {
+        console.error('Error fetching conversation:', error);
         itemStatus.value = 'Matched';
+      });
+    };
+
+    const onReturnSelected = async (answer) => {
+      if (answer) {
+        await updateDoc(doc(db, 'conversations', props.conversationId), {
+          itemStatus: 'Returned'
+        });
+        await deleteConversation();
+        showReturnPrompt.value = false;
+      } else {
+        showReturnPrompt.value = false;
+        showDeletionWarning.value = true;
       }
       dropdownOpen.value = false;
     };
+
+    const onDeletionWarningSelected = async (answer) => {
+      if (answer) {
+        await updateDoc(doc(db, 'conversations', props.conversationId), {
+          itemStatus: 'Not Found Yet'
+        });
+        await deleteConversation();
+        showDeletionWarning.value = false;
+      } else {
+        showDeletionWarning.value = false;
+      }
+      dropdownOpen.value = false;
+    };
+
+    const deleteConversation = async () => {
+      const messagesRef = collection(db, 'conversations', props.conversationId, 'messages');
+      const messagesSnapshot = await getDocs(messagesRef);
+      const deletePromises = [];
+      messagesSnapshot.forEach((docSnap) => {
+        deletePromises.push(deleteDoc(doc(db, 'conversations', props.conversationId, 'messages', docSnap.id)));
+      });
+      await Promise.all(deletePromises);
+      await deleteDoc(doc(db, 'conversations', props.conversationId));
+    };
+
+    const onDeleteConversation = async () => {
+      showReturnPrompt.value = true;
+    };
+
+    const onItemReturned = async () => {
+      const newStatus = itemStatus.value === 'Matched' ? 'Returned' : 'Matched';
+      await updateDoc(doc(db, 'conversations', props.conversationId), {
+        itemStatus: newStatus
+      });
+      dropdownOpen.value = false;
+    };
+
+    const onItemNotMine = async () => {
+      const newStatus = itemStatus.value === 'Matched' ? 'Not Found Yet' : 'Matched';
+      await updateDoc(doc(db, 'conversations', props.conversationId), {
+        itemStatus: newStatus
+      });
+      dropdownOpen.value = false;
+    };
+
     const updatedMessageIds = new Set();
     watch(() => props.partnerID, () => {
       fetchPartnerName();
     });
+
     const groupedMessages = computed(() => {
       if (!messages.value.length) return [];
       const dateMap = new Map();
@@ -204,7 +292,9 @@ export default {
         if (!timestamp) continue;
         const dateObj = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
         const dateString = dateObj.toLocaleDateString([], {
-          year: 'numeric', month: 'long', day: 'numeric'
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric'
         });
         if (!dateMap.has(dateString)) {
           dateMap.set(dateString, []);
@@ -227,16 +317,14 @@ export default {
     });
 
     const loadMessages = () => {
-      if (unsubscribe) unsubscribe();
+      if (unsubscribeMessages) unsubscribeMessages();
       const messagesRef = collection(db, 'conversations', props.conversationId, 'messages');
       const q = query(messagesRef, orderBy('timestamp'));
-      unsubscribe = onSnapshot(q, (snapshot) => {
+      unsubscribeMessages = onSnapshot(q, (snapshot) => {
         messages.value = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         
-        // Loop through each message document to mark unread messages as read only once
         snapshot.docs.forEach((docSnap) => {
           const msg = docSnap.data();
-          // If the message is not sent by the current user, hasn't been marked as read yet, and hasn't been updated already
           if (msg.sender !== props.currentUserID && !msg.readAt && !updatedMessageIds.has(docSnap.id)) {
             updateDoc(
               doc(db, 'conversations', props.conversationId, 'messages', docSnap.id),
@@ -256,25 +344,29 @@ export default {
             messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
           }
         });
+      }, (error) => {
+        console.error('Error loading messages:', error);
       });
     };
 
     const fetchPartnerName = async () => {
       try {
         const userDoc = await getDoc(doc(db, 'users', props.partnerID));
-        partnerDisplayName.value = userDoc.exists() ? userDoc.data().name : 'Unknown User';
+        if (userDoc.exists()) {
+          partnerDisplayName.value = userDoc.data().name || 'Unknown User';
+        } else {
+          partnerDisplayName.value = 'Unknown User';
+          console.warn(`User with ID ${props.partnerID} does not exist.`);
+        }
       } catch (err) {
+        console.error('Error fetching partner name:', err);
         partnerDisplayName.value = 'Unknown User';
       }
     };
 
-    onMounted(() => {
-      loadMessages();
-      fetchPartnerName();
-    });
-
     watch(() => props.conversationId, () => {
       messages.value = [];
+      fetchConversationData();
       loadMessages();
     });
 
@@ -384,7 +476,10 @@ export default {
       return isToday
         ? dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         : dateObj.toLocaleString([], {
-            month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
           });
     };
 
@@ -409,33 +504,36 @@ export default {
       toggleDropdown,
       onDeleteConversation,
       onItemReturned,
+      onItemNotMine,
       dropdownContainer,
-      itemStatus
+      itemStatus,
+      showReturnPrompt,
+      showDeletionWarning,
+      onReturnSelected,
+      onDeletionWarningSelected,
     };
   }
 };
 </script>
 
-
 <style scoped>
-/* Overall chat panel with a white card look, slight radius, etc. */
+/* Same as before, no changes needed */
 .chat-panel {
   display: flex;
   flex-direction: column;
-  height: 74vh; /* or 100% if parent already handles height */
+  height: 74vh;
   overflow: hidden;
 }
 
-/* A top bar with the partner's name */
 .chat-header {
-  background-color: #F2FAFF; /* subtle grey */
+  background-color: #F2FAFF;
   padding: 0.75rem 1rem;
   border-bottom: none;
   display: flex;
   flex-direction: column;
   gap: 4px;
   font-family: "Inter";
-  position: relative; /* added to position the dropdown correctly */
+  position: relative;
 }
 .chat-header h2 {
   margin: 0;
@@ -448,7 +546,6 @@ export default {
   color: #666;
 }
 
-/* The scrollable messages area */
 .messages {
   flex: 1;
   overflow-y: auto;
@@ -458,29 +555,24 @@ export default {
   flex-direction: column;
 }
 
-/* Individual message */
 .message {
   display: flex;
-  flex-direction: column; /* stacks message-bubble and message-info vertically */
+  flex-direction: column;
   margin-bottom: 0.75rem;
   position: relative;
 }
 
-/* For sent messages, align the column to the right */
 .message.sent {
   align-items: flex-end;
 }
 
-/* For received messages, align the column to the left */
 .message.received {
   align-items: flex-start;
 }
 
-/* Chat bubble styling */
 .message-bubble {
   max-width: 60%;
   padding: 0.75rem 1rem;
-  /* Instead of a large border-radius, use a smaller one for subtle rounded corners */
   border-radius: 8px;
   box-shadow: 0 1px 2px rgba(0,0,0,0.1);
   position: relative;
@@ -489,22 +581,16 @@ export default {
   line-height: 1.4;
 }
 
-/* For sent messages, you can still do a special corner if you like */
 .message.sent .message-bubble {
-  background-color: #B3E7FF; /* your light blue */
+  background-color: #B3E7FF;
   color: #000;
-  /* If you want a more rectangular look, remove bottom-right radius or reduce it */
-  /* border-bottom-right-radius: 0; <-- optional if you like one corner less rounded */
 }
 
-/* For received messages, similarly adjust corners */
 .message.received .message-bubble {
-  background-color: #E0E0E0; /* your gray or white */
+  background-color: #E0E0E0;
   color: #000;
-  /* border-bottom-left-radius: 0; <-- optional if you want one corner less rounded */
 }
 
-/* Timestamp styling inside bubble */
 .message-info {
   text-align: right;
   font-size: 0.75rem;
@@ -513,7 +599,6 @@ export default {
   font-size: 0.625rem;
 }
 
-/* "X" delete icon */
 .delete-icon {
   position: absolute;
   top: 5px;
@@ -533,7 +618,6 @@ export default {
   color: #f00;
 }
 
-/* Attachments */
 .attachment {
   margin-top: 0.5rem;
   font-family: "Inter";
@@ -551,7 +635,6 @@ export default {
   text-decoration: underline;
 }
 
-/* File preview if a file is selected */
 .file-preview {
   position: relative;
   background-color: #fff;
@@ -575,16 +658,14 @@ export default {
   cursor: pointer;
 }
 
-/* Message form at the bottom */
 .message-form {
   display: flex;
   align-items: center;
   padding: 1rem;
-  background: #F2FAFF; /* no background */
-  border-top: none; /* remove top border if you had one */
+  background: #F2FAFF;
+  border-top: none;
 }
 
-/* New input container for aligning input and buttons */
 .input-container {
   display: flex;
   align-items: center;
@@ -603,14 +684,12 @@ export default {
   font-size: 1rem;
 }
 
-/* Style the paperclip icon label */
 .file-label {
   cursor: pointer;
   padding: 0 0.5rem;
   font-size: 1.2rem;
 }
 
-/* Replace the default "Send" style with a rectangular, curved button */
 .send-button {
   background: none;
   border: none;
@@ -644,7 +723,6 @@ export default {
   }
 }
 
-/* Date separator styles */
 .day-group {
   margin-bottom: 1rem;
 }
@@ -679,7 +757,6 @@ export default {
   color: #666;
 }
 
-/* Dropdown styles */
 .dropdown-container {
   position: absolute;
   top: 0.75rem;
@@ -720,7 +797,6 @@ export default {
 .dropdown-item:hover {
   background-color: #f5f5f5;
 }
-</style>
 .item-status {
   display: inline-block;
   margin-right: 8px;
@@ -728,3 +804,45 @@ export default {
   color: #333;
   vertical-align: middle;
 }
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+}
+
+.modal {
+  background: white;
+  padding: 1rem 1.5rem;
+  border-radius: 8px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.modal-actions button {
+  background-color: #007BFF;
+  color: #fff;
+  font-size: 1rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.modal-actions button:hover {
+  background-color: #0056b3;
+}
+</style>

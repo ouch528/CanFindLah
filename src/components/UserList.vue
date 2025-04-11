@@ -22,13 +22,13 @@
 </template>
 
 <script>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch } from 'vue';
 import {
   doc, getDoc, setDoc, deleteDoc, getDocs,
   serverTimestamp, collection, query,
   orderBy, limit, onSnapshot
-} from 'firebase/firestore'
-import { db } from '../firebase'
+} from 'firebase/firestore';
+import { db } from '../firebase';
 
 export default {
   name: 'UserList',
@@ -40,19 +40,18 @@ export default {
   },
   emits: ['conversationStarted'],
   setup(props, { emit }) {
-    const users = ref([])
-    const lastMessages = ref({})
+    const users = ref([]);
+    const lastMessages = ref({});
 
-    const usersCollection = collection(db, 'users')
+    const usersCollection = collection(db, 'users');
 
-    // Load users and then last messages
     onSnapshot(usersCollection, (snapshot) => {
       users.value = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }))
-      loadLastMessages()
-    })
+      }));
+      loadLastMessages();
+    });
 
     const loadLastMessages = () => {
       for (const user of users.value) {
@@ -111,7 +110,6 @@ export default {
     )
 
     const startChat = async (user) => {
-      // Generate a consistent conversationId by sorting the IDs
       const conversationId = [props.currentUserID, user.id].sort().join('-');
       const conversationRef = doc(db, 'conversations', conversationId);
       const snap = await getDoc(conversationRef);
@@ -122,14 +120,15 @@ export default {
             searcher: props.currentUserID,
             founder: user.id
           },
-          createdAt: serverTimestamp()
+          createdAt: serverTimestamp(),
+          itemStatus: 'Matched' // Initialize itemStatus
         });
       }
 
       emit('conversationStarted', conversationId, user.id);
     };
 
-    watch(() => props.currentUserID, loadLastMessages)
+    watch(() => props.currentUserID, loadLastMessages);
     watch(
       [() => props.currentUserID, () => users.value],
       ([currentID, allUsers]) => {
@@ -142,9 +141,9 @@ export default {
     return {
       filteredUsers,
       startChat
-    }
+    };
   }
-}
+};
 </script>
 
 <style scoped>
