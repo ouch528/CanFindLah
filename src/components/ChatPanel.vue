@@ -10,7 +10,13 @@
           <img src="@/assets/more.png" alt="More" />
         </button>
         <div v-if="dropdownOpen" class="dropdown-menu">
-          <button class="dropdown-item" @click="onDeleteConversation">Delete Conversation</button>
+          <button 
+            v-if="itemStatus === 'Returned'" 
+            class="dropdown-item" 
+            @click="onDeleteConversation"
+          >
+            Delete Conversation
+          </button>
 
           <button 
             v-if="itemStatus !== 'Not Found Yet'" 
@@ -107,27 +113,6 @@
         </button>
       </div>
     </form>
-    <!-- Custom Modal for Return Prompt -->
-    <div v-if="showReturnPrompt" class="modal-backdrop">
-      <div class="modal">
-        <p>Has the item been returned to its owner?</p>
-        <div class="modal-actions">
-          <button @click="onReturnSelected(true)">Yes</button>
-          <button @click="onReturnSelected(false)">No</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Custom Modal for Deletion Warning -->
-    <div v-if="showDeletionWarning" class="modal-backdrop">
-      <div class="modal">
-        <p>Warning: the conversation will be permanently deleted. Do you wish to proceed?</p>
-        <div class="modal-actions">
-          <button @click="onDeletionWarningSelected(true)">Yes</button>
-          <button @click="onDeletionWarningSelected(false)">No</button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -153,6 +138,7 @@ import {
   deleteObject
 } from 'firebase/storage';
 import { db, storage } from '../firebase';
+import { useRouter } from 'vue-router'; // Assuming you're using vue-router
 
 export default {
   name: 'ChatPanel',
@@ -162,9 +148,8 @@ export default {
     partnerID: { type: String, required: true }
   },
   setup(props) {
+    const router = useRouter(); // For navigation
     const partnerDisplayName = ref('');
-    const showReturnPrompt = ref(false);
-    const showDeletionWarning = ref(false);
     const messages = ref([]);
     const newMessage = ref('');
     const file = ref(null);
@@ -220,71 +205,35 @@ export default {
       });
     };
 
-    const onReturnSelected = async (answer) => {
-      if (answer) {
-        // Update the item status to "Returned"
-        await updateDoc(doc(db, 'conversations', props.conversationId), {
-          itemStatus: 'Returned'
-        });
-        // Show the deletion warning modal
-        showReturnPrompt.value = false;
-        showDeletionWarning.value = true;
-      } else {
-        // If "No" is selected, show the deletion warning directly
-        showReturnPrompt.value = false;
-        showDeletionWarning.value = true;
-      }
-      dropdownOpen.value = false;
-    };
-
-    const onDeletionWarningSelected = async (answer) => {
-      try {
-        if (answer) {
-          // Check if the conversation document exists
-          const conversationRef = doc(db, 'conversations', props.conversationId);
-          const docSnap = await getDoc(conversationRef);
-
-          if (!docSnap.exists()) {
-            console.warn(`Conversation with ID ${props.conversationId} does not exist.`);
-            router.push('/conversations');
-            return;
-          }
-
-          // If the user confirms deletion, update itemStatus to 'Not Found Yet' if it wasn't "Returned"
-          if (itemStatus.value !== 'Returned') {
-            await updateDoc(conversationRef, {
-              itemStatus: 'Not Found Yet'
-            });
-          }
-          // Now delete the conversation
-          await deleteConversation();
-          // Navigate to a different route (e.g., conversation list)
-          router.push('/conversations'); // Adjust the route as needed
-        }
-      } catch (error) {
-        console.error('Error during deletion process:', error);
-        alert('An error occurred while deleting the conversation.');
-        router.push('/conversations');
-      } finally {
-        // Always hide the modal, even if an error occurs
-        showDeletionWarning.value = false;
-        dropdownOpen.value = false;
-      }
-    };
-
     const deleteConversation = async () => {
-      const messagesRef = collection(db, 'conversations', props.conversationId, 'messages');
-      const messagesSnapshot = await getDocs(messagesRef);
-      const deletePromises = [];
-      messagesSnapshot.forEach((docSnap) => {
-        deletePromises.push(deleteDoc(doc(db, 'conversations', props.conversationId, 'messages', docSnap.id)));
-      });
-      await Promise.all(deletePromises);
-      await deleteDoc(doc(db, 'conversations', props.conversationId));
+      try {
+        const messagesRef = collection(db, 'conversations', props.conversationId, 'messages');
+        const messagesSnapshot = await getDocs(messagesRef);
+        const deletePromises = [];
+        messagesSnapshot.forEach((docSnap) => {
+          deletePromises.push(deleteDoc(doc(db, 'conversations', props.conversationId, 'messages', docSnap.id)));
+        });
+        await Promise.all(deletePromises);
+        await deleteDoc(doc(db, 'conversations', props.conversationId));
+      } catch (error) {
+        console.error('Error deleting conversation:', error);
+        throw error; // Rethrow to handle in caller
+      }
     };
 
     const onDeleteConversation = async () => {
-      showReturnPrompt.value = true;
+      const confirmed = window.confirm(
+        'Are you sure you want to delete this conversation? This action is permanent and cannot be undone.'
+      );
+      if (confirmed) {
+        try {
+          await deleteConversation();
+          router.push('/messages'); // Navigate to conversation list
+        } catch (error) {
+          alert('Failed to delete the conversation. Please try again.');
+        }
+      }
+      dropdownOpen.value = false;
     };
 
     const onItemReturned = async () => {
@@ -532,10 +481,6 @@ export default {
       onItemNotMine,
       dropdownContainer,
       itemStatus,
-      showReturnPrompt,
-      showDeletionWarning,
-      onReturnSelected,
-      onDeletionWarningSelected,
     };
   }
 };
@@ -546,7 +491,7 @@ export default {
 .chat-panel {
   display: flex;
   flex-direction: column;
-  height: 74vh;
+  height: 66vh;
   overflow: hidden;
 }
 
