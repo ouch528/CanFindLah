@@ -3,7 +3,7 @@
     <!-- Top bar showing the partner's name and optional subtitle -->
     <div class="chat-header">
       <h2>{{ partnerDisplayName }}</h2>
-      <span class="partner-subtitle">Chatting with {{ partnerDisplayName }}</span>
+      <span class="partner-subtitle">Chatting with <b>{{ partnerRole }} of {{ foundItemName }}</b></span>
       <div class="dropdown-container" ref="dropdownContainer">
         <div class="item-status">{{ itemStatus }}</div>
         <button class="dropdown-toggle" @click="toggleDropdown">
@@ -19,7 +19,7 @@
           </button>
 
           <button 
-            v-if="itemStatus !== 'Not Found Yet'" 
+            v-if="isFounder && itemStatus !== 'Not Found Yet'" 
             class="dropdown-item" 
             @click="onItemReturned"
           >
@@ -27,11 +27,11 @@
           </button>
 
           <button 
-            v-if="itemStatus !== 'Returned'" 
+            v-if="itemStatus === 'Matched'" 
             class="dropdown-item" 
             @click="onItemNotMine"
           >
-            {{ itemStatus === 'Matched' ? 'Undo Match' : 'Match' }}
+            Undo Match
           </button>
         </div>
       </div>
@@ -138,7 +138,7 @@ import {
   deleteObject
 } from 'firebase/storage';
 import { db, storage } from '../firebase';
-import { useRouter } from 'vue-router'; // Assuming you're using vue-router
+import { useRouter } from 'vue-router';
 
 export default {
   name: 'ChatPanel',
@@ -147,8 +147,9 @@ export default {
     currentUserID: { type: String, required: true },
     partnerID: { type: String, required: true }
   },
-  setup(props) {
-    const router = useRouter(); // For navigation
+  emits: ['conversationDeleted'],
+  setup(props, { emit }) {
+    const router = useRouter();
     const partnerDisplayName = ref('');
     const messages = ref([]);
     const newMessage = ref('');
@@ -159,7 +160,13 @@ export default {
     const messageContainer = ref(null);
     const isSending = ref(false);
     const itemStatus = ref('Matched');
+    const isFounder = ref(false);
     const dropdownOpen = ref(false);
+    const lostItemId = ref('');
+    const foundItemId = ref('');
+    const partnerRole = ref('');
+    const foundItemName = ref('');
+    const notified = ref(false);
     let unsubscribeMessages = null;
     let unsubscribeConversation = null;
 
@@ -180,6 +187,7 @@ export default {
       fetchConversationData();
       loadMessages();
       fetchPartnerName();
+      fetchFoundItemName();
     });
 
     onBeforeUnmount(() => {
@@ -188,22 +196,82 @@ export default {
       if (unsubscribeConversation) unsubscribeConversation();
     });
 
-    // Fetch conversation data including itemStatus
     const fetchConversationData = () => {
       const conversationRef = doc(db, 'conversations', props.conversationId);
       unsubscribeConversation = onSnapshot(conversationRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           itemStatus.value = data.itemStatus || 'Matched';
+          isFounder.value = data.roles?.founder === props.currentUserID;
+          lostItemId.value = data.lostItemId || '';
+          foundItemId.value = data.foundItemId || '';
+          partnerRole.value = data.roles?.founder === props.partnerID ? 'Founder' : 'Searcher';
+          notified.value = data.Notified ?? false;
         } else {
           itemStatus.value = 'Matched';
+          isFounder.value = false;
+          lostItemId.value = '';
+          foundItemId.value = '';
+          partnerRole.value = '';
+          notified.value = false;
           console.warn(`Conversation with ID ${props.conversationId} does not exist.`);
+          emit('conversationDeleted', props.conversationId);
         }
       }, (error) => {
         console.error('Error fetching conversation:', error);
         itemStatus.value = 'Matched';
+        isFounder.value = false;
+        lostItemId.value = '';
+        foundItemId.value = '';
+        partnerRole.value = '';
+        notified.value = false;
       });
     };
+
+    const fetchFoundItemName = async () => {
+      try {
+        const conversationRef = doc(db, 'conversations', props.conversationId);
+        const conversationSnap = await getDoc(conversationRef);
+        if (conversationSnap.exists()) {
+          const foundItemId = conversationSnap.data().foundItemId;
+          if (foundItemId) {
+            const foundItemRef = doc(db, 'Found Item', foundItemId);
+            const foundItemSnap = await getDoc(foundItemRef);
+            if (foundItemSnap.exists()) {
+              foundItemName.value = foundItemSnap.data().name || 'Unknown Item';
+            } else {
+              foundItemName.value = 'Unknown Item';
+            }
+          } else {
+            foundItemName.value = 'Unknown Item';
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching Found Item name:', error);
+        foundItemName.value = 'Unknown Item';
+      }
+    };
+
+    watch(itemStatus, async (newStatus) => {
+      if (!lostItemId.value || !foundItemId.value) {
+        console.warn('lostItemId or foundItemId not found in conversation document.');
+        return;
+      }
+
+      try {
+        const lostItemRef = doc(db, 'Lost Item', lostItemId.value);
+        const foundItemRef = doc(db, 'Found Item', foundItemId.value);
+
+        await Promise.all([
+          updateDoc(lostItemRef, { claimed_status: newStatus }),
+          updateDoc(foundItemRef, { claimed_status: newStatus })
+        ]);
+        console.log(`Updated claimed_status to ${newStatus} for Lost Item ${lostItemId.value} and Found Item ${foundItemId.value}`);
+      } catch (error) {
+        console.error('Error updating claimed_status:', error);
+        alert('Failed to update item status in Lost Item and Found Item. Please try again.');
+      }
+    });
 
     const deleteConversation = async () => {
       try {
@@ -217,7 +285,7 @@ export default {
         await deleteDoc(doc(db, 'conversations', props.conversationId));
       } catch (error) {
         console.error('Error deleting conversation:', error);
-        throw error; // Rethrow to handle in caller
+        throw error;
       }
     };
 
@@ -228,7 +296,8 @@ export default {
       if (confirmed) {
         try {
           await deleteConversation();
-          router.push('/messages'); // Navigate to conversation list
+          emit('conversationDeleted', props.conversationId);
+          router.push('/messages');
         } catch (error) {
           alert('Failed to delete the conversation. Please try again.');
         }
@@ -237,18 +306,42 @@ export default {
     };
 
     const onItemReturned = async () => {
-      const newStatus = itemStatus.value === 'Matched' ? 'Returned' : 'Matched';
-      await updateDoc(doc(db, 'conversations', props.conversationId), {
-        itemStatus: newStatus
-      });
+      const isReturning = itemStatus.value === 'Matched';
+      const message = isReturning
+        ? 'Are you sure the item has been returned to its owner?'
+        : 'Are you sure you want to undo the item returned status?';
+      const confirmed = window.confirm(message);
+      if (confirmed) {
+        try {
+          const newStatus = isReturning ? 'Returned' : 'Matched';
+          await updateDoc(doc(db, 'conversations', props.conversationId), {
+            itemStatus: newStatus
+          });
+        } catch (error) {
+          console.error(`Error ${isReturning ? 'marking item as returned' : 'undoing item returned'}:`, error);
+          alert(`Failed to ${isReturning ? 'mark the item as returned' : 'undo the item returned status'}. Please try again.`);
+        }
+      }
       dropdownOpen.value = false;
     };
 
     const onItemNotMine = async () => {
-      const newStatus = itemStatus.value === 'Matched' ? 'Not Found Yet' : 'Matched';
-      await updateDoc(doc(db, 'conversations', props.conversationId), {
-        itemStatus: newStatus
-      });
+      const confirmed = window.confirm(
+        'Undoing this match will delete the current conversation. This action is permanent and cannot be undone. Are you sure you want to proceed?'
+      );
+      if (confirmed) {
+        try {
+          await updateDoc(doc(db, 'conversations', props.conversationId), {
+            itemStatus: 'Not Found Yet'
+          });
+          await deleteConversation();
+          emit('conversationDeleted', props.conversationId);
+          router.push('/messages');
+        } catch (error) {
+          console.error('Error undoing match:', error);
+          alert('Failed to undo the match and delete the conversation. Please try again.');
+        }
+      }
       dropdownOpen.value = false;
     };
 
@@ -342,6 +435,7 @@ export default {
       messages.value = [];
       fetchConversationData();
       loadMessages();
+      fetchFoundItemName();
     });
 
     watch(messages, () => {
@@ -410,6 +504,7 @@ export default {
           const messageData = {
             text: newMessage.value.trim(),
             sender: props.currentUserID,
+            receiver: props.partnerID, // Add the receiver field
             timestamp: serverTimestamp(),
             readAt: null,
             attachmentUrl: '',
@@ -430,6 +525,7 @@ export default {
           await addDoc(collection(db, 'conversations', props.conversationId, 'messages'), {
             text: newMessage.value.trim(),
             sender: props.currentUserID,
+            receiver: props.partnerID, // Add the receiver field
             timestamp: serverTimestamp(),
             readAt: null
           });
@@ -481,13 +577,17 @@ export default {
       onItemNotMine,
       dropdownContainer,
       itemStatus,
+      isFounder,
+      partnerRole,
+      foundItemName,
+      notified
     };
   }
 };
 </script>
 
 <style scoped>
-/* Same as before, no changes needed */
+/* Styles remain unchanged */
 .chat-panel {
   display: flex;
   flex-direction: column;
@@ -773,46 +873,5 @@ export default {
   font-weight: bold;
   color: #333;
   vertical-align: middle;
-}
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-}
-
-.modal {
-  background: white;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.modal-actions button {
-  background-color: #007BFF;
-  color: #fff;
-  font-size: 1rem;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.modal-actions button:hover {
-  background-color: #0056b3;
 }
 </style>

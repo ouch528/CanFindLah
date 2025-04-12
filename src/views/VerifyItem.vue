@@ -22,70 +22,116 @@
 </template>
 
 <script>
-import { doc, getDoc, updateDoc } from 'firebase/firestore'
-import { db } from '../firebase.js'
+import { doc, getDoc, updateDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { db, auth } from '../firebase.js';
+import { onAuthStateChanged } from 'firebase/auth';
 
 export default {
     data() {
         return {
             item: null,
-        }
+            currentUserID: '',
+        };
     },
     created() {
         // Parse the lostItem query parameter from the URL
-        const lostItemData = this.$route.query.lostItem
+        const lostItemData = this.$route.query.lostItem;
         if (lostItemData) {
-            this.item = JSON.parse(lostItemData) // Parse and assign it to the item property
+            this.item = JSON.parse(lostItemData); // Parse and assign it to the item property
         }
+
+        // Get the current user's ID
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userRef = doc(db, 'users', user.uid);
+                const userSnap = await getDoc(userRef);
+                if (userSnap.exists()) {
+                    this.currentUserID = userSnap.data().userID || user.uid;
+                }
+            }
+        });
     },
     methods: {
-        // verifyItem() {
-        //     // Handle the logic to claim the item
-        //     alert(`You have claimed the item: ${this.item.name}`)
-        // },
         async verifyItem() {
-            const foundItemId = this.item.id
-            const lostItemId = this.$route.query.id
+            const foundItemId = this.item.id;
+            const lostItemId = this.$route.query.id;
 
-            console.log('Found Item ID:', foundItemId)
-            console.log('Lost Item ID:', lostItemId)
+            console.log('Found Item ID:', foundItemId);
+            console.log('Lost Item ID:', lostItemId);
+            console.log('Current User ID (Searcher):', this.currentUserID);
 
             try {
                 // 1. Find the Found Item document by its ID
-                const foundItemRef = doc(db, 'Found Item', foundItemId)
-                const foundItemDoc = await getDoc(foundItemRef)
+                const foundItemRef = doc(db, 'Found Item', foundItemId);
+                const foundItemDoc = await getDoc(foundItemRef);
                 if (!foundItemDoc.exists()) {
-                    throw new Error('Found item not found.')
+                    throw new Error('Found item not found.');
                 }
 
                 // 2. Find the Lost Item document by its ID
-                const lostItemRef = doc(db, 'Lost Item', lostItemId)
-                const lostItemDoc = await getDoc(lostItemRef)
+                const lostItemRef = doc(db, 'Lost Item', lostItemId);
+                const lostItemDoc = await getDoc(lostItemRef);
                 if (!lostItemDoc.exists()) {
-                    throw new Error('Lost item not found.')
+                    throw new Error('Lost item not found.');
                 }
 
-                // 3. Update both documents to set claimed_status to "Matched"
-                await updateDoc(foundItemRef, { claimed_status: 'Matched' })
-                await updateDoc(lostItemRef, { claimed_status: 'Matched' })
+                // 3. Get the Founder’s user ID from the Found Item document
+                const foundItemData = foundItemDoc.data();
+                const founderID = foundItemData.reporter_id; // Assumes reporter_id field in Found Item stores the Founder's ID
+                if (!founderID) {
+                    throw new Error('Founder user ID not found in Found Item.');
+                }
+                console.log('Founder ID:', founderID);
 
-                // 4. Optionally show success message
-                alert(`You have claimed the item: ${this.item.name}`)
+                // 4. Update both documents to set claimed_status to "Matched"
+                await updateDoc(foundItemRef, { claimed_status: 'Matched' });
+                await updateDoc(lostItemRef, { claimed_status: 'Matched' });
 
-                this.$router.replace({ name: 'Messages', query: { itemId: this.item.id } })
+                // 5. Initialize the conversation with the new ID format: {user1id}-{user2id}-{founditemid}
+                const userIds = [this.currentUserID, founderID].sort();
+                const conversationId = `${userIds[0]}-${userIds[1]}-${foundItemId}`;
+                const conversationRef = doc(db, 'conversations', conversationId);
+                const snap = await getDoc(conversationRef);
+
+                if (!snap.exists()) {
+                    await setDoc(conversationRef, {
+                        roles: {
+                            searcher: this.currentUserID,
+                            founder: founderID
+                        },
+                        createdAt: serverTimestamp(),
+                        itemStatus: 'Matched',
+                        lostItemId: lostItemId,
+                        foundItemId: foundItemId,
+                        Notified: false // Add the Notified field initialized to false
+                    });
+                }
+
+                // 6. Show success message
+                alert(`You have claimed the item: ${this.item.name}`);
+
+                // 7. Navigate to Messages page with conversationId and partnerID
+                this.$router.push({
+                    name: 'Messages',
+                    query: {
+                        conversationId: conversationId,
+                        partnerID: founderID
+                    }
+                });
             } catch (err) {
-                console.error('Error verifying item:', err)
-                alert('An error occurred while processing your claim.')
+                console.error('Error verifying item:', err);
+                alert('An error occurred while processing your claim.');
             }
         },
         goBack() {
-            this.$router.go(-1) // or use this.$router.push({ name: 'previousPage' })
+            this.$router.go(-1);
         },
     },
-}
+};
 </script>
 
 <style scoped>
+/* Styles remain unchanged */
 #header {
     font-size: 3rem;
     color: #684545;

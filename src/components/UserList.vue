@@ -8,11 +8,11 @@
       >
         <div class="chat-content" @click="startChat(user)">
           <div class="chat-left-col">
-            <p class="chat-username">{{ user.name }}</p>
+            <p class="chat-username">{{ user.name }} ({{ user.foundItemName }})</p>
             <p class="chat-preview">{{ user.lastMessage }}</p>
           </div>
           <div class="chat-right-col">
-            <span class="chat-role">Searcher</span>
+            <span class="chat-role" :data-role="user.role">{{ user.role }}</span>
             <span v-if="user.lastTimestamp" class="chat-time">{{ user.lastTimestamp }}</span>
           </div>
         </div>
@@ -24,9 +24,17 @@
 <script>
 import { ref, computed, watch } from 'vue';
 import {
-  doc, getDoc, setDoc, deleteDoc, getDocs,
-  serverTimestamp, collection, query,
-  orderBy, limit, onSnapshot
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  getDocs,
+  serverTimestamp,
+  collection,
+  query,
+  orderBy,
+  limit,
+  onSnapshot
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -38,115 +46,186 @@ export default {
       required: true
     }
   },
-  emits: ['conversationStarted'],
+  emits: ['conversationStarted', 'conversationDeleted'], // Add conversationDeleted to emits
   setup(props, { emit }) {
     const users = ref([]);
     const lastMessages = ref({});
+    const userRoles = ref({});
+    const foundItemNames = ref({}); // To store found item names for each conversation
+    const conversations = ref([]); // To store all conversations for the current user
 
     const usersCollection = collection(db, 'users');
 
+    // Fetch all users
     onSnapshot(usersCollection, (snapshot) => {
       users.value = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
-      loadLastMessages();
+      loadConversations();
     });
 
-    const loadLastMessages = () => {
-      for (const user of users.value) {
-        if (user.id === props.currentUserID) continue
+    // Fetch all conversations for the current user
+    const loadConversations = () => {
+      const conversationsRef = collection(db, 'conversations');
+      onSnapshot(conversationsRef, (snapshot) => {
+        conversations.value = snapshot.docs
+          .map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }))
+          .filter(conv => {
+            const [user1, user2] = conv.id.split('-').slice(0, 2);
+            return user1 === props.currentUserID || user2 === props.currentUserID;
+          });
 
-        const conversationId = [props.currentUserID, user.id].sort().join('-')
-        const messagesRef = collection(db, 'conversations', conversationId, 'messages')
-        const q = query(messagesRef, orderBy('timestamp', 'desc'), limit(1))
+        loadLastMessages();
+        loadUserRoles();
+        loadFoundItemNames();
+      });
+    };
+
+    // Load the last message for each conversation
+    const loadLastMessages = () => {
+      for (const conv of conversations.value) {
+        const messagesRef = collection(db, 'conversations', conv.id, 'messages');
+        const q = query(messagesRef, orderBy('timestamp', 'desc'), limit(1));
 
         onSnapshot(q, (snapshot) => {
-          const messageData = snapshot.docs[0]?.data()
+          const messageData = snapshot.docs[0]?.data();
 
           const preview = (() => {
-            if (!messageData) return 'Click to start chatting'
-            const isText = messageData.text?.trim()
-            const hasAttachment = messageData.attachmentUrl
+            if (!messageData) return 'Click to start chatting';
+            const isText = messageData.text?.trim();
+            const hasAttachment = messageData.attachmentUrl;
 
             if (hasAttachment) {
-              const fileType = messageData.attachmentType?.split('/')?.[1] || 'file'
-              const text = isText ? messageData.text : messageData.attachmentName || 'Attachment'
-              return `[${fileType}] ${text}`
+              const fileType = messageData.attachmentType?.split('/')?.[1] || 'file';
+              const text = isText ? messageData.text : messageData.attachmentName || 'Attachment';
+              return `[${fileType}] ${text}`;
             } else if (isText) {
-              return messageData.text
+              return messageData.text;
             } else {
-              return 'Click to start chatting'
+              return 'Click to start chatting';
             }
-          })()
+          })();
 
-          lastMessages.value[user.id] = {
+          lastMessages.value[conv.id] = {
             text: preview,
             timestamp: messageData?.timestamp || null
-          }
-        })
+          };
+        });
       }
-    }
+    };
 
-    const filteredUsers = computed(() =>
-      users.value
-        .filter((u) => u.id !== props.currentUserID)
-        .map((user) => {
-          const msg = lastMessages.value[user.id] || {}
-          return {
-            ...user,
-            lastMessage: msg.text || 'Click to start chatting',
-            lastTimestamp: msg.timestamp
-              ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-              : null,
-            rawTimestamp: msg.timestamp || null
+    // Load the role of each user relative to the current user
+    const loadUserRoles = async () => {
+      for (const conv of conversations.value) {
+        const data = conv;
+        const roles = data.roles || {};
+        const otherUserId = roles.founder === props.currentUserID ? roles.searcher : roles.founder;
+        userRoles.value[conv.id] = roles.founder === otherUserId ? 'Founder' : 'Searcher';
+      }
+    };
+
+    // Load the Found Item name for each conversation
+    const loadFoundItemNames = async () => {
+      for (const conv of conversations.value) {
+        const foundItemId = conv.foundItemId;
+        if (foundItemId) {
+          const foundItemRef = doc(db, 'Found Item', foundItemId);
+          const foundItemSnap = await getDoc(foundItemRef);
+          if (foundItemSnap.exists()) {
+            foundItemNames.value[conv.id] = foundItemSnap.data().name || 'Unknown Item';
+          } else {
+            foundItemNames.value[conv.id] = 'Unknown Item';
           }
-        })
-        .sort((a, b) => {
-          if (!a.rawTimestamp) return 1
-          if (!b.rawTimestamp) return -1
-          return b.rawTimestamp.toMillis() - a.rawTimestamp.toMillis()
-        })
-    )
+        } else {
+          foundItemNames.value[conv.id] = 'Unknown Item';
+        }
+      }
+    };
 
-    const startChat = async (user) => {
-      const conversationId = [props.currentUserID, user.id].sort().join('-');
-      const conversationRef = doc(db, 'conversations', conversationId);
-      const snap = await getDoc(conversationRef);
+    const filteredUsers = computed(() => {
+      const userMap = new Map();
 
-      if (!snap.exists()) {
-        await setDoc(conversationRef, {
-          roles: {
-            searcher: props.currentUserID,
-            founder: user.id
-          },
-          createdAt: serverTimestamp(),
-          itemStatus: 'Matched' // Initialize itemStatus
+      for (const conv of conversations.value) {
+        const [user1, user2] = conv.id.split('-').slice(0, 2);
+        const otherUserId = user1 === props.currentUserID ? user2 : user1;
+        const user = users.value.find(u => u.id === otherUserId);
+        if (!user) continue;
+
+        if (!userMap.has(otherUserId)) {
+          userMap.set(otherUserId, []);
+        }
+        userMap.get(otherUserId).push({
+          conversationId: conv.id,
+          role: userRoles.value[conv.id] || 'Founder',
+          lastMessage: lastMessages.value[conv.id]?.text || 'Click to start chatting',
+          lastTimestamp: lastMessages.value[conv.id]?.timestamp
+            ? new Date(lastMessages.value[conv.id].timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : null,
+          rawTimestamp: lastMessages.value[conv.id]?.timestamp || null,
+          foundItemName: foundItemNames.value[conv.id] || 'Unknown Item'
         });
       }
 
-      emit('conversationStarted', conversationId, user.id);
+      const result = [];
+      for (const [userId, convs] of userMap.entries()) {
+        const user = users.value.find(u => u.id === userId);
+        if (!user) continue;
+
+        convs.sort((a, b) => {
+          if (!a.rawTimestamp) return 1;
+          if (!b.rawTimestamp) return -1;
+          return b.rawTimestamp.toMillis() - a.rawTimestamp.toMillis();
+        });
+
+        convs.forEach(conv => {
+          result.push({
+            id: conv.conversationId, // Use conversationId as the unique key
+            userId: userId,
+            name: user.name,
+            lastMessage: conv.lastMessage,
+            lastTimestamp: conv.lastTimestamp,
+            rawTimestamp: conv.rawTimestamp,
+            role: conv.role,
+            foundItemName: conv.foundItemName
+          });
+        });
+      }
+
+      return result.sort((a, b) => {
+        if (!a.rawTimestamp) return 1;
+        if (!b.rawTimestamp) return -1;
+        return b.rawTimestamp.toMillis() - a.rawTimestamp.toMillis();
+      });
+    });
+
+    const startChat = async (user) => {
+      emit('conversationStarted', user.id, user.userId);
     };
 
-    watch(() => props.currentUserID, loadLastMessages);
-    watch(
-      [() => props.currentUserID, () => users.value],
-      ([currentID, allUsers]) => {
-        if (currentID && allUsers.length) {
-          loadLastMessages();
-        }
-      }
-    );
+    // Handle conversation deletion event from ChatPanel
+    const handleConversationDeleted = (conversationId) => {
+      emit('conversationDeleted', conversationId);
+    };
+
+    watch(() => props.currentUserID, () => {
+      loadConversations();
+    });
 
     return {
       filteredUsers,
-      startChat
+      startChat,
+      handleConversationDeleted // Expose the handler to the template (if needed) or directly use in ChatPanel
     };
   }
 };
 </script>
 
 <style scoped>
+/* Styles remain unchanged */
 .chat-partners-container {
   height: 100%;
   overflow-y: auto;
@@ -203,11 +282,16 @@ export default {
 }
 .chat-role {
   font-size: 0.875rem;
-  background-color: #ff8147;
   color: white;
   padding: 8px;
   border-radius: 8px;
   font-weight: bold;
+}
+.chat-role[data-role="Searcher"] {
+  background-color: #FF8844; /* Orange for Founder */
+}
+.chat-role[data-role="Founder"] {
+  background-color: #4A95DF; /* Blue for Searcher */
 }
 .chat-time {
   color: #aaa;
