@@ -3,17 +3,23 @@
     <!-- Top bar showing the partner's name and optional subtitle -->
     <div class="chat-header">
       <h2>{{ partnerDisplayName }}</h2>
-      <span class="partner-subtitle">Chatting with {{ partnerDisplayName }}</span>
+      <span class="partner-subtitle">Chatting with <b>{{ partnerRole }} of {{ foundItemName }}</b></span>
       <div class="dropdown-container" ref="dropdownContainer">
         <div class="item-status">{{ itemStatus }}</div>
         <button class="dropdown-toggle" @click="toggleDropdown">
           <img src="@/assets/more.png" alt="More" />
         </button>
         <div v-if="dropdownOpen" class="dropdown-menu">
-          <button class="dropdown-item" @click="onDeleteConversation">Delete Conversation</button>
+          <button 
+            v-if="itemStatus === 'Returned'" 
+            class="dropdown-item" 
+            @click="onDeleteConversation"
+          >
+            Delete Conversation
+          </button>
 
           <button 
-            v-if="itemStatus !== 'Not Found Yet'" 
+            v-if="isFounder && itemStatus !== 'Not Found Yet'" 
             class="dropdown-item" 
             @click="onItemReturned"
           >
@@ -21,11 +27,11 @@
           </button>
 
           <button 
-            v-if="itemStatus !== 'Returned'" 
+            v-if="itemStatus === 'Matched'" 
             class="dropdown-item" 
             @click="onItemNotMine"
           >
-            {{ itemStatus === 'Matched' ? 'Undo Match' : 'Match' }}
+            Undo Match
           </button>
         </div>
       </div>
@@ -107,27 +113,6 @@
         </button>
       </div>
     </form>
-    <!-- Custom Modal for Return Prompt -->
-    <div v-if="showReturnPrompt" class="modal-backdrop">
-      <div class="modal">
-        <p>Has the item been returned to its owner?</p>
-        <div class="modal-actions">
-          <button @click="onReturnSelected(true)">Yes</button>
-          <button @click="onReturnSelected(false)">No</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Custom Modal for Deletion Warning -->
-    <div v-if="showDeletionWarning" class="modal-backdrop">
-      <div class="modal">
-        <p>Warning: the conversation will be permanently deleted. Do you wish to proceed?</p>
-        <div class="modal-actions">
-          <button @click="onDeletionWarningSelected(true)">Yes</button>
-          <button @click="onDeletionWarningSelected(false)">No</button>
-        </div>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -153,6 +138,7 @@ import {
   deleteObject
 } from 'firebase/storage';
 import { db, storage } from '../firebase';
+import { useRouter } from 'vue-router';
 
 export default {
   name: 'ChatPanel',
@@ -161,10 +147,10 @@ export default {
     currentUserID: { type: String, required: true },
     partnerID: { type: String, required: true }
   },
-  setup(props) {
+  emits: ['conversationDeleted'],
+  setup(props, { emit }) {
+    const router = useRouter();
     const partnerDisplayName = ref('');
-    const showReturnPrompt = ref(false);
-    const showDeletionWarning = ref(false);
     const messages = ref([]);
     const newMessage = ref('');
     const file = ref(null);
@@ -174,7 +160,13 @@ export default {
     const messageContainer = ref(null);
     const isSending = ref(false);
     const itemStatus = ref('Matched');
+    const isFounder = ref(false);
     const dropdownOpen = ref(false);
+    const lostItemId = ref('');
+    const foundItemId = ref('');
+    const partnerRole = ref('');
+    const foundItemName = ref('');
+    const notified = ref(false);
     let unsubscribeMessages = null;
     let unsubscribeConversation = null;
 
@@ -195,6 +187,7 @@ export default {
       fetchConversationData();
       loadMessages();
       fetchPartnerName();
+      fetchFoundItemName();
     });
 
     onBeforeUnmount(() => {
@@ -203,103 +196,152 @@ export default {
       if (unsubscribeConversation) unsubscribeConversation();
     });
 
-    // Fetch conversation data including itemStatus
     const fetchConversationData = () => {
       const conversationRef = doc(db, 'conversations', props.conversationId);
       unsubscribeConversation = onSnapshot(conversationRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           itemStatus.value = data.itemStatus || 'Matched';
+          isFounder.value = data.roles?.founder === props.currentUserID;
+          lostItemId.value = data.lostItemId || '';
+          foundItemId.value = data.foundItemId || '';
+          partnerRole.value = data.roles?.founder === props.partnerID ? 'Founder' : 'Searcher';
+          notified.value = data.Notified ?? false;
         } else {
           itemStatus.value = 'Matched';
+          isFounder.value = false;
+          lostItemId.value = '';
+          foundItemId.value = '';
+          partnerRole.value = '';
+          notified.value = false;
           console.warn(`Conversation with ID ${props.conversationId} does not exist.`);
+          emit('conversationDeleted', props.conversationId);
         }
       }, (error) => {
         console.error('Error fetching conversation:', error);
         itemStatus.value = 'Matched';
+        isFounder.value = false;
+        lostItemId.value = '';
+        foundItemId.value = '';
+        partnerRole.value = '';
+        notified.value = false;
       });
     };
 
-    const onReturnSelected = async (answer) => {
-      if (answer) {
-        // Update the item status to "Returned"
-        await updateDoc(doc(db, 'conversations', props.conversationId), {
-          itemStatus: 'Returned'
+    const fetchFoundItemName = async () => {
+      try {
+        const conversationRef = doc(db, 'conversations', props.conversationId);
+        const conversationSnap = await getDoc(conversationRef);
+        if (conversationSnap.exists()) {
+          const foundItemId = conversationSnap.data().foundItemId;
+          if (foundItemId) {
+            const foundItemRef = doc(db, 'Found Item', foundItemId);
+            const foundItemSnap = await getDoc(foundItemRef);
+            if (foundItemSnap.exists()) {
+              foundItemName.value = foundItemSnap.data().name || 'Unknown Item';
+            } else {
+              foundItemName.value = 'Unknown Item';
+            }
+          } else {
+            foundItemName.value = 'Unknown Item';
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching Found Item name:', error);
+        foundItemName.value = 'Unknown Item';
+      }
+    };
+
+    watch(itemStatus, async (newStatus) => {
+      if (!lostItemId.value || !foundItemId.value) {
+        console.warn('lostItemId or foundItemId not found in conversation document.');
+        return;
+      }
+
+      try {
+        const lostItemRef = doc(db, 'Lost Item', lostItemId.value);
+        const foundItemRef = doc(db, 'Found Item', foundItemId.value);
+
+        await Promise.all([
+          updateDoc(lostItemRef, { claimed_status: newStatus }),
+          updateDoc(foundItemRef, { claimed_status: newStatus })
+        ]);
+        console.log(`Updated claimed_status to ${newStatus} for Lost Item ${lostItemId.value} and Found Item ${foundItemId.value}`);
+      } catch (error) {
+        console.error('Error updating claimed_status:', error);
+        alert('Failed to update item status in Lost Item and Found Item. Please try again.');
+      }
+    });
+
+    const deleteConversation = async () => {
+      try {
+        const messagesRef = collection(db, 'conversations', props.conversationId, 'messages');
+        const messagesSnapshot = await getDocs(messagesRef);
+        const deletePromises = [];
+        messagesSnapshot.forEach((docSnap) => {
+          deletePromises.push(deleteDoc(doc(db, 'conversations', props.conversationId, 'messages', docSnap.id)));
         });
-        // Show the deletion warning modal
-        showReturnPrompt.value = false;
-        showDeletionWarning.value = true;
-      } else {
-        // If "No" is selected, show the deletion warning directly
-        showReturnPrompt.value = false;
-        showDeletionWarning.value = true;
+        await Promise.all(deletePromises);
+        await deleteDoc(doc(db, 'conversations', props.conversationId));
+      } catch (error) {
+        console.error('Error deleting conversation:', error);
+        throw error;
+      }
+    };
+
+    const onDeleteConversation = async () => {
+      const confirmed = window.confirm(
+        'Are you sure you want to delete this conversation? This action is permanent and cannot be undone.'
+      );
+      if (confirmed) {
+        try {
+          await deleteConversation();
+          emit('conversationDeleted', props.conversationId);
+          router.push('/messages');
+        } catch (error) {
+          alert('Failed to delete the conversation. Please try again.');
+        }
       }
       dropdownOpen.value = false;
     };
 
-    const onDeletionWarningSelected = async (answer) => {
-      try {
-        if (answer) {
-          // Check if the conversation document exists
-          const conversationRef = doc(db, 'conversations', props.conversationId);
-          const docSnap = await getDoc(conversationRef);
-
-          if (!docSnap.exists()) {
-            console.warn(`Conversation with ID ${props.conversationId} does not exist.`);
-            router.push('/conversations');
-            return;
-          }
-
-          // If the user confirms deletion, update itemStatus to 'Not Found Yet' if it wasn't "Returned"
-          if (itemStatus.value !== 'Returned') {
-            await updateDoc(conversationRef, {
-              itemStatus: 'Not Found Yet'
-            });
-          }
-          // Now delete the conversation
-          await deleteConversation();
-          // Navigate to a different route (e.g., conversation list)
-          router.push('/conversations'); // Adjust the route as needed
-        }
-      } catch (error) {
-        console.error('Error during deletion process:', error);
-        alert('An error occurred while deleting the conversation.');
-        router.push('/conversations');
-      } finally {
-        // Always hide the modal, even if an error occurs
-        showDeletionWarning.value = false;
-        dropdownOpen.value = false;
-      }
-    };
-
-    const deleteConversation = async () => {
-      const messagesRef = collection(db, 'conversations', props.conversationId, 'messages');
-      const messagesSnapshot = await getDocs(messagesRef);
-      const deletePromises = [];
-      messagesSnapshot.forEach((docSnap) => {
-        deletePromises.push(deleteDoc(doc(db, 'conversations', props.conversationId, 'messages', docSnap.id)));
-      });
-      await Promise.all(deletePromises);
-      await deleteDoc(doc(db, 'conversations', props.conversationId));
-    };
-
-    const onDeleteConversation = async () => {
-      showReturnPrompt.value = true;
-    };
-
     const onItemReturned = async () => {
-      const newStatus = itemStatus.value === 'Matched' ? 'Returned' : 'Matched';
-      await updateDoc(doc(db, 'conversations', props.conversationId), {
-        itemStatus: newStatus
-      });
+      const isReturning = itemStatus.value === 'Matched';
+      const message = isReturning
+        ? 'Are you sure the item has been returned to its owner?'
+        : 'Are you sure you want to undo the item returned status?';
+      const confirmed = window.confirm(message);
+      if (confirmed) {
+        try {
+          const newStatus = isReturning ? 'Returned' : 'Matched';
+          await updateDoc(doc(db, 'conversations', props.conversationId), {
+            itemStatus: newStatus
+          });
+        } catch (error) {
+          console.error(`Error ${isReturning ? 'marking item as returned' : 'undoing item returned'}:`, error);
+          alert(`Failed to ${isReturning ? 'mark the item as returned' : 'undo the item returned status'}. Please try again.`);
+        }
+      }
       dropdownOpen.value = false;
     };
 
     const onItemNotMine = async () => {
-      const newStatus = itemStatus.value === 'Matched' ? 'Not Found Yet' : 'Matched';
-      await updateDoc(doc(db, 'conversations', props.conversationId), {
-        itemStatus: newStatus
-      });
+      const confirmed = window.confirm(
+        'Undoing this match will delete the current conversation. This action is permanent and cannot be undone. Are you sure you want to proceed?'
+      );
+      if (confirmed) {
+        try {
+          await updateDoc(doc(db, 'conversations', props.conversationId), {
+            itemStatus: 'Not Found Yet'
+          });
+          await deleteConversation();
+          emit('conversationDeleted', props.conversationId);
+          router.push('/messages');
+        } catch (error) {
+          console.error('Error undoing match:', error);
+          alert('Failed to undo the match and delete the conversation. Please try again.');
+        }
+      }
       dropdownOpen.value = false;
     };
 
@@ -393,6 +435,7 @@ export default {
       messages.value = [];
       fetchConversationData();
       loadMessages();
+      fetchFoundItemName();
     });
 
     watch(messages, () => {
@@ -461,6 +504,7 @@ export default {
           const messageData = {
             text: newMessage.value.trim(),
             sender: props.currentUserID,
+            receiver: props.partnerID, // Add the receiver field
             timestamp: serverTimestamp(),
             readAt: null,
             attachmentUrl: '',
@@ -481,6 +525,7 @@ export default {
           await addDoc(collection(db, 'conversations', props.conversationId, 'messages'), {
             text: newMessage.value.trim(),
             sender: props.currentUserID,
+            receiver: props.partnerID, // Add the receiver field
             timestamp: serverTimestamp(),
             readAt: null
           });
@@ -532,21 +577,21 @@ export default {
       onItemNotMine,
       dropdownContainer,
       itemStatus,
-      showReturnPrompt,
-      showDeletionWarning,
-      onReturnSelected,
-      onDeletionWarningSelected,
+      isFounder,
+      partnerRole,
+      foundItemName,
+      notified
     };
   }
 };
 </script>
 
 <style scoped>
-/* Same as before, no changes needed */
+/* Styles remain unchanged */
 .chat-panel {
   display: flex;
   flex-direction: column;
-  height: 74vh;
+  height: 66vh;
   overflow: hidden;
 }
 
@@ -828,46 +873,5 @@ export default {
   font-weight: bold;
   color: #333;
   vertical-align: middle;
-}
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-}
-
-.modal {
-  background: white;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.modal-actions button {
-  background-color: #007BFF;
-  color: #fff;
-  font-size: 1rem;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.modal-actions button:hover {
-  background-color: #0056b3;
 }
 </style>
