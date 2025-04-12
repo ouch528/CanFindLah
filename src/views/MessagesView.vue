@@ -9,7 +9,11 @@
     <div class="main-content">
       <!-- Sidebar with list of conversation partners -->
       <div class="sidebar">
-        <UserList :currentUserID="currentUserID" @conversationStarted="handleConversationStarted" />
+        <UserList
+          :currentUserID="currentUserID"
+          @conversationStarted="handleConversationStarted"
+          @conversationDeleted="handleConversationDeleted"
+        />
       </div>
 
       <!-- Chat panel area -->
@@ -19,6 +23,7 @@
             :conversationId="currentConversationId"
             :currentUserID="currentUserID"
             :partnerID="partnerID"
+            @conversationDeleted="handleConversationDeleted"
           />
         </div>
         <div v-else class="no-chat-selected">
@@ -32,11 +37,11 @@
 </template>
 
 <script>
-import { onAuthStateChanged } from 'firebase/auth'
-import { auth, db } from '../firebase'
-import { doc, getDoc } from 'firebase/firestore'
-import UserList from '@/components/UserList.vue'
-import ChatPanel from '@/components/ChatPanel.vue'
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth, db } from '../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import UserList from '@/components/UserList.vue';
+import ChatPanel from '@/components/ChatPanel.vue';
 
 export default {
   components: {
@@ -48,29 +53,47 @@ export default {
       currentUserID: '',
       currentConversationId: '',
       partnerID: '',
-    }
+    };
   },
   created() {
+    // Get the current user's ID
     onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const userRef = doc(db, 'users', user.uid)
-        const userSnap = await getDoc(userRef)
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
         if (userSnap.exists()) {
-          this.currentUserID = userSnap.data().userID
+          this.currentUserID = userSnap.data().userID || user.uid;
+          // After getting the current user ID, check for query parameters
+          this.checkQueryParams();
         }
       }
-    })
+    });
   },
   methods: {
     handleConversationStarted(conversationId, partnerID) {
-      this.currentConversationId = conversationId
-      this.partnerID = partnerID
+      this.currentConversationId = conversationId;
+      this.partnerID = partnerID;
+    },
+    checkQueryParams() {
+      const { conversationId, partnerID } = this.$route.query;
+      if (conversationId && partnerID) {
+        this.currentConversationId = conversationId;
+        this.partnerID = partnerID;
+      }
+    },
+    handleConversationDeleted(conversationId) {
+      // If the deleted conversation is the currently displayed one, reset the state
+      if (this.currentConversationId === conversationId) {
+        this.currentConversationId = '';
+        this.partnerID = '';
+      }
     },
   },
-}
+};
 </script>
 
 <style scoped>
+/* Styles remain unchanged */
 .home-view {
   height: 80vh;
   display: flex;

@@ -3,7 +3,7 @@
     <!-- Top bar showing the partner's name and optional subtitle -->
     <div class="chat-header">
       <h2>{{ partnerDisplayName }}</h2>
-      <span class="partner-subtitle">Chatting with {{ partnerDisplayName }}</span>
+      <span class="partner-subtitle">Chatting with <b>{{ partnerRole }} of {{ foundItemName }}</b></span>
       <div class="dropdown-container" ref="dropdownContainer">
         <div class="item-status">{{ itemStatus }}</div>
         <button class="dropdown-toggle" @click="toggleDropdown">
@@ -147,7 +147,8 @@ export default {
     currentUserID: { type: String, required: true },
     partnerID: { type: String, required: true }
   },
-  setup(props) {
+  emits: ['conversationDeleted'],
+  setup(props, { emit }) {
     const router = useRouter();
     const partnerDisplayName = ref('');
     const messages = ref([]);
@@ -161,6 +162,11 @@ export default {
     const itemStatus = ref('Matched');
     const isFounder = ref(false);
     const dropdownOpen = ref(false);
+    const lostItemId = ref('');
+    const foundItemId = ref('');
+    const partnerRole = ref('');
+    const foundItemName = ref('');
+    const notified = ref(false);
     let unsubscribeMessages = null;
     let unsubscribeConversation = null;
 
@@ -181,6 +187,7 @@ export default {
       fetchConversationData();
       loadMessages();
       fetchPartnerName();
+      fetchFoundItemName();
     });
 
     onBeforeUnmount(() => {
@@ -189,26 +196,82 @@ export default {
       if (unsubscribeConversation) unsubscribeConversation();
     });
 
-    // Fetch conversation data including itemStatus and roles
     const fetchConversationData = () => {
       const conversationRef = doc(db, 'conversations', props.conversationId);
       unsubscribeConversation = onSnapshot(conversationRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           itemStatus.value = data.itemStatus || 'Matched';
-          // Check if the current user is the founder using roles.founder
           isFounder.value = data.roles?.founder === props.currentUserID;
+          lostItemId.value = data.lostItemId || '';
+          foundItemId.value = data.foundItemId || '';
+          partnerRole.value = data.roles?.founder === props.partnerID ? 'Founder' : 'Searcher';
+          notified.value = data.Notified ?? false;
         } else {
           itemStatus.value = 'Matched';
           isFounder.value = false;
+          lostItemId.value = '';
+          foundItemId.value = '';
+          partnerRole.value = '';
+          notified.value = false;
           console.warn(`Conversation with ID ${props.conversationId} does not exist.`);
+          emit('conversationDeleted', props.conversationId);
         }
       }, (error) => {
         console.error('Error fetching conversation:', error);
         itemStatus.value = 'Matched';
         isFounder.value = false;
+        lostItemId.value = '';
+        foundItemId.value = '';
+        partnerRole.value = '';
+        notified.value = false;
       });
     };
+
+    const fetchFoundItemName = async () => {
+      try {
+        const conversationRef = doc(db, 'conversations', props.conversationId);
+        const conversationSnap = await getDoc(conversationRef);
+        if (conversationSnap.exists()) {
+          const foundItemId = conversationSnap.data().foundItemId;
+          if (foundItemId) {
+            const foundItemRef = doc(db, 'Found Item', foundItemId);
+            const foundItemSnap = await getDoc(foundItemRef);
+            if (foundItemSnap.exists()) {
+              foundItemName.value = foundItemSnap.data().name || 'Unknown Item';
+            } else {
+              foundItemName.value = 'Unknown Item';
+            }
+          } else {
+            foundItemName.value = 'Unknown Item';
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching Found Item name:', error);
+        foundItemName.value = 'Unknown Item';
+      }
+    };
+
+    watch(itemStatus, async (newStatus) => {
+      if (!lostItemId.value || !foundItemId.value) {
+        console.warn('lostItemId or foundItemId not found in conversation document.');
+        return;
+      }
+
+      try {
+        const lostItemRef = doc(db, 'Lost Item', lostItemId.value);
+        const foundItemRef = doc(db, 'Found Item', foundItemId.value);
+
+        await Promise.all([
+          updateDoc(lostItemRef, { claimed_status: newStatus }),
+          updateDoc(foundItemRef, { claimed_status: newStatus })
+        ]);
+        console.log(`Updated claimed_status to ${newStatus} for Lost Item ${lostItemId.value} and Found Item ${foundItemId.value}`);
+      } catch (error) {
+        console.error('Error updating claimed_status:', error);
+        alert('Failed to update item status in Lost Item and Found Item. Please try again.');
+      }
+    });
 
     const deleteConversation = async () => {
       try {
@@ -233,6 +296,7 @@ export default {
       if (confirmed) {
         try {
           await deleteConversation();
+          emit('conversationDeleted', props.conversationId);
           router.push('/messages');
         } catch (error) {
           alert('Failed to delete the conversation. Please try again.');
@@ -271,6 +335,7 @@ export default {
             itemStatus: 'Not Found Yet'
           });
           await deleteConversation();
+          emit('conversationDeleted', props.conversationId);
           router.push('/messages');
         } catch (error) {
           console.error('Error undoing match:', error);
@@ -370,6 +435,7 @@ export default {
       messages.value = [];
       fetchConversationData();
       loadMessages();
+      fetchFoundItemName();
     });
 
     watch(messages, () => {
@@ -438,6 +504,7 @@ export default {
           const messageData = {
             text: newMessage.value.trim(),
             sender: props.currentUserID,
+            receiver: props.partnerID, // Add the receiver field
             timestamp: serverTimestamp(),
             readAt: null,
             attachmentUrl: '',
@@ -458,6 +525,7 @@ export default {
           await addDoc(collection(db, 'conversations', props.conversationId, 'messages'), {
             text: newMessage.value.trim(),
             sender: props.currentUserID,
+            receiver: props.partnerID, // Add the receiver field
             timestamp: serverTimestamp(),
             readAt: null
           });
@@ -510,12 +578,16 @@ export default {
       dropdownContainer,
       itemStatus,
       isFounder,
+      partnerRole,
+      foundItemName,
+      notified
     };
   }
 };
 </script>
 
 <style scoped>
+/* Styles remain unchanged */
 .chat-panel {
   display: flex;
   flex-direction: column;
