@@ -103,7 +103,7 @@ export default {
                         description: this.formData.description,
                         lost_item_id: 'empty for now',
                         location: this.formData.location,
-                        name: `${this.formData.color} ${this.formData.category}`,
+                        name: this.formData.category === 'Student Card' ? this.formData.category : `${this.formData.color} ${this.formData.category}`,
                         email: userEmail,
                         reporter_id: userStore.userId,
                     })
@@ -149,7 +149,14 @@ export default {
         },
 
         validateForm() {
-            if (!this.formData.category || (!this.formData.color && this.formData.category !== 'Student Card') || (!this.formData.brand && this.formData.category !== 'Student Card') || !this.formData.location || !this.formData.datetime || !this.formData.description) {
+            // If category is Student Card, set color and brand to "Not Available"
+            if (this.formData.category === 'Student Card') {
+                this.formData.color = 'Not Available'
+                this.formData.brand = 'Not Available'
+            }
+
+            // Now validate the fields
+            if (!this.formData.category || !this.formData.color || !this.formData.brand || !this.formData.location || !this.formData.datetime || !this.formData.description) {
                 alert('Please fill all required fields.')
                 return false
             }

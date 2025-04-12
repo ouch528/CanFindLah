@@ -39,11 +39,11 @@
                 <br /><br />
 
                 <label for="brand">Brand </label> <br />
-                <input type="text" id="brand" v-model="formData.brand" required :placeholder="formData.category === 'Student Card' ? 'Not required for student cards' : 'Enter Brand'" :disabled="formData.category === 'Card'" />
+                <input type="text" id="brand" v-model="formData.brand" required :placeholder="formData.category === 'Student Card' ? 'Not required for student cards' : 'Enter Brand'" :disabled="formData.category === ' Student Card'" />
                 <br /><br />
 
                 <label for="loc">Location Found </label> <br />
-                <input type="text" v-model="formData.location" id="loc" required placeholder="Enter Location Lost" />
+                <input type="text" v-model="formData.location" id="loc" required placeholder="Enter Location Found" />
                 <br /><br />
 
                 <label for="datetime">Date & Time Found </label> <br />
@@ -145,7 +145,7 @@ export default {
                         location: this.formData.location,
                         date_time_found: this.formData.datetime,
                         description: this.formData.description,
-                        name: `${this.formData.color} ${this.formData.category}`,
+                        name: this.formData.category === 'Student Card' ? this.formData.category : `${this.formData.color} ${this.formData.category}`,
                         claimed_status: 'Not Found Yet',
                         found_item_id: 'empty for now',
                         photo: imageUrl,
@@ -175,6 +175,11 @@ export default {
 
         validateForm() {
             const { category, color, brand, location, datetime, description, image } = this.formData
+
+            if (category === 'Student Card') {
+                if (!this.formData.color) this.formData.color = 'Not Available'
+                if (!this.formData.brand) this.formData.brand = 'Not Available'
+            }
 
             if (!category || !location || !datetime || !description) {
                 alert('Please fill all required fields.')
