@@ -12,7 +12,7 @@
             <p class="chat-preview">{{ user.lastMessage }}</p>
           </div>
           <div class="chat-right-col">
-            <span class="chat-role">Searcher</span>
+            <span class="chat-role" :data-role="user.role">{{ user.role }}</span>
             <span v-if="user.lastTimestamp" class="chat-time">{{ user.lastTimestamp }}</span>
           </div>
         </div>
@@ -42,72 +42,99 @@ export default {
   setup(props, { emit }) {
     const users = ref([]);
     const lastMessages = ref({});
+    const userRoles = ref({}); // Store roles for each user
 
     const usersCollection = collection(db, 'users');
 
+    // Fetch all users
     onSnapshot(usersCollection, (snapshot) => {
       users.value = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
       loadLastMessages();
+      loadUserRoles(); // Load roles after users are fetched
     });
 
+    // Load the last message for each conversation
     const loadLastMessages = () => {
       for (const user of users.value) {
-        if (user.id === props.currentUserID) continue
+        if (user.id === props.currentUserID) continue;
 
-        const conversationId = [props.currentUserID, user.id].sort().join('-')
-        const messagesRef = collection(db, 'conversations', conversationId, 'messages')
-        const q = query(messagesRef, orderBy('timestamp', 'desc'), limit(1))
+        const conversationId = [props.currentUserID, user.id].sort().join('-');
+        const messagesRef = collection(db, 'conversations', conversationId, 'messages');
+        const q = query(messagesRef, orderBy('timestamp', 'desc'), limit(1));
 
         onSnapshot(q, (snapshot) => {
-          const messageData = snapshot.docs[0]?.data()
+          const messageData = snapshot.docs[0]?.data();
 
           const preview = (() => {
-            if (!messageData) return 'Click to start chatting'
-            const isText = messageData.text?.trim()
-            const hasAttachment = messageData.attachmentUrl
+            if (!messageData) return 'Click to start chatting';
+            const isText = messageData.text?.trim();
+            const hasAttachment = messageData.attachmentUrl;
 
             if (hasAttachment) {
-              const fileType = messageData.attachmentType?.split('/')?.[1] || 'file'
-              const text = isText ? messageData.text : messageData.attachmentName || 'Attachment'
-              return `[${fileType}] ${text}`
+              const fileType = messageData.attachmentType?.split('/')?.[1] || 'file';
+              const text = isText ? messageData.text : messageData.attachmentName || 'Attachment';
+              return `[${fileType}] ${text}`;
             } else if (isText) {
-              return messageData.text
+              return messageData.text;
             } else {
-              return 'Click to start chatting'
+              return 'Click to start chatting';
             }
-          })()
+          })();
 
           lastMessages.value[user.id] = {
             text: preview,
             timestamp: messageData?.timestamp || null
-          }
-        })
+          };
+        });
       }
-    }
+    };
+
+    // Load the role of each user relative to the current user
+    const loadUserRoles = async () => {
+      for (const user of users.value) {
+        if (user.id === props.currentUserID) continue;
+
+        const conversationId = [props.currentUserID, user.id].sort().join('-');
+        const conversationRef = doc(db, 'conversations', conversationId);
+        const snap = await getDoc(conversationRef);
+
+        if (snap.exists()) {
+          const data = snap.data();
+          const roles = data.roles || {};
+          // Determine the role of the other user
+          userRoles.value[user.id] = roles.founder === user.id ? 'Founder' : 'Searcher';
+        } else {
+          // If conversation doesn't exist, assume the role based on startChat logic
+          // In startChat, currentUserID is set as searcher, other user as founder
+          userRoles.value[user.id] = 'Founder';
+        }
+      }
+    };
 
     const filteredUsers = computed(() =>
       users.value
         .filter((u) => u.id !== props.currentUserID)
         .map((user) => {
-          const msg = lastMessages.value[user.id] || {}
+          const msg = lastMessages.value[user.id] || {};
           return {
             ...user,
             lastMessage: msg.text || 'Click to start chatting',
             lastTimestamp: msg.timestamp
               ? new Date(msg.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
               : null,
-            rawTimestamp: msg.timestamp || null
-          }
+            rawTimestamp: msg.timestamp || null,
+            role: userRoles.value[user.id] || 'Founder' // Default to Founder if role not yet loaded
+          };
         })
         .sort((a, b) => {
-          if (!a.rawTimestamp) return 1
-          if (!b.rawTimestamp) return -1
-          return b.rawTimestamp.toMillis() - a.rawTimestamp.toMillis()
+          if (!a.rawTimestamp) return 1;
+          if (!b.rawTimestamp) return -1;
+          return b.rawTimestamp.toMillis() - a.rawTimestamp.toMillis();
         })
-    )
+    );
 
     const startChat = async (user) => {
       const conversationId = [props.currentUserID, user.id].sort().join('-');
@@ -121,19 +148,25 @@ export default {
             founder: user.id
           },
           createdAt: serverTimestamp(),
-          itemStatus: 'Matched' // Initialize itemStatus
+          itemStatus: 'Matched'
         });
+        // Update the role after creating the conversation
+        userRoles.value[user.id] = 'Founder';
       }
 
       emit('conversationStarted', conversationId, user.id);
     };
 
-    watch(() => props.currentUserID, loadLastMessages);
+    watch(() => props.currentUserID, () => {
+      loadLastMessages();
+      loadUserRoles();
+    });
     watch(
       [() => props.currentUserID, () => users.value],
       ([currentID, allUsers]) => {
         if (currentID && allUsers.length) {
           loadLastMessages();
+          loadUserRoles();
         }
       }
     );
@@ -203,11 +236,16 @@ export default {
 }
 .chat-role {
   font-size: 0.875rem;
-  background-color: #ff8147;
   color: white;
   padding: 8px;
   border-radius: 8px;
   font-weight: bold;
+}
+.chat-role[data-role="Searcher"] {
+  background-color: #FF8844; /* Orange for Founder */
+}
+.chat-role[data-role="Founder"] {
+  background-color: #4A95DF; /* Blue for Searcher */
 }
 .chat-time {
   color: #aaa;
