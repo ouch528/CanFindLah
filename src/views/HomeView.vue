@@ -109,10 +109,6 @@ export default {
 </script>
 
 <style scoped>
-* {
-    font-family: Arial;
-}
-
 a {
     text-decoration: none;
 }
@@ -201,6 +197,14 @@ a {
     height: 4.5rem;
 }
 
+#found-item-nav:hover {
+    background-color: #3487db;
+}
+
+#lost-item-nav:hover {
+    background-color: #f8772d;
+}
+
 .stats {
     text-align: center;
     display: flex;
@@ -214,7 +218,7 @@ a {
     font-size: 5.25rem;
     text-align: center;
     margin-top: 0;
-    margin-bottom: 0;
+    margin-bottom: -2.5rem;
 }
 
 .stats h3 {

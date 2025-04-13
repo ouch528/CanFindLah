@@ -185,7 +185,6 @@ form {
     text-align: left;
     border-radius: 1rem;
     background-color: #fffdfb;
-    font-family: Arial;
     width: 36.375rem;
     height: 42rem;
 }
@@ -218,7 +217,6 @@ form {
     height: 6.0625rem;
     min-width: 24.8125rem;
     max-width: 24.8125rem;
-    font-family: Arial;
     padding-left: 0.75rem;
     resize: none;
     font-size: 0.875rem;
@@ -228,7 +226,6 @@ select,
 input {
     color: #888;
     font-size: 0.875rem;
-    font-family: Arial;
     text-align: left;
     padding-left: 0.75rem;
 }
@@ -236,7 +233,6 @@ input {
 textarea::placeholder {
     color: #888;
     font-size: 0.875rem;
-    font-family: Arial;
     text-align: left;
 }
 
