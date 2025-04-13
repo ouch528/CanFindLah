@@ -39,7 +39,7 @@
                 <br /><br />
 
                 <label for="brand">Brand </label> <br />
-                <input type="text" id="brand" v-model="formData.brand" required :placeholder="formData.category === 'Student Card' ? 'Not required for student cards' : 'Enter Brand'" :disabled="formData.category === ' Student Card'" />
+                <input type="text" id="brand" v-model="formData.brand" required :placeholder="formData.category === 'Student Card' ? 'Not required for student cards' : 'Enter Brand'" :disabled="formData.category === 'Student Card'" />
                 <br /><br />
 
                 <label for="loc">Location Found </label> <br />
@@ -69,7 +69,11 @@
                 </div>
 
                 <div class="save">
-                    <button id="savebutton" type="button" :disabled="uploading" v-on:click="saveFoundItem">Submit</button>
+                    <!-- <button id="savebutton" type="button" :disabled="uploading" v-on:click="saveFoundItem">Submit</button> -->
+                    <button id="savebutton" type="button" :disabled="uploading" @click="saveFoundItem">
+                        <span v-if="uploading" id="submitting">Submitting...</span>
+                        <span v-else>Submit</span>
+                    </button>
                 </div>
             </div>
         </form>
@@ -387,5 +391,15 @@ textarea::placeholder {
 #backward_img:hover {
     transform: scale(1.1); /* Slight zoom in */
     opacity: 0.8; /* Slight transparency */
+}
+
+#savebutton:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+    color: #666;
+}
+
+#submitting {
+    font-size: 0.75rem;
 }
 </style>
