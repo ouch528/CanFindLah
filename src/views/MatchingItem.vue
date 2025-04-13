@@ -27,6 +27,7 @@ import { doc, getDoc } from 'firebase/firestore' // Import Firestore v9 function
 import SimilarItem from '@/components/SimilarItem.vue'
 import { findMatchingItems } from '@/components/matchingService.js'
 import { db } from '@/firebase' // Assuming db is the Firestore instance
+import { updateDoc } from 'firebase/firestore'
 
 export default {
     name: 'MatchingItem',
@@ -75,6 +76,13 @@ export default {
 
                 // Filter items with 'claimed_status' as "Not Found Yet"
                 this.matchingItems = matchingItems.filter((item) => item.claimed_status === 'Not Found Yet')
+
+                await updateDoc(lostItemDocRef, { found_afterwards: false })
+                if (this.matchingItems.length > 0) {
+                    await updateDoc(lostItemDocRef, { already_similar_item: true })
+                } else {
+                    await updateDoc(lostItemDocRef, { already_similar_item: false })
+                }
             } catch (err) {
                 this.errorMessage = 'An error occurred while fetching the matching items.'
             } finally {

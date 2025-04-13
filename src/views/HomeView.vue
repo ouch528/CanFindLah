@@ -47,7 +47,6 @@
             </div>
         </div>
     </div>
-    
 </template>
 
 <script>
@@ -63,7 +62,7 @@ export default {
             claimed: 0,
             found: 0,
             yetToBeClaimed: 0,
-            userName: ''
+            userName: '',
         }
     },
     mounted() {
@@ -134,10 +133,10 @@ a {
 }
 
 @keyframes fadeInUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 #welcome-msg {

@@ -106,6 +106,8 @@ export default {
                         name: this.formData.category === 'Student Card' ? this.formData.category : `${this.formData.color} ${this.formData.category}`,
                         email: userEmail,
                         reporter_id: userStore.userId,
+                        already_similar_item: false,
+                        found_afterwards: false,
                     })
 
                     console.log('User ID:', userStore.userId)
