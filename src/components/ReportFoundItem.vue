@@ -81,6 +81,7 @@ import { collection, addDoc, doc, updateDoc, arrayUnion, getDoc } from 'firebase
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useUserStore } from '@/stores/user-store'
 import { storage, db } from '../firebase.js'
+import { findMatchingLostItems } from '@/components/matchingService.js'
 
 export default {
     data() {
@@ -137,6 +138,16 @@ export default {
                     const docSnap = await getDoc(userEmailRef)
                     const userData = docSnap.data()
                     const userEmail = userData.email
+                    const form = {
+                        category: this.formData.category,
+                        color: this.formData.color,
+                        brand: this.formData.brand,
+                        location: this.formData.location,
+                        datetime: this.formData.datetime,
+                        description: this.formData.description,
+                    }
+                    const itemArray = await findMatchingLostItems(form)
+
 
                     const docRef = await addDoc(collection(db, 'Found Item'), {
                         category: this.formData.category,
@@ -147,12 +158,31 @@ export default {
                         description: this.formData.description,
                         name: `${this.formData.color} ${this.formData.category}`,
                         claimed_status: 'Not Found Yet',
-                        found_item_id: 'empty for now',
+                        found_item_id: '',
                         photo: imageUrl,
                         photo_directory: image_file_path,
                         email: userEmail,
                         reporter_id: userStore.userId,
+                        similar_item: itemArray
                     })
+
+                    await updateDoc(docRef, {
+                        found_item_id: docRef.id // Update the `found_item_id` with the doc ID
+                    });
+                    console.log(itemArray)
+                    if (itemArray) {
+                        for (let i = 0; i < itemArray.length; i++) {
+                            if (itemArray[i] == "empty for now") {
+                                continue
+                            }
+                            const lostItemRef = doc(db, 'Lost Item', itemArray[i])
+                            await updateDoc(lostItemRef, {
+                                found_afterwards: true,
+                            })
+
+
+                        }
+                    }  
 
                     console.log('User ID:', userStore.userId)
                     const userRef = doc(db, 'History', userStore.userId)

@@ -8,20 +8,23 @@
             <img v-if="imageUrl" :src="imageUrl" alt="Item Image" id="item-image" @load="onImageLoad" @error="handleImageError" />
             <img v-else src="@/assets/still_finding_yet.jpg" />
 
-            <router-link to="/edit?status_edit_item=searcher&edit_item_id=YsmFFHlbIil3k4M7W1qj&image=">
-                <div class="alert-icon">!</div>
-            </router-link>
-        </div>
+            
+                <div class="alert-icon" @click = "matchPage" v-if = "status == 'searcher' && item.found_afterwards == true">!</div>
 
+        </div>
         <h3>{{ item.name }}</h3>
-        <p><strong>Category: </strong>{{ item.category }}</p>
-        <p><strong>Colour: </strong>{{ item.colour }}</p>
-        <p><strong>Brand: </strong>{{ item.brand }}</p>
-        <p><strong>Location: </strong>{{ item.location }}</p>
-        <p v-if="status == 'founder'"><strong>Date & Time: </strong>{{ item.date_time_found.replace('T', ' ') }}</p>
-        <p v-if="status == 'searcher'"><strong>Date & Time: </strong>{{ item.date_time_lost.replace('T', ' ') }}</p>
-        <p><strong>Description: </strong>{{ item.description }}</p>
-        <br />
+        <div id = "scroll">
+            
+            <p><strong>Category: </strong>{{ item.category }}</p>
+            <p><strong>Colour: </strong>{{ item.colour }}</p>
+            <p><strong>Brand: </strong>{{ item.brand }}</p>
+            <p><strong>Location: </strong>{{ item.location }}</p>
+            <p v-if="status == 'founder'"><strong>Date & Time: </strong>{{ item.date_time_found.replace('T', ' ') }}</p>
+            <p v-if="status == 'searcher'"><strong>Date & Time: </strong>{{ item.date_time_lost.replace('T', ' ') }}</p>
+            <p><strong>Description: </strong>{{ item.description }}</p>
+            
+        </div>
+        <br>
         <!-- <p>{{ itemId }}</p> -->
         <div class="boxes">
             <div class="status" :class="{ 'not-found': item.claimed_status === 'Not Found Yet', matched: item.claimed_status === 'Matched', returned: item.claimed_status === 'Returned' }">
@@ -67,6 +70,7 @@ export default {
             item_id: '',
             failed_image: '',
             isLoading: true,
+
             // lost_item: 1,// Will store item details, set as 1 if null will wrong idk why
         }
     },
@@ -263,6 +267,22 @@ export default {
         handleImageError(event) {
             this.imageUrl = this.failed_image // Fallback image
         },
+
+        matchPage() {
+            const formDataCopy = {
+                category:   this.item.category,
+                color: this.item.colour,
+                brand: this.item.brand,
+                location: this.item.location,
+                datetime: this.item.date_time_lost,
+                description: this.item.description,
+                }
+            console.log(this.item_id)
+            this.$router.push({
+                name: 'matching',
+                query: { lostItem: JSON.stringify(formDataCopy), id: this.lost_item_Id },
+            })
+        }
     },
 
     // methods : {
@@ -319,6 +339,9 @@ export default {
     border: 0.0625rem solid #ccc;
     /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
     border-radius: 0.5rem;
+    flex-direction: column;
+    height: 30.625rem;
+    display: flex;
 }
 
 .you-are {
@@ -351,6 +374,7 @@ p {
     align-items: center; /* Vertically align items */
     gap: 0.625rem; /* Space between boxes */
     width: 19rem;
+    margin-top: auto;
 }
 
 .status {
@@ -524,5 +548,11 @@ button.update {
     100% {
         transform: translate(-50%, -50%) rotate(360deg);
     }
+}
+
+#scroll {
+   
+    max-height: 10.625rem; /* Set a fixed height for the scrollable content */
+    overflow-y: auto;  /* Enable vertical scrolling when content overflows */
 }
 </style>

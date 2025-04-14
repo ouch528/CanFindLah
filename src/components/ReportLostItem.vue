@@ -108,6 +108,10 @@ export default {
                         reporter_id: userStore.userId,
                     })
 
+                    await updateDoc(docRef, {
+                        lost_item_id: docRef.id // Update the `found_item_id` with the doc ID
+                    });
+
                     console.log('User ID:', userStore.userId)
                     const userRef = doc(db, 'History', userStore.userId)
 

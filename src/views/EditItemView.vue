@@ -16,6 +16,8 @@
             <button :disabled="!hasChanges || uploadingImage" @click="uploadChanges" class="btn primary">Edit Item</button>
             <!-- <button id="back-button" class="btn secondary" @click="goBack">Back</button> -->
         </div>
+        <br>
+        <br>
 
     </div>
 </template>
@@ -145,13 +147,15 @@ export default {
 }
 
 .primary {
-    background-color: #007bff;
-    color: white;
+    background-color: #ff8844;
+    color: black;
+
 }
 
 .primary:disabled {
     background-color: #ccc;
     cursor: not-allowed;
+    color: white;
 }
 
 .secondary {

@@ -12,21 +12,27 @@
             <p class = "you-are">Founder</p>
         </div> -->
        
+        <div id = "function-button">
+            <i class="pi pi-undo" id="undo" @click="refresh" title="Click this to revert all your changes"></i>
+            <img id="backward-img" src="@/assets/arrow_back.png" alt="Back to Home" @click = "goBack" @disabled = "!uploadingImage" />
+        </div>
         <div class="image-container">
 
-            <img id="backward-img" src="@/assets/arrow_back.png" alt="Back to Home" @click = "goBack" />
+           
+           
             <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError" id = "edit-image"/>
             <img v-else :src ="failed_image"/>
             
-            <i class="pi pi-undo" id="pencil" @click="refresh" title="Click this to revert all your changes"></i>
+            
             <!-- <p v-else>Loading image...</p> -->
         </div>
 
         <!-- <p>{{ $route.params.edit_item.name }}</p> -->
         <div class = "edit-item"> 
-            <h3 class = "item-name">{{ item.name }}</h3>
-            <p class = "word">Category</p><p class = "edit-box"><select id="item" v-model="item.category" @change = "markAsChanged">
-                        <option value="Card">Card</option>
+            <h2 class = "item-name">{{ item.name }}</h2>
+            <p class = "word" style="font-size: 1.3rem;">Category</p><p class = "edit-box"><select id="item" v-model="item.category" @change = "markAsChanged">
+                        <option value="Student Card">Student Card</option>
+                        <option value="Bank Card">Bank Card</option>
                         <option value="Waterbottle">Waterbottle</option>
                         <option value="Electronics">Electronics</option>
                         <option value="Stationary">Stationary</option>
@@ -34,7 +40,7 @@
                         <option value="Clothing">Clothing</option>
                         <option value="Others">Others</option>
                     </select></p>
-            <p class = "word">Colour</p> <p class = "edit-box"><select v-model="item.colour" id="item" @change = "markAsChanged">
+            <p class = "word" style="font-size: 1.3rem;">Colour</p> <p class = "edit-box"><select v-model="item.colour" id="item" @change = "markAsChanged">
                         <option value="Red">Red</option>
                         <option value="Green">Green</option>
                         <option value="Blue">Blue</option>
@@ -48,21 +54,21 @@
             </p> -->
                     
             <!-- <p>Colour: <input type="text" id="item" v-model="item.colour" @input="markAsChanged" /></p> -->
-            <p class = "word">Brand</p> <p class = "edit-box"><input type="text" id="item" v-model="item.brand" @input="markAsChanged" /></p>
-            <p class = "word">Location</p> <p class = "edit-box"><input type="text" id="item" v-model="item.location" @input="markAsChanged" /></p>
+            <p class = "word" style="font-size: 1.3rem;">Brand</p> <p class = "edit-box"><input type="text" id="item" v-model="item.brand" @input="markAsChanged" /></p>
+            <p class = "word" style="font-size: 1.3rem;">Location</p> <p class = "edit-box"><input type="text" id="item" v-model="item.location" @input="markAsChanged" /></p>
             <!-- <p>Date & Time: <input type="text" id="item" v-model="item.date_time_lost" @input="markAsChanged" /></p> -->
-            <p v-if = "status == 'founder'" class = "word">Date & Time</p><p class = "edit-box" v-if = "status == 'founder'"> <input type="datetime-local" id="item" v-model="item.date_time_found" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
-            <p v-if= "status == 'searcher'" class = "word">Date & Time</p><p class = "edit-box" v-if= "status == 'searcher'"><input type="datetime-local" id="item" v-model="item.date_time_lost" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
-            <p class = "word">Description</p><p class = "edit-box"><textarea type="text" id="des" v-model="item.description" @input="markAsChanged"></textarea></p>
+            <p v-if = "status == 'founder'" class = "word" style="font-size: 1.3rem;">Date & Time</p><p class = "edit-box" v-if = "status == 'founder'"> <input type="datetime-local" id="item" v-model="item.date_time_found" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
+            <p v-if= "status == 'searcher'" class = "word" style="font-size: 1.3rem;">Date & Time</p><p class = "edit-box" v-if= "status == 'searcher'"><input type="datetime-local" id="item" v-model="item.date_time_lost" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
+            <p class = "word" style="font-size: 1.3rem;">Description</p><p class = "edit-box"><textarea type="text" id="des" v-model="item.description" @input="markAsChanged"></textarea></p>
             <!-- <p>{{ itemId }}</p> -->
             <br>
 
-            <div v-if="imagePreview">
+            <div v-if="imagePreview" id = "image-preview-box">
                     <button @click="removeImage" class="remove-image-btn">&#10006;</button>
                     <img :src="imagePreview" alt="Uploaded Image" id="image-preview" />
             </div>
-            <div id="upload-img" v-if = "status == 'founder'">
-                    <input type="file" @change="handleImageUpload" id="default-upload" accept="image/*" />
+            <div id="upload-img" v-if = "status == 'founder'" style = "margin-left: 1.7rem;">
+                    <input type="file" @change="handleImageUpload" id="default-upload" accept="image/*"  style = "align-content: center;"/>
                     <label for="default-upload">
                         <img src="@/assets/upload.png" alt="Upload Icon" id="upload-icon" />
                         <span id="instruction">{{ instruction }}</span>
@@ -83,6 +89,7 @@ import { ref, getDownloadURL, getStorage, deleteObject,  uploadBytes } from 'fir
 import { collection, getDoc, doc, deleteDoc } from 'firebase/firestore'
 // import failedImage from '@/assets/still_finding_yet.jpg';
 import 'primeicons/primeicons.css'
+import { findMatchingItems, findMatchingLostItems } from '@/components/matchingService.js'
 
 const db = getFirestore(app)
 
@@ -131,6 +138,7 @@ export default {
         await this.fetchItemDetails()
         await this.fetchItemDetails_lost() // Fetch item details when component is created
         this.initialItem = JSON.parse(JSON.stringify(this.item))
+        this.test1()
     },
 
     watch: {
@@ -275,6 +283,9 @@ export default {
         },
 
         removeImage() {
+            if (this.uploadingImage) {
+                return
+            }
             if (this.directory) {
                 const storage = getStorage();
                 const desertRef = ref(storage, this.directory);
@@ -301,6 +312,7 @@ export default {
         },
 
         goBack() {
+            
             if (JSON.stringify(this.item) != JSON.stringify(this.initialItem)) {
                 if (confirm("Are you sure you want to go back, you will lose all your edit") == true) {
                     this.removeImage()
@@ -310,6 +322,21 @@ export default {
             this.$router.push('/history')
             }
             
+        },
+
+        test1() {
+            if (this.lost_item_Id == "PwMmSomGXQgm0WhrYyXW") {
+                const formData = {
+                        category: this.item.category,
+                        color: this.item.colour,
+                        brand: this.item.brand,
+                        location: this.item.location,
+                        datetime: this.item.date_time_lost,
+                        description: this.item.description,
+                    }
+                console.log("ahh")
+                console.log(findMatchingLostItems(formData))
+            } 
         }
     },
 }
@@ -321,12 +348,15 @@ export default {
     background-color: white;
     /* right: 500px; */
     border: 0.07rem;
-    max-width: 17rem;
+    width: 25.5rem;
     margin: 0.44rem;
     background-color: #fff;
-    padding: 1.88rem;
+    padding-right: 5rem;
+    padding-left: 5rem;
+    padding-bottom: 0.5rem;
     border: 0.07rem solid #ccc;
     height: 42rem;
+    padding-top: 1rem;
     /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
     overflow-y: scroll
 }
@@ -337,7 +367,7 @@ export default {
     font-size: 1rem;  /* Ensure text size is the same */
     /* border: 1px solid #ccc;   */
     border-radius: 1px;  /* Optional: Rounded corners */
-    font-family: 'Arial';
+    font-family: 'Inter';
     background-color: rgba(251, 240, 230, 1);
     border-radius: 0.625rem;
     line-height: 2;
@@ -353,7 +383,7 @@ export default {
     font-size: 1rem;  /* Ensure text size is the same */
     /* border: 1px solid #ccc;   */
     border-radius: 1px;  /* Optional: Rounded corners */
-    font-family: 'Arial';
+    font-family: 'Inter';
     background-color: rgba(251, 240, 230, 1);
     border-radius: 0.625rem;
     line-height: 2;
@@ -369,7 +399,7 @@ export default {
     font-size: 1rem;  /* Ensure text size is the same */
     /* border: 1px solid #ccc;   */
     border-radius: 1px;  /* Optional: Rounded corners */
-    font-family: 'Arial';
+    font-family: 'Inter';
     background-color: rgba(251, 240, 230, 1);
     border-radius: 0.625rem;
     border: none;
@@ -381,7 +411,7 @@ export default {
 }
 
 .edit-item p {
-    font-family: Arial;
+    font-family: "Inter";
     margin-top: 0.25rem; /* Adjust the top margin */
     margin-bottom: 0.5rem;
     /* color: grey; */
@@ -393,14 +423,6 @@ export default {
 }
 
 
-.formli label {
-    margin-left: 5.8125rem;
-    display: inline-block;
-    width: 24.8125rem;
-    height: 1.75rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-}
 
 #upload-img {
     width: 22rem;  /* Set a fixed width */
@@ -409,24 +431,29 @@ export default {
     font-size: 1rem;  /* Ensure text size is the same */
     border: 0.07rem solid #ccc;  /* Add a consistent border */
     border-radius: 0.07rem;  /* Optional: Rounded corners */
-    font-family: 'Arial';
+    font-family: 'Inter';
     background-color: rgba(251, 240, 230, 1);
     border-radius: 0.625rem;
     line-height: 2;
     border: none;
     box-sizing: border-box;
     align-content: center;
-    margin-left: 4.6em;
+    margin-left: 1rem;
 }
 
 .word{
-    margin-left: 5rem;
+    margin-left: 2rem;
     color: black;
+    font-weight: bold;
+    font-size:100px;
 }
+
+
 
 #des{
     height: 10rem;  
     white-space: pre-wrap;
+    /* margin-left: 10rem; */
 }
 
 .edit-box{
@@ -458,12 +485,15 @@ input[type='file'] {
 }
 
 #image-preview {
-    width: 50%;
-    height: 50%; /* Adjust height and width as needed */
-    margin-left: 9.1rem;
-    margin-right: 9.1rem;
+    /* display: flex; */
+    width: 85%;
+    height: 80%;
+    margin-left: 2rem;
+    margin-right: 5.1rem;
     margin-bottom: 1rem;
 }
+
+
 
 .remove-image-btn {
     background: none;
@@ -472,12 +502,13 @@ input[type='file'] {
     font-size: 1.5rem;
     cursor: pointer;
     padding: 0.2rem;
-    margin-left: 5.8125rem;
+    margin-left: 1.7rem;
 }
 
 #edit-image {
-    width: 70%;
-    height: 70%;
+    width: 100%;
+    height: 100%;
+    text-align: center;
 }
 
 #backward-img {
@@ -495,6 +526,45 @@ input[type='file'] {
     transform: scale(1.1);   /* Slight zoom in */
     opacity: 0.8;            /* Slight transparency */
 }
+
+#image-container {
+    text-align: center;
+}
+
+#function-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;  /* Vertically align the items */
+  padding: 10px;
+  width: 100%;
+}
+
+#function-button i {
+    /* padding-top: 1rem; */
+    top: 1.2rem;
+    right: 0.3rem;
+    margin-top: 0.5rem;
+}
+
+#function-button .backward-img {
+  margin-right: 20px; /* Space between the backward button and undo button */
+
+}
+
+#undo {
+    position: absolute;
+    right: 0.7em;
+    transform: translateY(-50%);
+    border-radius: 50%;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+}
+
+#undo:hover {
+    background-color: #e0e0e0; /* Slightly darker on hover */
+}
+
 
 
 </style>
