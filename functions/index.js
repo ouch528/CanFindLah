@@ -121,7 +121,7 @@ export const notifyUnreadMessagesReminder = onSchedule(
             html: `
             
               <p>You have an unread message from ${oldestMessageTimeString} in conversation ${convId}.</p>
-              <a href="http://localhost:5174/conversations/${convId}">
+              <a href="http://localhost:5176/conversations/${convId}">
                 ${convId}
               </a>.
               <p>Please log in to read it.</p>
