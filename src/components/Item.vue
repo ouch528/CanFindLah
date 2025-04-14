@@ -214,9 +214,9 @@ export default {
                 alert('You cannot delete a Matched Item')
                 return
             }
-            if (confirm('Are you sure you want to delete this item') == true) {
+            if (confirm('Are you sure you want to delete this item?') == true) {
                 try {
-                    alert('Delete item clicked')
+                    alert('Item Deleted')
                     const userStore = useUserStore()
                     const user_id = userStore.userId
                     if (this.status == 'searcher') {

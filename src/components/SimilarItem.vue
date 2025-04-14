@@ -13,7 +13,7 @@
             <p><strong>Colour:</strong> {{ item.colour }}</p>
             <p><strong>Brand:</strong> {{ item.brand }}</p>
             <p><strong>Location:</strong> {{ item.location }}</p>
-            <p><strong>Date & Time Found:</strong> {{ item.date_time_found }}</p>
+            <p><strong>Date & Time Found:</strong> {{ item.date_time_found.replace('T', ' ') }}</p>
             <p><strong>Description:</strong> {{ item.description }}</p>
         </div>
     </div>

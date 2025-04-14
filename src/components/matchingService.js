@@ -63,17 +63,30 @@ export async function findMatchingItems(formData) {
                 const docData = doc.data()
 
                 // Handle description comparison
-                let descriptionMatch = true // Default to true if no description comparison is needed
-                if (formData.category === 'others' && docData.description) {
-                    const lostDescriptionWords = formData.description?.toLowerCase().match(/\b\w+\b/g) || []
-                    const foundDescriptionWords = docData.description?.toLowerCase().match(/\b\w+\b/g) || []
+                let descriptionMatch = true // Default to true if no description/brand comparison is needed
 
-                    console.log('Lost description words:', lostDescriptionWords)
-                    console.log('Found description words:', foundDescriptionWords)
+                const lostDescriptionWords = formData.description?.toLowerCase().match(/\b\w+\b/g) || []
+                const lostSet = new Set(lostDescriptionWords)
 
-                    // Check if any word in the lost description exists in the found description
-                    descriptionMatch = lostDescriptionWords.some((lostWord) => foundDescriptionWords.includes(lostWord))
+                const lostBrandWords = formData.brand?.toLowerCase().match(/\b\w+\b/g) || []
+                const lostBrandSet = new Set(lostBrandWords)
+
+                let descMatched = false
+                let brandMatched = false
+
+                if (docData.description) {
+                    const foundDescriptionWords = docData.description.toLowerCase().match(/\b\w+\b/g) || []
+                    const foundDescSet = new Set(foundDescriptionWords)
+                    descMatched = [...lostSet].some((word) => foundDescSet.has(word))
                 }
+
+                if (docData.brand) {
+                    const foundBrandWords = docData.brand.toLowerCase().match(/\b\w+\b/g) || []
+                    const foundBrandSet = new Set(foundBrandWords)
+                    brandMatched = [...lostBrandSet].some((word) => foundBrandSet.has(word))
+                }
+
+                descriptionMatch = descMatched || brandMatched
 
                 // Check if the date is within 7 days
                 let dateTimeFound = docData.date_time_found
@@ -83,8 +96,10 @@ export async function findMatchingItems(formData) {
                     dateTimeFound = new Date(dateTimeFound)
                 }
 
-                // Apply 7 days rule
-                if (dateTimeFound >= dateTimeLost && dateTimeFound <= sevenDaysAfterLost && descriptionMatch) {
+                const timeDiff = Math.abs(dateTimeFound - dateTimeLost)
+                const diffInDays = timeDiff / (1000 * 60 * 60 * 24)
+
+                if (diffInDays <= 7 && descriptionMatch) {
                     console.log('Found matching document (category only):', doc.id, docData)
                     results.push({ id: doc.id, ...docData })
                 }
@@ -102,6 +117,7 @@ export async function findMatchingItems(formData) {
                 }
 
                 let descriptionMatch = true // Default to true if no description comparison is needed
+
                 if ((formData.category === 'others' || formData.category === 'Student Card') && docData.description) {
                     const lostDescriptionWords = formData.description?.toLowerCase().match(/\b\w+\b/g) || []
                     const foundDescriptionWords = docData.description?.toLowerCase().match(/\b\w+\b/g) || []
@@ -109,18 +125,19 @@ export async function findMatchingItems(formData) {
                     console.log('Lost description words:', lostDescriptionWords)
                     console.log('Found description words:', foundDescriptionWords)
 
-                    // Check if any lost description word is in the found description
-                    descriptionMatch = lostDescriptionWords.some((lostWord) => foundDescriptionWords.includes(lostWord))
+                    const lostSet = new Set(lostDescriptionWords)
+                    const foundSet = new Set(foundDescriptionWords)
+
+                    descriptionMatch = [...lostSet].some((word) => foundSet.has(word))
+
+                    console.log('Description match (using Set):', descriptionMatch)
                 }
 
-                // Apply 7 days rule
-                if (
-                    docData.colour === formData.color &&
-                    docData.claimed_status === 'Not Found Yet' &&
-                    dateTimeFound >= dateTimeLost && // Check if found date is after or equal to lost date
-                    dateTimeFound <= sevenDaysAfterLost && // Check if found date is within 7 days
-                    descriptionMatch // Check if description matches (only for 'others' category)
-                ) {
+                // Apply 7 days rule (regardless of which date is earlier)
+                const timeDiff = Math.abs(dateTimeFound - dateTimeLost)
+                const diffInDays = timeDiff / (1000 * 60 * 60 * 24)
+
+                if (docData.colour === formData.color && docData.claimed_status === 'Not Found Yet' && diffInDays <= 7 && descriptionMatch) {
                     console.log('Found matching document:', doc.id, docData)
                     results.push({ id: doc.id, ...docData })
                 }
