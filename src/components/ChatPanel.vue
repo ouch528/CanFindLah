@@ -51,27 +51,30 @@
             <div class="message-text">{{ message.text }}</div>
 
             <div v-if="message.attachmentType" class="attachment">
-              <template v-if="message.status === 'uploading'">
-                <div class="uploading-indicator">
-                  <svg class="spinner" viewBox="0 0 50 50">
-                    <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
-                  </svg>
-                  <span>Uploading...</span>
-                </div>
-              </template>
-              <template v-else-if="!message.attachmentUrl">
-                <div class="loading-placeholder">Loading attachment...</div>
-              </template>
-              <template v-else>
-                <img
-                  v-if="message.attachmentType.startsWith('image/')"
-                  :src="message.attachmentUrl"
-                  alt="Attached image"
-                />
-                <div v-else class="file-attachment">
-                  📎 <a :href="message.attachmentUrl" target="_blank">{{ message.attachmentName }}</a>
-                </div>
-              </template>
+              <div class="attachment-wrapper" style="position: relative;">
+                <!-- Spinner for uploading state -->
+                <template v-if="message.status === 'uploading'">
+                  <div class="uploading-indicator">
+                    <div class="loading-spinner"></div>
+                    <span>Uploading...</span>
+                  </div>
+                </template>
+                <!-- Placeholder for when attachment URL is not yet available -->
+                <template v-else-if="!message.attachmentUrl">
+                  <div class="loading-placeholder">Loading attachment...</div>
+                </template>
+                <!-- Display the attachment once uploaded -->
+                <template v-else>
+                  <img
+                    v-if="message.attachmentType.startsWith('image/')"
+                    :src="message.attachmentUrl"
+                    alt="Attached image"
+                  />
+                  <div v-else class="file-attachment">
+                    📎 <a :href="message.attachmentUrl" target="_blank">{{ message.attachmentName }}</a>
+                  </div>
+                </template>
+              </div>
             </div>
 
             <button
@@ -327,19 +330,42 @@ export default {
 
     const onItemNotMine = async () => {
       const confirmed = window.confirm(
-        'Undoing this match will delete the current conversation. This action is permanent and cannot be undone. Are you sure you want to proceed?'
+        'Undoing this match will delete the current conversation and recreate the found item. This action is permanent and cannot be undone. Are you sure you want to proceed?'
       );
       if (confirmed) {
         try {
-          await updateDoc(doc(db, 'conversations', props.conversationId), {
-            itemStatus: 'Not Found Yet'
-          });
+          // Step 1: Get the found item data
+          const foundItemRef = doc(db, 'Found Item', foundItemId.value);
+          const foundItemSnap = await getDoc(foundItemRef);
+          if (foundItemSnap.exists()) {
+            const foundItemData = foundItemSnap.data();
+
+            // Step 2: Delete the old found item
+            await deleteDoc(foundItemRef);
+
+            // Step 3: Create a new found item with claimed_status 'Not Found Yet'
+            const newFoundItemData = {
+              ...foundItemData,
+              claimed_status: 'Not Found Yet',
+            };
+            await addDoc(collection(db, 'Found Item'), newFoundItemData);
+          } else {
+            console.warn('Found item does not exist.');
+          }
+
+          // Step 4: Update the lost item's claimed_status
+          const lostItemRef = doc(db, 'Lost Item', lostItemId.value);
+          await updateDoc(lostItemRef, { claimed_status: 'Not Found Yet' });
+
+          // Step 5: Delete the conversation
           await deleteConversation();
+
+          // Step 6: Emit event and redirect
           emit('conversationDeleted', props.conversationId);
           router.push('/messages');
         } catch (error) {
           console.error('Error undoing match:', error);
-          alert('Failed to undo the match and delete the conversation. Please try again.');
+          alert('Failed to undo the match. Please try again.');
         }
       }
       dropdownOpen.value = false;
@@ -695,6 +721,7 @@ export default {
 .attachment img {
   max-width: 200px;
   border-radius: 8px;
+  display: block;
 }
 .file-attachment {
   font-size: 0.9em;
@@ -770,25 +797,44 @@ export default {
 .send-button:hover {
   color: #0077b3;
 }
+.attachment-wrapper {
+  position: relative;
+  display: inline-block;
+  min-height: 50px; /* Ensure there’s space for the spinner */
+  min-width: 100px;
+}
+
 .uploading-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  font-size: 0.9rem;
-  color: #666;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8); /* Slight overlay effect */
+  z-index: 1;
+  border-radius: 8px;
 }
-.spinner {
+
+.loading-spinner {
+  position: absolute;
+  top: 8px; /* Small padding from the top */
+  right: 8px; /* Small padding from the right */
+  width: 1.5rem; /* Smaller size: 24px */
+  height: 1.5rem;
+  border: 3px solid #f3f3f3; /* Adjusted border thickness for smaller size */
+  border-top: 3px solid #3498db; /* Blue color for the spinner */
+  border-radius: 50%;
   animation: spin 1s linear infinite;
-  width: 16px;
-  height: 16px;
-  margin-right: 8px;
+  z-index: 2; /* Ensure the spinner is on top */
 }
 @keyframes spin {
-  from {
+  0% {
     transform: rotate(0deg);
   }
-  to {
+  100% {
     transform: rotate(360deg);
   }
 }
