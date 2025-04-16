@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where } from 'firebase/firestore'
+import { collection, getDocs, query, where, addDoc, doc, getDoc , updateDoc} from 'firebase/firestore'
 import { app } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
 import 'primeicons/primeicons.css'
@@ -157,29 +157,29 @@ export async function findMatchingLostItems(formData) {
     console.log('Form Data:', formData) // Log formData to see if datetime is there
 
     try {
-        const dateTimeFoundString = formData.datetime // Use 'datetime' here
-        if (!dateTimeFoundString || typeof dateTimeFoundString !== 'string') {
+        const dateTimeLostString = formData.datetime // Use 'datetime' here
+        if (!dateTimeLostString || typeof dateTimeLostString !== 'string') {
             throw new Error("'datetime' is missing or not a valid string.")
         }
 
-        console.log('datetime:', dateTimeFoundString)
+        console.log('datetime:', dateTimeLostString)
 
-        const dateTimeFound = new Date(dateTimeFoundString)
+        const dateTimeLost = new Date(dateTimeLostString)
 
-        if (isNaN(dateTimeFound.getTime())) {
+        if (isNaN(dateTimeLost.getTime())) {
             throw new Error("'datetime' is not a valid date string.")
         }
 
-        console.log('Parsed datetime:', dateTimeFound)
+        console.log('Parsed datetime:', dateTimeLost)
 
-        const sevenDaysBeforeFound = new Date(dateTimeFound)
-        sevenDaysBeforeFound.setDate(dateTimeFound.getDate() - 7)
+        const sevenDaysAfterLost = new Date(dateTimeLost)
+        sevenDaysAfterLost.setDate(dateTimeLost.getDate() - 7)
 
-        const lostItemRef = collection(db, 'Lost Item')
+        const foundItemRef = collection(db, 'Lost Item')
 
         // First query: Match by category and colour
         const q = query(
-            lostItemRef,
+            foundItemRef,
             where('category', '==', formData.category), // Query by category only
             where('colour', '==', formData.color), // Query by colour too
         )
@@ -194,7 +194,7 @@ export async function findMatchingLostItems(formData) {
         if (querySnapshot.empty) {
             console.log('No items found matching category and colour. Trying category only...')
             // Perform the query for category only
-            const categoryQuery = query(lostItemRef, where('category', '==', formData.category))
+            const categoryQuery = query(foundItemRef, where('category', '==', formData.category))
 
             const categorySnapshot = await getDocs(categoryQuery)
 
@@ -209,28 +209,43 @@ export async function findMatchingLostItems(formData) {
                 const docData = doc.data()
 
                 // Handle description comparison
-                let descriptionMatch = true // Default to true if no description comparison is needed
-                if (formData.category === 'others' && docData.description) {
-                    const foundDescriptionWords = formData.description?.toLowerCase().match(/\b\w+\b/g) || []
-                    const lostDescriptionWords = docData.description?.toLowerCase().match(/\b\w+\b/g) || []
+                let descriptionMatch = true // Default to true if no description/brand comparison is needed
 
-                    console.log('Found description words:', foundDescriptionWords)
-                    console.log('Lost description words:', lostDescriptionWords)
+                const lostDescriptionWords = formData.description?.toLowerCase().match(/\b\w+\b/g) || []
+                const lostSet = new Set(lostDescriptionWords)
 
-                    // Check if any word in the found description exists in the lost description
-                    descriptionMatch = foundDescriptionWords.some((foundWord) => lostDescriptionWords.includes(foundWord))
+                const lostBrandWords = formData.brand?.toLowerCase().match(/\b\w+\b/g) || []
+                const lostBrandSet = new Set(lostBrandWords)
+
+                let descMatched = false
+                let brandMatched = false
+
+                if (docData.description) {
+                    const foundDescriptionWords = docData.description.toLowerCase().match(/\b\w+\b/g) || []
+                    const foundDescSet = new Set(foundDescriptionWords)
+                    descMatched = [...lostSet].some((word) => foundDescSet.has(word))
                 }
+
+                if (docData.brand) {
+                    const foundBrandWords = docData.brand.toLowerCase().match(/\b\w+\b/g) || []
+                    const foundBrandSet = new Set(foundBrandWords)
+                    brandMatched = [...lostBrandSet].some((word) => foundBrandSet.has(word))
+                }
+
+                descriptionMatch = descMatched || brandMatched
 
                 // Check if the date is within 7 days
-                let dateTimeLost = docData.date_time_lost
-                if (dateTimeLost && dateTimeLost.toDate) {
-                    dateTimeLost = dateTimeLost.toDate()
+                let dateTimeFound = docData.date_time_lost
+                if (dateTimeFound && dateTimeFound.toDate) {
+                    dateTimeFound = dateTimeFound.toDate()
                 } else {
-                    dateTimeLost = new Date(dateTimeLost)
+                    dateTimeFound = new Date(dateTimeFound)
                 }
 
-                // Apply 7 days rule
-                if (dateTimeLost < dateTimeFound && dateTimeLost > sevenDaysBeforeFound && descriptionMatch) {
+                const timeDiff = Math.abs(dateTimeFound - dateTimeLost)
+                const diffInDays = timeDiff / (1000 * 60 * 60 * 24)
+
+                if (diffInDays <= 7 && descriptionMatch) {
                     console.log('Found matching document (category only):', doc.id, docData)
                     results.push({ id: doc.id, ...docData })
                 }
@@ -240,45 +255,76 @@ export async function findMatchingLostItems(formData) {
             querySnapshot.forEach((doc) => {
                 const docData = doc.data()
 
-                let dateTimeLost = docData.date_time_lost
-                if (dateTimeLost && dateTimeLost.toDate) {
-                    dateTimeLost = dateTimeLost.toDate()
+                let dateTimeFound = docData.date_time_lost
+                if (dateTimeFound && dateTimeFound.toDate) {
+                    dateTimeFound = dateTimeFound.toDate()
                 } else {
-                    dateTimeLost = new Date(dateTimeLost)
+                    dateTimeFound = new Date(dateTimeFound)
                 }
 
                 let descriptionMatch = true // Default to true if no description comparison is needed
+
                 if ((formData.category === 'others' || formData.category === 'Student Card') && docData.description) {
-                    const foundDescriptionWords = formData.description?.toLowerCase().match(/\b\w+\b/g) || []
-                    const lostDescriptionWords = docData.description?.toLowerCase().match(/\b\w+\b/g) || []
+                    const lostDescriptionWords = formData.description?.toLowerCase().match(/\b\w+\b/g) || []
+                    const foundDescriptionWords = docData.description?.toLowerCase().match(/\b\w+\b/g) || []
 
-                    console.log('Found description words:', foundDescriptionWords)
                     console.log('Lost description words:', lostDescriptionWords)
+                    console.log('Found description words:', foundDescriptionWords)
 
-                    // Check if any found description word is in the lost description
-                    descriptionMatch = foundDescriptionWords.some((foundWord) => lostDescriptionWords.includes(foundWord))
+                    const lostSet = new Set(lostDescriptionWords)
+                    const foundSet = new Set(foundDescriptionWords)
+
+                    descriptionMatch = [...lostSet].some((word) => foundSet.has(word))
+
+                    console.log('Description match (using Set):', descriptionMatch)
                 }
 
-                // Apply 7 days rule
-                if (
-                    docData.colour === formData.color &&
-                    docData.claimed_status === 'Not Found Yet' &&
-                    dateTimeLost < dateTimeFound && // Check if lost date is after or equal to found date
-                    dateTimeLost > sevenDaysBeforeFound && // Check if lost date is within 7 days
-                    descriptionMatch // Check if description matches (only for 'others' category)
-                ) {
+                // Apply 7 days rule (regardless of which date is earlier)
+                const timeDiff = Math.abs(dateTimeFound - dateTimeLost)
+                const diffInDays = timeDiff / (1000 * 60 * 60 * 24)
+
+                if (docData.colour === formData.color && docData.claimed_status === 'Not Found Yet' && diffInDays <= 7 && descriptionMatch) {
                     console.log('Found matching document:', doc.id, docData)
                     results.push({ id: doc.id, ...docData })
                 }
             })
         }
 
-        console.log('Matching lost items:', results)
-        
+        console.log('Matching found items:', results)
         const arrayResult = results.map(item => item.lost_item_id)
+        for (let i = 0; i < arrayResult.length; i++) {
+            const lostItemRef = doc(db, 'Lost Item', arrayResult[i])
+            const lostItemSnap = await getDoc(lostItemRef)
+                if (lostItemSnap.exists()) {
+                    const lostItemData = lostItemSnap.data()
+                    const email = lostItemData.email
+                    sendEmail(email)
+                }
+            await updateDoc(lostItemRef, {
+                found_afterwards : true
+            })
+        }
+
         return arrayResult
+
     } catch (error) {
-        console.error('Error finding matching lost items:', error)
-        throw new Error('Unable to retrieve matching lost items. Please try again later.')
+        console.error('Error finding matching items:', error)
+        throw new Error('Unable to retrieve matching items. Please try again later.')
+    }
+}
+
+async function sendEmail(userEmail) {
+    try {
+        // Add a mail document to the "mail" collection so that your email service can process it
+        await addDoc(collection(db, 'mail'),{
+            to: userEmail,
+            message: {
+            subject: "Your lost item has been matched!",
+            html: "Congratulations, we have found you a match!",
+            },
+        });
+        console.log(`Email queued for user: ${userEmail}`);
+        } catch (error) {
+        console.error('Error queuing email:', error);
     }
 }

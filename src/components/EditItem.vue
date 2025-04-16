@@ -21,7 +21,7 @@
            
            
             <img v-if="imageUrl" :src="imageUrl" alt="Item Image" @error="handleImageError" id = "edit-image"/>
-            <img v-else :src ="failed_image"/>
+            <img v-else src="@/assets/NotFoundYet.png" />
             
             
             <!-- <p v-else>Loading image...</p> -->
@@ -188,15 +188,11 @@ export default {
                 const docSnap = await getDoc(itemRef)
 
                 if (docSnap.exists()) {
-                    const storageRef = ref(storage, 'still_finding_yet.jpg') // Replace with your image path
-                    const url = await getDownloadURL(storageRef)
                     this.item = docSnap.data() // Update item details
                     this.status = 'searcher'
-                    if (this.item.claimed_status == 'Not Found Yet') {
-                        this.imageUrl = url
-                    } else {
-                        this.imageUrl = this.item.photo
-                    }
+                    
+                    this.imageUrl = this.item.photo
+                    
                     console.log('Fetched Item Details:', this.item)
                 } else {
                     console.log('No item found for ID:', this.itemId)

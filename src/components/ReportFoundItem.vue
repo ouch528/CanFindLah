@@ -87,6 +87,7 @@ import { useUserStore } from '@/stores/user-store'
 import { storage, db } from '../firebase.js'
 import { findMatchingLostItems } from '@/components/matchingService.js'
 
+
 export default {
     data() {
         return {
@@ -173,20 +174,10 @@ export default {
                     await updateDoc(docRef, {
                         found_item_id: docRef.id // Update the `found_item_id` with the doc ID
                     });
+
                     console.log(itemArray)
-                    if (itemArray) {
-                        for (let i = 0; i < itemArray.length; i++) {
-                            if (itemArray[i] == "empty for now") {
-                                continue
-                            }
-                            const lostItemRef = doc(db, 'Lost Item', itemArray[i])
-                            await updateDoc(lostItemRef, {
-                                found_afterwards: true,
-                            })
-
-
-                        }
-                    }  
+                    console.log(docRef.id)
+                    
 
                     console.log('User ID:', userStore.userId)
                     const userRef = doc(db, 'History', userStore.userId)
@@ -253,8 +244,10 @@ export default {
             }
             this.imagePreview = null // Reset image preview after form submission
         },
+
     },
 }
+        
 </script>
 
 <style scoped>

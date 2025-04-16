@@ -12,7 +12,7 @@
                 <p><strong>Colour:</strong> {{ item.colour }}</p>
                 <p><strong>Brand:</strong> {{ item.brand }}</p>
                 <p><strong>Location:</strong> {{ item.location }}</p>
-                <p><strong>Date & Time Found:</strong> {{ item.date_time_found.replace('T', ' ') }}</p>
+                <p><strong>Date & Time Found:</strong> {{ item.date_time_found }}</p>
                 <p><strong>Description:</strong> {{ item.description }}</p>
 
                 <button class="claim-button" @click="verifyItem">This Item is Mine</button>
@@ -57,6 +57,8 @@ export default {
                 if (!foundItemDoc.exists()) {
                     throw new Error('Found item not found.')
                 }
+                const foundItemDetail = foundItemDoc.data()
+
 
                 // 2. Find the Lost Item document by its ID
                 const lostItemRef = doc(db, 'Lost Item', lostItemId)
@@ -67,7 +69,7 @@ export default {
 
                 // 3. Update both documents to set claimed_status to "Matched"
                 await updateDoc(foundItemRef, { claimed_status: 'Matched' })
-                await updateDoc(lostItemRef, { claimed_status: 'Matched' })
+                await updateDoc(lostItemRef, { claimed_status: 'Matched', photo: foundItemDetail.photo, found_afterwards : false })
 
                 // 4. Optionally show success message
                 alert(`You have claimed the item: ${this.item.name}`)

@@ -6,10 +6,10 @@
 
             <!-- Display the image or fallback image -->
             <img v-if="imageUrl" :src="imageUrl" alt="Item Image" id="item-image" @load="onImageLoad" @error="handleImageError" />
-            <img v-else src="@/assets/still_finding_yet.jpg" />
+            <img v-else src="@/assets/NotFoundYet.png" />
 
             
-                <div class="alert-icon" @click = "matchPage" v-if = "status == 'searcher' && item.found_afterwards == true">!</div>
+                <div class="alert-icon" @click = "matchPage" v-if = "status == 'searcher' && item.found_afterwards == true  && item.claimed_status == 'Not Found Yet'">!</div>
 
         </div>
         <h3>{{ item.name }}</h3>
@@ -147,11 +147,9 @@ export default {
                     const url = await getDownloadURL(storageRef)
                     this.status = 'searcher'
                     this.item_id = this.item.lost_item_id
-                    if (this.item.claimed_status == 'Not Found Yet') {
-                        this.imageUrl = url
-                    } else {
+                    
                         this.imageUrl = this.item.photo
-                    }
+                    
 
                     console.log('Fetched Item Details:', this.item)
                 } else {

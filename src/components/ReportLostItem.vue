@@ -66,7 +66,7 @@
 </template>
 
 <script>
-import { collection, addDoc, doc, setDoc, arrayUnion, getDoc } from 'firebase/firestore'
+import { collection, addDoc, doc, setDoc, arrayUnion, getDoc, updateDoc } from 'firebase/firestore'
 import { db } from '../firebase.js'
 import { useUserStore } from '@/stores/user-store'
 
@@ -107,11 +107,11 @@ export default {
                         email: userEmail,
                         reporter_id: userStore.userId,
                         already_similar_item: false,
-                        found_afterwards: false,
+                        found_afterwards: true,
                     })
 
                     await updateDoc(docRef, {
-                        lost_item_id: docRef.id // Update the `found_item_id` with the doc ID
+                        lost_item_id: docRef.id 
                     });
 
                     console.log('User ID:', userStore.userId)

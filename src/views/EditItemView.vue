@@ -26,7 +26,8 @@
 import { app, storage } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
 import { ref, getDownloadURL, getStorage, deleteObject } from 'firebase/storage'
-import { collection, getDoc, doc, deleteDoc, setDoc } from 'firebase/firestore'
+import { collection, getDoc, doc, deleteDoc, setDoc, updateDoc } from 'firebase/firestore'
+import { findMatchingLostItems } from '@/components/matchingService.js'
 import 'primeicons/primeicons.css'
 
 const db = getFirestore(app)
@@ -55,27 +56,43 @@ export default {
         handleEdit(updatedItem) {
             this.editedData = updatedItem
             this.edited_image = updatedItem.image_change_url
-            console.log(this.editedData)
             this.hasChanges = true
             
         },
 
         async uploadChanges() {
             if (confirm("Are you sure you want to edit this item?") == true) {
+
+                var form = {
+                        category: this.editedData.category,
+                        color: this.editedData.colour,
+                        brand: this.editedData.brand,
+                        location: this.editedData.location,
+                        description: this.editedData.description,
+                }
                 if (this.editedData && this.status_edit_item == 'searcher') {
                     try {
+                        form["datetime"] = this.editedData.date_time_lost,
                         console.log(this.lost_item_Id)
                         const docRef = doc(db, 'Lost Item', this.lost_item_Id)
+                        
                         await setDoc(docRef, this.editedData, { merge: true })
+                        
                         this.hasChanges = false
                         this.editedData = null
                         alert('Item edited successfully!')
-                        this.$router.push('/history')
+                        this.$router.push({
+                            name: 'matching',
+                            query: { lostItem: JSON.stringify(form), id: this.lost_item_Id },
+                        })
+
+                        // this.$router.push('/history')
                     } catch (error) {
                         console.error('Error uploading data:', error)
                     }
                 } else if (this.editedData && this.status_edit_item == 'founder') {
                     try {
+                        form["datetime"] = this.editedData.date_time_found,
                         console.log(this.found_item_Id_item_Id)
                         const docRef = doc(db, 'Found Item', this.found_item_Id)
                         if (this.edited_image) {
@@ -83,9 +100,14 @@ export default {
                         } else {
                             await setDoc(docRef, {...this.editedData}, { merge: true })
                         }
+                        const itemArray = await findMatchingLostItems(form)
+                        await updateDoc(docRef, {
+                            similar_item: itemArray // add value to array
+                        })
                         this.hasChanges = false
                         this.editedData = null 
                         alert('Item edited successfully!')
+
                         this.$router.push('/history')
                     } catch (error) {
                         console.error('Error uploading data:', error)
@@ -127,7 +149,9 @@ export default {
             console.log('hahah')
             this.hasChanges = false
             this.uploadingImage = false
-        }
+        },
+
+        
 
 
 

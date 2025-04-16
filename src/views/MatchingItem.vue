@@ -77,7 +77,7 @@ export default {
                 // Filter items with 'claimed_status' as "Not Found Yet"
                 this.matchingItems = matchingItems.filter((item) => item.claimed_status === 'Not Found Yet')
 
-                await updateDoc(lostItemDocRef, { found_afterwards: false })
+                // await updateDoc(lostItemDocRef, { found_afterwards: false })
                 if (this.matchingItems.length > 0) {
                     await updateDoc(lostItemDocRef, { already_similar_item: true })
                 } else {
