@@ -292,7 +292,11 @@ export async function findMatchingLostItems(formData) {
 
         console.log('Matching found items:', results)
         const arrayResult = results.map(item => item.lost_item_id)
+        console.log(arrayResult)
         for (let i = 0; i < arrayResult.length; i++) {
+            if (arrayResult[i] == "empty for now") {
+                continue
+            }
             const lostItemRef = doc(db, 'Lost Item', arrayResult[i])
             const lostItemSnap = await getDoc(lostItemRef)
                 if (lostItemSnap.exists()) {
@@ -300,6 +304,7 @@ export async function findMatchingLostItems(formData) {
                     const email = lostItemData.email
                     sendEmail(email)
                 }
+            console.log(arrayResult[i]) 
             await updateDoc(lostItemRef, {
                 found_afterwards : true
             })

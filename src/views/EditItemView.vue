@@ -101,6 +101,7 @@ export default {
                             await setDoc(docRef, {...this.editedData}, { merge: true })
                         }
                         const itemArray = await findMatchingLostItems(form)
+                        console.log('ahh', itemArray)
                         await updateDoc(docRef, {
                             similar_item: itemArray // add value to array
                         })
