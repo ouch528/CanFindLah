@@ -3,7 +3,7 @@
     <!-- Top bar showing the partner's name and optional subtitle -->
     <div class="chat-header">
       <h2>{{ partnerDisplayName }}</h2>
-      <span class="partner-subtitle">Chatting with {{ partnerDisplayName }}</span>
+      <span class="partner-subtitle">Chatting with <b>{{ partnerRole }} of {{ foundItemName }}</b></span>
       <div class="dropdown-container" ref="dropdownContainer">
         <div class="item-status">{{ itemStatus }}</div>
         <button class="dropdown-toggle" @click="toggleDropdown">
@@ -19,7 +19,7 @@
           </button>
 
           <button 
-            v-if="itemStatus !== 'Not Found Yet'" 
+            v-if="isFounder && itemStatus !== 'Not Found Yet'" 
             class="dropdown-item" 
             @click="onItemReturned"
           >
@@ -27,11 +27,11 @@
           </button>
 
           <button 
-            v-if="itemStatus !== 'Returned'" 
+            v-if="itemStatus === 'Matched'" 
             class="dropdown-item" 
             @click="onItemNotMine"
           >
-            {{ itemStatus === 'Matched' ? 'Undo Match' : 'Match' }}
+            Undo Match
           </button>
         </div>
       </div>
@@ -51,27 +51,30 @@
             <div class="message-text">{{ message.text }}</div>
 
             <div v-if="message.attachmentType" class="attachment">
-              <template v-if="message.status === 'uploading'">
-                <div class="uploading-indicator">
-                  <svg class="spinner" viewBox="0 0 50 50">
-                    <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
-                  </svg>
-                  <span>Uploading...</span>
-                </div>
-              </template>
-              <template v-else-if="!message.attachmentUrl">
-                <div class="loading-placeholder">Loading attachment...</div>
-              </template>
-              <template v-else>
-                <img
-                  v-if="message.attachmentType.startsWith('image/')"
-                  :src="message.attachmentUrl"
-                  alt="Attached image"
-                />
-                <div v-else class="file-attachment">
-                  📎 <a :href="message.attachmentUrl" target="_blank">{{ message.attachmentName }}</a>
-                </div>
-              </template>
+              <div class="attachment-wrapper" style="position: relative;">
+                <!-- Spinner for uploading state -->
+                <template v-if="message.status === 'uploading'">
+                  <div class="uploading-indicator">
+                    <div class="loading-spinner"></div>
+                    <span>Uploading...</span>
+                  </div>
+                </template>
+                <!-- Placeholder for when attachment URL is not yet available -->
+                <template v-else-if="!message.attachmentUrl">
+                  <div class="loading-placeholder">Loading attachment...</div>
+                </template>
+                <!-- Display the attachment once uploaded -->
+                <template v-else>
+                  <img
+                    v-if="message.attachmentType.startsWith('image/')"
+                    :src="message.attachmentUrl"
+                    alt="Attached image"
+                  />
+                  <div v-else class="file-attachment">
+                    📎 <a :href="message.attachmentUrl" target="_blank">{{ message.attachmentName }}</a>
+                  </div>
+                </template>
+              </div>
             </div>
 
             <button
@@ -138,7 +141,7 @@ import {
   deleteObject
 } from 'firebase/storage';
 import { db, storage } from '../firebase';
-import { useRouter } from 'vue-router'; // Assuming you're using vue-router
+import { useRouter } from 'vue-router';
 
 export default {
   name: 'ChatPanel',
@@ -147,8 +150,9 @@ export default {
     currentUserID: { type: String, required: true },
     partnerID: { type: String, required: true }
   },
-  setup(props) {
-    const router = useRouter(); // For navigation
+  emits: ['conversationDeleted'],
+  setup(props, { emit }) {
+    const router = useRouter();
     const partnerDisplayName = ref('');
     const messages = ref([]);
     const newMessage = ref('');
@@ -159,7 +163,13 @@ export default {
     const messageContainer = ref(null);
     const isSending = ref(false);
     const itemStatus = ref('Matched');
+    const isFounder = ref(false);
     const dropdownOpen = ref(false);
+    const lostItemId = ref('');
+    const foundItemId = ref('');
+    const partnerRole = ref('');
+    const foundItemName = ref('');
+    const notified = ref(false);
     let unsubscribeMessages = null;
     let unsubscribeConversation = null;
 
@@ -180,6 +190,7 @@ export default {
       fetchConversationData();
       loadMessages();
       fetchPartnerName();
+      fetchFoundItemName();
     });
 
     onBeforeUnmount(() => {
@@ -188,22 +199,82 @@ export default {
       if (unsubscribeConversation) unsubscribeConversation();
     });
 
-    // Fetch conversation data including itemStatus
     const fetchConversationData = () => {
       const conversationRef = doc(db, 'conversations', props.conversationId);
       unsubscribeConversation = onSnapshot(conversationRef, (docSnap) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           itemStatus.value = data.itemStatus || 'Matched';
+          isFounder.value = data.roles?.founder === props.currentUserID;
+          lostItemId.value = data.lostItemId || '';
+          foundItemId.value = data.foundItemId || '';
+          partnerRole.value = data.roles?.founder === props.partnerID ? 'Founder' : 'Searcher';
+          notified.value = data.Notified ?? false;
         } else {
           itemStatus.value = 'Matched';
+          isFounder.value = false;
+          lostItemId.value = '';
+          foundItemId.value = '';
+          partnerRole.value = '';
+          notified.value = false;
           console.warn(`Conversation with ID ${props.conversationId} does not exist.`);
+          emit('conversationDeleted', props.conversationId);
         }
       }, (error) => {
         console.error('Error fetching conversation:', error);
         itemStatus.value = 'Matched';
+        isFounder.value = false;
+        lostItemId.value = '';
+        foundItemId.value = '';
+        partnerRole.value = '';
+        notified.value = false;
       });
     };
+
+    const fetchFoundItemName = async () => {
+      try {
+        const conversationRef = doc(db, 'conversations', props.conversationId);
+        const conversationSnap = await getDoc(conversationRef);
+        if (conversationSnap.exists()) {
+          const foundItemId = conversationSnap.data().foundItemId;
+          if (foundItemId) {
+            const foundItemRef = doc(db, 'Found Item', foundItemId);
+            const foundItemSnap = await getDoc(foundItemRef);
+            if (foundItemSnap.exists()) {
+              foundItemName.value = foundItemSnap.data().name || 'Unknown Item';
+            } else {
+              foundItemName.value = 'Unknown Item';
+            }
+          } else {
+            foundItemName.value = 'Unknown Item';
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching Found Item name:', error);
+        foundItemName.value = 'Unknown Item';
+      }
+    };
+
+    watch(itemStatus, async (newStatus) => {
+      if (!lostItemId.value || !foundItemId.value) {
+        console.warn('lostItemId or foundItemId not found in conversation document.');
+        return;
+      }
+
+      try {
+        const lostItemRef = doc(db, 'Lost Item', lostItemId.value);
+        const foundItemRef = doc(db, 'Found Item', foundItemId.value);
+
+        await Promise.all([
+          updateDoc(lostItemRef, { claimed_status: newStatus }),
+          updateDoc(foundItemRef, { claimed_status: newStatus })
+        ]);
+        console.log(`Updated claimed_status to ${newStatus} for Lost Item ${lostItemId.value} and Found Item ${foundItemId.value}`);
+      } catch (error) {
+        console.error('Error updating claimed_status:', error);
+        alert('Failed to update item status in Lost Item and Found Item. Please try again.');
+      }
+    });
 
     const deleteConversation = async () => {
       try {
@@ -217,7 +288,7 @@ export default {
         await deleteDoc(doc(db, 'conversations', props.conversationId));
       } catch (error) {
         console.error('Error deleting conversation:', error);
-        throw error; // Rethrow to handle in caller
+        throw error;
       }
     };
 
@@ -228,7 +299,8 @@ export default {
       if (confirmed) {
         try {
           await deleteConversation();
-          router.push('/messages'); // Navigate to conversation list
+          emit('conversationDeleted', props.conversationId);
+          router.push('/messages');
         } catch (error) {
           alert('Failed to delete the conversation. Please try again.');
         }
@@ -237,18 +309,65 @@ export default {
     };
 
     const onItemReturned = async () => {
-      const newStatus = itemStatus.value === 'Matched' ? 'Returned' : 'Matched';
-      await updateDoc(doc(db, 'conversations', props.conversationId), {
-        itemStatus: newStatus
-      });
+      const isReturning = itemStatus.value === 'Matched';
+      const message = isReturning
+        ? 'Are you sure the item has been returned to its owner?'
+        : 'Are you sure you want to undo the item returned status?';
+      const confirmed = window.confirm(message);
+      if (confirmed) {
+        try {
+          const newStatus = isReturning ? 'Returned' : 'Matched';
+          await updateDoc(doc(db, 'conversations', props.conversationId), {
+            itemStatus: newStatus
+          });
+        } catch (error) {
+          console.error(`Error ${isReturning ? 'marking item as returned' : 'undoing item returned'}:`, error);
+          alert(`Failed to ${isReturning ? 'mark the item as returned' : 'undo the item returned status'}. Please try again.`);
+        }
+      }
       dropdownOpen.value = false;
     };
 
     const onItemNotMine = async () => {
-      const newStatus = itemStatus.value === 'Matched' ? 'Not Found Yet' : 'Matched';
-      await updateDoc(doc(db, 'conversations', props.conversationId), {
-        itemStatus: newStatus
-      });
+      const confirmed = window.confirm(
+        'Undoing this match will delete the current conversation and recreate the found item. This action is permanent and cannot be undone. Are you sure you want to proceed?'
+      );
+      if (confirmed) {
+        try {
+          // Step 1: Get the found item data
+          const foundItemRef = doc(db, 'Found Item', foundItemId.value);
+          const foundItemSnap = await getDoc(foundItemRef);
+          if (foundItemSnap.exists()) {
+            const foundItemData = foundItemSnap.data();
+
+            // Step 2: Delete the old found item
+            await deleteDoc(foundItemRef);
+
+            // Step 3: Create a new found item with claimed_status 'Not Found Yet'
+            const newFoundItemData = {
+              ...foundItemData,
+              claimed_status: 'Not Found Yet',
+            };
+            await addDoc(collection(db, 'Found Item'), newFoundItemData);
+          } else {
+            console.warn('Found item does not exist.');
+          }
+
+          // Step 4: Update the lost item's claimed_status
+          const lostItemRef = doc(db, 'Lost Item', lostItemId.value);
+          await updateDoc(lostItemRef, { claimed_status: 'Not Found Yet' });
+
+          // Step 5: Delete the conversation
+          await deleteConversation();
+
+          // Step 6: Emit event and redirect
+          emit('conversationDeleted', props.conversationId);
+          router.push('/messages');
+        } catch (error) {
+          console.error('Error undoing match:', error);
+          alert('Failed to undo the match. Please try again.');
+        }
+      }
       dropdownOpen.value = false;
     };
 
@@ -342,6 +461,7 @@ export default {
       messages.value = [];
       fetchConversationData();
       loadMessages();
+      fetchFoundItemName();
     });
 
     watch(messages, () => {
@@ -410,6 +530,7 @@ export default {
           const messageData = {
             text: newMessage.value.trim(),
             sender: props.currentUserID,
+            receiver: props.partnerID, // Add the receiver field
             timestamp: serverTimestamp(),
             readAt: null,
             attachmentUrl: '',
@@ -430,6 +551,7 @@ export default {
           await addDoc(collection(db, 'conversations', props.conversationId, 'messages'), {
             text: newMessage.value.trim(),
             sender: props.currentUserID,
+            receiver: props.partnerID, // Add the receiver field
             timestamp: serverTimestamp(),
             readAt: null
           });
@@ -481,13 +603,17 @@ export default {
       onItemNotMine,
       dropdownContainer,
       itemStatus,
+      isFounder,
+      partnerRole,
+      foundItemName,
+      notified
     };
   }
 };
 </script>
 
 <style scoped>
-/* Same as before, no changes needed */
+/* Styles remain unchanged */
 .chat-panel {
   display: flex;
   flex-direction: column;
@@ -595,6 +721,7 @@ export default {
 .attachment img {
   max-width: 200px;
   border-radius: 8px;
+  display: block;
 }
 .file-attachment {
   font-size: 0.9em;
@@ -670,25 +797,44 @@ export default {
 .send-button:hover {
   color: #0077b3;
 }
+.attachment-wrapper {
+  position: relative;
+  display: inline-block;
+  min-height: 50px; /* Ensure there’s space for the spinner */
+  min-width: 100px;
+}
+
 .uploading-indicator {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  font-size: 0.9rem;
-  color: #666;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.8); /* Slight overlay effect */
+  z-index: 1;
+  border-radius: 8px;
 }
-.spinner {
+
+.loading-spinner {
+  position: absolute;
+  top: 8px; /* Small padding from the top */
+  right: 8px; /* Small padding from the right */
+  width: 1.5rem; /* Smaller size: 24px */
+  height: 1.5rem;
+  border: 3px solid #f3f3f3; /* Adjusted border thickness for smaller size */
+  border-top: 3px solid #3498db; /* Blue color for the spinner */
+  border-radius: 50%;
   animation: spin 1s linear infinite;
-  width: 16px;
-  height: 16px;
-  margin-right: 8px;
+  z-index: 2; /* Ensure the spinner is on top */
 }
 @keyframes spin {
-  from {
+  0% {
     transform: rotate(0deg);
   }
-  to {
+  100% {
     transform: rotate(360deg);
   }
 }
@@ -773,46 +919,5 @@ export default {
   font-weight: bold;
   color: #333;
   vertical-align: middle;
-}
-.modal-backdrop {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.3);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 2000;
-}
-
-.modal {
-  background: white;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.modal-actions button {
-  background-color: #007BFF;
-  color: #fff;
-  font-size: 1rem;
-  padding: 0.6rem 1.2rem;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.modal-actions button:hover {
-  background-color: #0056b3;
 }
 </style>
