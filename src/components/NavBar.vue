@@ -71,6 +71,10 @@ ul li a {
     color: black;
 }
 
+ul li:hover {
+    transform: scale(1.1);
+}
+
 .active-link {
     color: #808080;
 }

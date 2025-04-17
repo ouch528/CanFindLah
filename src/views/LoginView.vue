@@ -92,7 +92,7 @@ export default {
                 const diff = (now - lastAttempt.toDate()) / 1000
 
                 // For users whose accounts have already been locked, prevent them from logging in
-                if (failCount >= 5 && diff < 600) {
+                if (failCount >= 5 && diff < 300) {
                     const remainingMinutes = Math.ceil((600 - diff) / 60)
 
                     this.errorMessage = `Account temporarily locked due to too many failed attempts. Please try again in ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}.`
