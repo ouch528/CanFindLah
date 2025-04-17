@@ -36,7 +36,7 @@
                 <i class="pi pi-pencil" id="pencil" @click="toggleMenu"></i>
 
                 <div v-if="showMenu" class="action-menu">
-                    <button @click="updateItem">Edit</button>
+                    <button @click="updateItem" v-if = "status == 'searcher'">Edit</button>
                     <button @click="deleteItem">Delete</button>
                 </div>
             </div>

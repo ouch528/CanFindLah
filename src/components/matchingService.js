@@ -2,6 +2,7 @@ import { collection, getDocs, query, where, addDoc, doc, getDoc , updateDoc} fro
 import { app } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
 import 'primeicons/primeicons.css'
+import { useUserStore } from '@/stores/user-store'
 
 // Get Firestore instance
 const db = getFirestore(app)
@@ -291,7 +292,11 @@ export async function findMatchingLostItems(formData) {
         }
 
         console.log('Matching found items:', results)
+        // const userStore = useUserStore()
+        // const user_id = userStore.userId
+        // const filter = results.filter(item => item.reporter_id != user_id);
         const arrayResult = results.map(item => item.lost_item_id)
+
         console.log(arrayResult)
         for (let i = 0; i < arrayResult.length; i++) {
             if (arrayResult[i] == "empty for now") {
@@ -302,7 +307,7 @@ export async function findMatchingLostItems(formData) {
                 if (lostItemSnap.exists()) {
                     const lostItemData = lostItemSnap.data()
                     const email = lostItemData.email
-                    sendEmail(email)
+                    sendEmail(email, lostItemData)
                 }
             console.log(arrayResult[i]) 
             await updateDoc(lostItemRef, {
@@ -318,14 +323,16 @@ export async function findMatchingLostItems(formData) {
     }
 }
 
-async function sendEmail(userEmail) {
+async function sendEmail(userEmail, data) {
     try {
         // Add a mail document to the "mail" collection so that your email service can process it
+        const emailDate = data.date_time_lost.replace('T', ' ')
+
         await addDoc(collection(db, 'mail'),{
             to: userEmail,
             message: {
             subject: "Your lost item has been matched!",
-            html: "Congratulations, we have found you a match!",
+            html: `Congratulations, we have found you a match for your lost item ${data.name} that lost in ${data.location} on ${emailDate}!`,
             },
         });
         console.log(`Email queued for user: ${userEmail}`);

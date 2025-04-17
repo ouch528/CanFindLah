@@ -132,7 +132,9 @@ import {
   updateDoc,
   getDoc,
   getDocs,
-  serverTimestamp
+  serverTimestamp,
+  deleteField,
+  arrayUnion
 } from 'firebase/firestore';
 import {
   ref as storageRef,
@@ -142,6 +144,7 @@ import {
 } from 'firebase/storage';
 import { db, storage } from '../firebase';
 import { useRouter } from 'vue-router';
+import { findMatchingLostItems } from '@/components/matchingService.js'
 
 export default {
   name: 'ChatPanel',
@@ -342,13 +345,32 @@ export default {
 
             // Step 2: Delete the old found item
             await deleteDoc(foundItemRef);
+            const form = {
+                        category: foundItemData.category,
+                        color: foundItemData.colour,
+                        brand: foundItemData.brand,
+                        location: foundItemData.location,
+                        datetime: foundItemData.date_time_found,
+                        description: foundItemData.description,
+                    }
+            const itemArray = await findMatchingLostItems(form)
 
             // Step 3: Create a new found item with claimed_status 'Not Found Yet'
             const newFoundItemData = {
               ...foundItemData,
               claimed_status: 'Not Found Yet',
+              similar_item: itemArray
+
             };
-            await addDoc(collection(db, 'Found Item'), newFoundItemData);
+            
+
+
+            const docRef = await addDoc(collection(db, 'Found Item'), newFoundItemData);
+            const userRef = doc(db, 'History', foundItemData.reporter_id)
+            await updateDoc(userRef, {
+                found_item_id_list: arrayUnion(docRef.id),
+            })
+
           } else {
             console.warn('Found item does not exist.');
           }
@@ -356,6 +378,10 @@ export default {
           // Step 4: Update the lost item's claimed_status
           const lostItemRef = doc(db, 'Lost Item', lostItemId.value);
           await updateDoc(lostItemRef, { claimed_status: 'Not Found Yet' });
+          await updateDoc(lostItemRef, {
+            photo: deleteField()
+          })
+
 
           // Step 5: Delete the conversation
           await deleteConversation();
