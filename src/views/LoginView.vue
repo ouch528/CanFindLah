@@ -14,11 +14,11 @@
 
                 <form @submit.prevent="loginUser">
                     <label for="email">NUS Email Address</label>
-                    <input type="email" v-model="email" required />
+                    <input id="email" type="email" v-model="email" required />
 
                     <label for="password">Password</label>
                     <div class="password-container">
-                        <input class="password-input" :type="showPassword ? 'text' : 'password'" v-model="password" required />
+                        <input id="password" :type="showPassword ? 'text' : 'password'" v-model="password" required />
                         <span class="toggle-icon" @click="togglePassword">
                             <i :class="showPassword ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
                         </span>
@@ -272,7 +272,7 @@ input {
     max-width: 100%;
 }
 
-.password-input {
+#password {
     all: unset;
     flex-grow: 1;
     color: black;

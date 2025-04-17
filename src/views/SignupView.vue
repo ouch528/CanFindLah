@@ -21,14 +21,14 @@
 
                 <form @submit.prevent="registerUser">
                     <label for="name">Username (used only for messaging)</label>
-                    <input type="text" v-model="name" required placeholder="Enter a display name or nickname" />
+                    <input id="name" type="text" v-model="name" required placeholder="Enter a display name or nickname" />
 
                     <label for="email">NUS Email Address</label>
-                    <input type="email" v-model="email" required placeholder="Enter your NUS email"/>
+                    <input id="email" type="email" v-model="email" required placeholder="Enter your NUS email"/>
 
                     <label for="password">Password</label>
                     <div class="password-container">
-                        <input class="password-input" :type="showPassword ? 'text' : 'password'" v-model="password" required placeholder="Enter your password"/>
+                        <input id="password" :type="showPassword ? 'text' : 'password'" v-model="password" required placeholder="Enter your password"/>
                         <span class="toggle-icon" @click="togglePassword">
                             <i :class="showPassword ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
                         </span>
@@ -36,7 +36,7 @@
 
                     <label for="cfmPassword">Confirm Password</label>
                     <div class="password-container">
-                        <input class="password-input" :type="showCfmPassword ? 'text' : 'password'" v-model="cfmPassword" required placeholder="Confirm your password"/>
+                        <input id="cfmPassword" :type="showCfmPassword ? 'text' : 'password'" v-model="cfmPassword" required placeholder="Confirm your password"/>
                         <span class="toggle-icon" @click="toggleCfmPassword">
                             <i :class="showCfmPassword ? 'pi pi-eye' : 'pi pi-eye-slash'"></i>
                         </span>
@@ -230,7 +230,8 @@ input {
     max-width: 100%;
 }
 
-.password-input {
+#password,
+#cfmPassword {
     all: unset;
     flex-grow: 1;
     color: black;
