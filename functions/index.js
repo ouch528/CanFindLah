@@ -1,8 +1,8 @@
-
 import admin from "firebase-admin";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { logger } from "firebase-functions";
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { onDocumentCreated } from "firebase-functions/v2/firestore";
 
 admin.initializeApp();
 
@@ -36,6 +36,7 @@ export const sendAlertEmail = onDocumentUpdated('Lost Item/{lost_item_id}', asyn
   }
 });
 
+
 export const notifyUnreadMessagesReminder = onSchedule(
   {
     schedule: "every 5 minutes",
@@ -45,7 +46,7 @@ export const notifyUnreadMessagesReminder = onSchedule(
     const db = admin.firestore();
     // For testing, we only require the message to be older than 1 minute
     // In production, you'd probably use 60 * 60 * 1000 for an hour
-    const thresholdMs = 60 * 60 * 1000;
+    const thresholdMs = 60 * 1000;
     const nowMillis = Date.now();
 
     try {
@@ -92,7 +93,7 @@ export const notifyUnreadMessagesReminder = onSchedule(
             hasOldUnread = true;
             oldestMessageTimeString = msgData.timestamp.toDate().toLocaleString('en-US', { timeZone: 'Asia/Singapore'});
             receiverId = msgData.receiver;
-            break; // we found at least one
+            break; 
           }
         }
 
@@ -120,8 +121,8 @@ export const notifyUnreadMessagesReminder = onSchedule(
             subject: "Reminder: You Have Unread Messages!",
             html: `
             
-              <p>You have an unread message from ${oldestMessageTimeString} in conversation ${convId}.</p>
-              <a href="http://localhost:5176/conversations/${convId}">
+              <p>You have an unread message from ${oldestMessageTimeString} in conversation.</p>
+              <a href="http://localhost:5176/messages?conversationId=${convId}">
                 ${convId}
               </a>.
               <p>Please log in to read it.</p>
@@ -141,6 +142,33 @@ export const notifyUnreadMessagesReminder = onSchedule(
     }
   }
 );
+
+export const resetNotifiedOnNewMessage = onDocumentCreated(
+  "conversations/{convId}/messages/{msgId}",
+  async (event) => {
+    // Each new message (always unread by default) should re-open reminders
+    const msgData = event.data.data();
+    // Only reset if the message truly is unread (readAt not set)
+    if (msgData.readAt != null) return;
+
+    // Parent conversation reference
+    const convRef = event.data.ref.parent.parent;
+    if (!convRef) {
+      logger.error("Can't locate parent conversation for new message");
+      return;
+    }
+
+    try {
+      await convRef.update({ Notified: false });
+      logger.info(`Reset Notified for conversation ${convRef.id}`);
+    } catch (err) {
+      logger.error("Error resetting Notified:", err);
+    }
+  }
+);
+
+
+
 
 // export const notifyUnreadMessagesReminder = onSchedule(
 //   {
