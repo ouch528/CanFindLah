@@ -146,6 +146,13 @@ export async function findMatchingItems(formData) {
         }
 
         console.log('Matching found items:', results)
+        // const userStore = useUserStore()
+        // const user_id = userStore.userId
+        // const filteredResults = results.filter(item => item.reporter_id != user_id);
+        // return filteredResults
+
+
+
 
         return results
     } catch (error) {
@@ -294,7 +301,9 @@ export async function findMatchingLostItems(formData) {
         console.log('Matching found items:', results)
         // const userStore = useUserStore()
         // const user_id = userStore.userId
-        // const filter = results.filter(item => item.reporter_id != user_id);
+        // const filtered = results.filter(item => item.reporter_id != user_id);
+        // const arrayResult = filtered.map(item => item.lost_item_id)
+
         const arrayResult = results.map(item => item.lost_item_id)
 
         console.log(arrayResult)
@@ -327,6 +336,8 @@ async function sendEmail(userEmail, data) {
     try {
         // Add a mail document to the "mail" collection so that your email service can process it
         const emailDate = data.date_time_lost.replace('T', ' ')
+        console.log("ahh")
+        console.log(data.lost_item_id)
 
         await addDoc(collection(db, 'mail'),{
             to: userEmail,
