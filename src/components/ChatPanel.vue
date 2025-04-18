@@ -643,7 +643,8 @@ export default {
 .chat-panel {
   display: flex;
   flex-direction: column;
-  height: 66vh;
+  max-height: 30rem;
+  min-height: 30rem;
   overflow: hidden;
 }
 
@@ -653,7 +654,7 @@ export default {
   border-bottom: none;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.5rem;
   font-family: "Inter";
   position: relative;
 }

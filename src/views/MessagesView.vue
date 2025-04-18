@@ -95,7 +95,7 @@ export default {
 <style scoped>
 /* Styles remain unchanged */
 .home-view {
-  height: 80vh;
+  height: 37.5rem;
   display: flex;
   flex-direction: column;
   /* background: linear-gradient(to bottom, white, #F1C39C); */
