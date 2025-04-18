@@ -13,8 +13,11 @@
         </div> -->
        
         <div id = "function-button">
+            <div id="backward" @click = "goBack" @disabled = "!uploadingImage">
+                <i class="pi pi-arrow-left" id="backward-icon"></i>
+            </div>
             <i class="pi pi-undo" id="undo" @click="refresh" title="Click this to revert all your changes"></i>
-            <img id="backward-img" src="@/assets/arrow_back.png" alt="Back to Home" @click = "goBack" @disabled = "!uploadingImage" />
+            <!-- <img id="backward-img" src="@/assets/arrow_back.png" alt="Back to Home" @click = "goBack" @disabled = "!uploadingImage" /> -->
         </div>
         <div class="image-container">
 
@@ -28,57 +31,60 @@
         </div>
 
         <!-- <p>{{ $route.params.edit_item.name }}</p> -->
-        <div class = "edit-item"> 
-            <h2 class = "item-name">{{ item.name }}</h2>
-            <p class = "word" style="font-size: 1.3rem;">Category</p><p class = "edit-box"><select id="item" v-model="item.category" @change = "markAsChanged">
-                        <option value="Student Card">Student Card</option>
-                        <option value="Bank Card">Bank Card</option>
-                        <option value="Waterbottle">Waterbottle</option>
-                        <option value="Electronics">Electronics</option>
-                        <option value="Stationary">Stationary</option>
-                        <option value="Toys">Toys</option>
-                        <option value="Clothing">Clothing</option>
-                        <option value="Others">Others</option>
-                    </select></p>
-            <p class = "word" style="font-size: 1.3rem;">Colour</p> <p class = "edit-box"><select v-model="item.colour" id="item" @change = "markAsChanged">
-                        <option value="Red">Red</option>
-                        <option value="Green">Green</option>
-                        <option value="Blue">Blue</option>
-                        <option value="Yellow">Yellow</option>
-                        <option value="Black">Black</option>
-                        <option value="White">White</option>
-                        <option value="Others">Others</option>
-                    </select></p>
-            <!-- <p v-if="item.colour == 'others' || others == true">
-            Enter Colour: <input type="text" v-model="item.colour" @input="markAsChanged" />
-            </p> -->
-                    
-            <!-- <p>Colour: <input type="text" id="item" v-model="item.colour" @input="markAsChanged" /></p> -->
-            <p class = "word" style="font-size: 1.3rem;">Brand</p> <p class = "edit-box"><input type="text" id="item" v-model="item.brand" @input="markAsChanged" /></p>
-            <p class = "word" style="font-size: 1.3rem;">Location</p> <p class = "edit-box"><input type="text" id="item" v-model="item.location" @input="markAsChanged" /></p>
-            <!-- <p>Date & Time: <input type="text" id="item" v-model="item.date_time_lost" @input="markAsChanged" /></p> -->
-            <p v-if = "status == 'founder'" class = "word" style="font-size: 1.3rem;">Date & Time</p><p class = "edit-box" v-if = "status == 'founder'"> <input type="datetime-local" id="item" v-model="item.date_time_found" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
-            <p v-if= "status == 'searcher'" class = "word" style="font-size: 1.3rem;">Date & Time</p><p class = "edit-box" v-if= "status == 'searcher'"><input type="datetime-local" id="item" v-model="item.date_time_lost" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
-            <p class = "word" style="font-size: 1.3rem;">Description</p><p class = "edit-box"><textarea type="text" id="des" v-model="item.description" @input="markAsChanged"></textarea></p>
-            <!-- <p>{{ itemId }}</p> -->
-            <br>
+         <div class="inputs">
+            <div class = "edit-item"> 
+                <h2 class = "item-name">{{ item.name }}</h2>
+                <!-- <p class = "word" style="font-size: 1.3rem;">Category</p><p class = "edit-box"><select id="item" v-model="item.category" @change = "markAsChanged">
+                            <option value="Student Card">Student Card</option>
+                            <option value="Bank Card">Bank Card</option>
+                            <option value="Waterbottle">Waterbottle</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Stationary">Stationary</option>
+                            <option value="Toys">Toys</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Others">Others</option>
+                        </select></p> -->
+                <p class = "word" style="font-size: 1.3rem;">Colour</p> <p class = "edit-box"><select v-model="item.colour" id="item" @change = "markAsChanged" :disabled="item.category == 'Student Card'">
+                            <option value="Red">Red</option>
+                            <option value="Green">Green</option>
+                            <option value="Blue">Blue</option>
+                            <option value="Yellow">Yellow</option>
+                            <option value="Black">Black</option>
+                            <option value="White">White</option>
+                            <option value="Others">Others</option>
+                        </select></p>
+                <!-- <p v-if="item.colour == 'others' || others == true">
+                Enter Colour: <input type="text" v-model="item.colour" @input="markAsChanged" />
+                </p> -->
+                        
+                <!-- <p>Colour: <input type="text" id="item" v-model="item.colour" @input="markAsChanged" /></p> -->
+                <p class = "word" style="font-size: 1.3rem;">Brand</p> <p class = "edit-box"><input type="text" id="item" v-model="item.brand" @input="markAsChanged" :disabled="item.category == 'Student Card'"/></p>
+                <p class = "word" style="font-size: 1.3rem;">Location</p> <p class = "edit-box"><input type="text" id="item" v-model="item.location" @input="markAsChanged" /></p>
+                <!-- <p>Date & Time: <input type="text" id="item" v-model="item.date_time_lost" @input="markAsChanged" /></p> -->
+                <p v-if = "status == 'founder'" class = "word" style="font-size: 1.3rem;">Date & Time</p><p class = "edit-box" v-if = "status == 'founder'"> <input type="datetime-local" id="item" v-model="item.date_time_found" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
+                <p v-if= "status == 'searcher'" class = "word" style="font-size: 1.3rem;">Date & Time</p><p class = "edit-box" v-if= "status == 'searcher'"><input type="datetime-local" id="item" v-model="item.date_time_lost" placeholder="Enter Date & Time Lost" @input="markAsChanged"/></p>
+                <p class = "word" style="font-size: 1.3rem;">Description</p><p class = "edit-box"><textarea type="text" id="des" v-model="item.description" @input="markAsChanged"></textarea></p>
+                <!-- <p>{{ itemId }}</p> -->
+                <br>
 
-            <div v-if="imagePreview" id = "image-preview-box">
-                    <button @click="removeImage" class="remove-image-btn">&#10006;</button>
-                    <img :src="imagePreview" alt="Uploaded Image" id="image-preview" />
-            </div>
-            <div id="upload-img" v-if = "status == 'founder'" style = "margin-left: 1.7rem;">
-                    <input type="file" @change="handleImageUpload" id="default-upload" accept="image/*"  style = "align-content: center;"/>
-                    <label for="default-upload">
-                        <img src="@/assets/upload.png" alt="Upload Icon" id="upload-icon" />
-                        <span id="instruction">{{ instruction }}</span>
-                    </label>
-                    <br /><br />
-                    <!-- <div v-if="imagePreview">
+                <div v-if="imagePreview" id = "image-preview-box">
+                        <button @click="removeImage" class="remove-image-btn">&#10006;</button>
                         <img :src="imagePreview" alt="Uploaded Image" id="image-preview" />
-                    </div> -->
+                </div>
+                <div id="upload-img" v-if = "status == 'founder'" style = "margin-left: 1.7rem;">
+                        <input type="file" @change="handleImageUpload" id="default-upload" accept="image/*"  style = "align-content: center;"/>
+                        <label for="default-upload">
+                            <img src="@/assets/upload.png" alt="Upload Icon" id="upload-icon" />
+                            <span id="instruction">{{ instruction }}</span>
+                        </label>
+                        <br /><br />
+                        <!-- <div v-if="imagePreview">
+                            <img :src="imagePreview" alt="Uploaded Image" id="image-preview" />
+                        </div> -->
+                </div>
             </div>
         </div>
+        
     </div>
 </template>
 
@@ -338,27 +344,31 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .edit-item-box {
     position: relative;
     background-color: white;
     /* right: 500px; */
     border: 0.07rem;
-    width: 25.5rem;
+    width: auto;
     margin: 0.44rem;
     background-color: #fff;
-    padding-right: 5rem;
-    padding-left: 5rem;
+    /* padding-right: 5rem;
+    padding-left: 5rem; */
     padding-bottom: 0.5rem;
     border: 0.07rem solid #ccc;
-    height: 42rem;
+    height: auto;
     padding-top: 1rem;
     /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
-    overflow-y: scroll
+}
+
+.inputs {
+    margin-left: 5rem;
+    margin-right: 5rem;
 }
 
 .edit-item select {
-    width: 22rem;  /* Set a fixed width */
+    width: 100%;  /* Set a fixed width */
     height: 1.57rem;  /* Set a fixed height */
     font-size: 1rem;  /* Ensure text size is the same */
     /* border: 1px solid #ccc;   */
@@ -374,7 +384,7 @@ export default {
 }
 
 .edit-item input {
-    width: 22rem;  /* Set a fixed width */
+    width: 100%;  /* Set a fixed width */
     height: 1.57rem;  /* Set a fixed height */
     font-size: 1rem;  /* Ensure text size is the same */
     /* border: 1px solid #ccc;   */
@@ -390,7 +400,7 @@ export default {
 }
 
 .edit-item textarea {
-    width: 22rem;  /* Set a fixed width */
+    width: 100%;  /* Set a fixed width */
     height: 10rem;  /* Set a fixed height */
     font-size: 1rem;  /* Ensure text size is the same */
     /* border: 1px solid #ccc;   */
@@ -418,8 +428,6 @@ export default {
 
 }
 
-
-
 #upload-img {
     width: 22rem;  /* Set a fixed width */
     height: 1.5625rem;  /* Set a fixed height */
@@ -437,14 +445,11 @@ export default {
     margin-left: 1rem;
 }
 
-.word{
-    margin-left: 2rem;
+.word {
     color: black;
     font-weight: bold;
     font-size:100px;
 }
-
-
 
 #des{
     height: 10rem;  
@@ -489,8 +494,6 @@ input[type='file'] {
     margin-bottom: 1rem;
 }
 
-
-
 .remove-image-btn {
     background: none;
     border: none;
@@ -507,18 +510,23 @@ input[type='file'] {
     text-align: center;
 }
 
-#backward-img {
-    width: 2.125rem;
+#backward {
     height: 2.125rem;
-    
-    position: absolute;
-    top: 0.625rem; /* Adjust the value to set how far from the top you want it */
-    left: 0.625rem; /* Adjust the value to set how far from the left you want it */
-    z-index: 1000; /* Ensure the arrow stays on top of other elements */
-
+    width: 2.125rem;
+    display: inline-block;
+    text-align: center;
+    margin-left: 1rem;
 }
 
-#backward-img:hover {
+#backward-icon {
+    width: 2.125rem;
+    height: 2.125rem;
+    color: black;
+    font-size: 1.5rem;
+    padding-top: 0.2rem;
+}
+
+#backward-icon:hover {
     transform: scale(1.1);   /* Slight zoom in */
     opacity: 0.8;            /* Slight transparency */
 }
@@ -530,16 +538,14 @@ input[type='file'] {
 #function-button {
   display: flex;
   justify-content: space-between;
-  align-items: center;  /* Vertically align the items */
-  padding: 10px;
+  align-items: center;
   width: 100%;
 }
 
 #function-button i {
     /* padding-top: 1rem; */
-    top: 1.2rem;
+    top: 1rem;
     right: 0.3rem;
-    margin-top: 0.5rem;
 }
 
 #function-button .backward-img {
@@ -548,19 +554,20 @@ input[type='file'] {
 }
 
 #undo {
-    position: absolute;
+    /* position: absolute;
     right: 0.7em;
-    transform: translateY(-50%);
+    transform: translateY(-50%); */
     border-radius: 50%;
     padding: 0.5rem;
     cursor: pointer;
-    transition: all 0.3s ease-in-out;
+    /* transition: all 0.3s ease-in-out; */
+    font-size: 1.5rem;
+    margin-right: 1rem;
 }
 
 #undo:hover {
-    background-color: #e0e0e0; /* Slightly darker on hover */
+    /* background-color: #e0e0e0;  */
+    transform: scale(1.1)
 }
-
-
 
 </style>
