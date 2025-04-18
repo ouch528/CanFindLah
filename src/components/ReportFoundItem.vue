@@ -60,7 +60,8 @@
                     <img :src="imagePreview" alt="Uploaded Image" id="image-preview" />
                 </div>
                 <div class="upload-container">
-                    <input type="file" @change="handleFileUpload" id="default-upload" accept="image/*" />
+                    <input type="file" @change="handleFileUpload" id="default-upload" accept=".png,.jpg,.jpeg" />
+
                     <label for="default-upload">
                         <i class="pi pi-upload" id="upload-icon"></i>
                         <span id="instruction">{{ instruction }}</span>
@@ -86,7 +87,6 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import { useUserStore } from '@/stores/user-store'
 import { storage, db } from '../firebase.js'
 import { findMatchingLostItems } from '@/components/matchingService.js'
-
 
 export default {
     data() {
@@ -153,7 +153,6 @@ export default {
                     }
                     const itemArray = await findMatchingLostItems(form)
 
-
                     const docRef = await addDoc(collection(db, 'Found Item'), {
                         category: this.formData.category,
                         colour: this.formData.color,
@@ -168,16 +167,15 @@ export default {
                         photo_directory: image_file_path,
                         email: userEmail,
                         reporter_id: userStore.userId,
-                        similar_item: itemArray
+                        similar_item: itemArray,
                     })
 
                     await updateDoc(docRef, {
-                        found_item_id: docRef.id // Update the `found_item_id` with the doc ID
-                    });
+                        found_item_id: docRef.id, // Update the `found_item_id` with the doc ID
+                    })
 
                     console.log(itemArray)
                     console.log(docRef.id)
-                    
 
                     console.log('User ID:', userStore.userId)
                     const userRef = doc(db, 'History', userStore.userId)
@@ -244,10 +242,8 @@ export default {
             }
             this.imagePreview = null // Reset image preview after form submission
         },
-
     },
 }
-        
 </script>
 
 <style scoped>
