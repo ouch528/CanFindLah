@@ -96,13 +96,13 @@
       </div>
     </div>
 
-    <div v-if="filePreview" class="file-preview">
+    <div v-if="filePreview || fileName" class="file-preview">
       <button class="close-btn" @click="clearFile">×</button>
-      <div v-if="isImageFile">
-        <img :src="filePreview" alt="Preview" />
+      <div v-if="isImageFile && filePreview" class="image-preview">
+        <img :src="filePreview" alt="File Preview" />
       </div>
-      <div v-else>
-        <span>File selected:</span> {{ fileName }}
+      <div v-else-if="fileName" class="non-image-preview">
+        <span>File selected: {{ fileName }}</span>
       </div>
     </div>
 
@@ -534,8 +534,8 @@ export default {
         
         // Check for HEIC format
         const fileType = selectedFile.type.toLowerCase();
-        const fileName = selectedFile.name.toLowerCase();
-        if (fileType.includes('heic') || fileName.endsWith('.heic')) {
+        const fileNameLower = selectedFile.name.toLowerCase();
+        if (fileType.includes('heic') || fileNameLower.endsWith('.heic')) {
           alert('HEIC file format is not supported. Please convert to JPEG or PNG before uploading.');
           clearFile();
           return;
@@ -544,7 +544,8 @@ export default {
         file.value = selectedFile;
         fileName.value = selectedFile.name;
         isImageFile.value = selectedFile.type.startsWith('image/');
-        filePreview.value = URL.createObjectURL(selectedFile);
+        filePreview.value = isImageFile.value ? URL.createObjectURL(selectedFile) : null; // Only set preview for images
+        console.log('File selected:', selectedFile.name, 'Type:', selectedFile.type, 'Preview:', filePreview.value); // Debug log
       }
     };
 
@@ -785,18 +786,29 @@ export default {
   display: flex;
   align-items: center;
   gap: 1rem;
+  width: 100%;
+  box-sizing: border-box;
 }
-.file-preview img {
+
+.image-preview img {
   max-width: 100px;
+  max-height: 100px;
+  object-fit: contain;
   border-radius: 4px;
 }
+
+.non-image-preview {
+  font-size: 0.9rem;
+  color: #333;
+}
+
 .close-btn {
   position: absolute;
   top: 5px;
   right: 10px;
   background: none;
   border: none;
-  font-size: 1.2em;
+  font-size: 1.2rem;
   cursor: pointer;
 }
 
