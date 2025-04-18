@@ -53,7 +53,7 @@
 
 <script>
 import { getFirestore } from 'firebase/firestore'
-import { collection, query, where, onSnapshot } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore'
 import { auth } from '../firebase.js'
 import { db } from '../firebase.js'
 
@@ -68,9 +68,11 @@ export default {
         }
     },
     mounted() {
+        // Get current user
         const user = auth.currentUser
         if (user) {
-            this.userName = user.displayName || user.email || 'there'
+            // Fetch name from users collection instead of auth
+            this.fetchUserName(user.uid)
         }
 
         const claimedQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', 'Returned'))
@@ -88,24 +90,54 @@ export default {
             this.yetToBeClaimed = snapshot.size
         })
 
-        // Use $nextTick to ensure DOM is updated and the ref is available
-        this.$nextTick(() => {
-            const fullText = `Welcome, ${this.userName}.`
-            let i = 0
-            const interval = setInterval(() => {
-                // Always check if the element exists before modifying it
-                if (this.$refs.welcomeText) {
-                    if (i < fullText.length) {
-                        this.$refs.welcomeText.textContent += fullText.charAt(i)
-                        i++
-                    } else {
-                        clearInterval(interval)
-                    }
-                }
-            }, 30)
-        })
+        // Moved the typing animation to method that's called after fetchUserName completes
     },
-    methods: {},
+    methods: {
+        async fetchUserName(userId) {
+            try {
+                const userDocRef = doc(db, 'users', userId)
+                const userDoc = await getDoc(userDocRef)
+                
+                if (userDoc.exists()) {
+                    // Use the name field from the users collection
+                    this.userName = userDoc.data().name || 'there'
+                } else {
+                    // Fallback if user document doesn't exist
+                    this.userName = 'there'
+                }
+                
+                // Start the typing animation after we have the user name
+                this.startWelcomeAnimation()
+            } catch (error) {
+                console.error("Error fetching user data:", error)
+                this.userName = 'there'
+                this.startWelcomeAnimation()
+            }
+        },
+        startWelcomeAnimation() {
+            this.$nextTick(() => {
+                const fullText = `Welcome, ${this.userName}.`
+                let i = 0
+                
+                // Clear any existing text first
+                if (this.$refs.welcomeText) {
+                    this.$refs.welcomeText.textContent = ''
+                }
+                
+                const interval = setInterval(() => {
+                    // Always check if the element exists before modifying it
+                    if (this.$refs.welcomeText) {
+                        if (i < fullText.length) {
+                            this.$refs.welcomeText.textContent += fullText.charAt(i)
+                            i++
+                        } else {
+                            clearInterval(interval)
+                        }
+                    }
+                }, 30)
+            })
+        }
+    },
 }
 </script>
 
