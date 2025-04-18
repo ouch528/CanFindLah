@@ -339,7 +339,7 @@ async function sendEmail(userEmail, data) {
             to: userEmail,
             message: {
                 subject: 'Your lost item has found a potential match!',
-                html: `Congratulations, we have found you a potential match for your lost item ${data.name} that was lost in ${data.location} on ${emailDate}!`,
+                html: `Congratulations, we have found you a potential match for your lost ${data.name} that was lost in ${data.location} on ${emailDate}!`,
             },
         })
         console.log(`Email queued for user: ${userEmail}`)
