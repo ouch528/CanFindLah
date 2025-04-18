@@ -128,6 +128,11 @@ export default {
 
         async saveFoundItem() {
             if (this.validateForm()) {
+                const confirmed = confirm('Are you sure all details are correct? Found Items cannot be edited afterwards.')
+                if (!confirmed) {
+                    return // Exit if user cancels
+                }
+
                 try {
                     this.uploading = true
                     let imageUrl = ''
