@@ -46,7 +46,7 @@ export const notifyUnreadMessagesReminder = onSchedule(
     const db = admin.firestore();
     // For testing, we only require the message to be older than 1 minute
     // In production, you'd probably use 60 * 60 * 1000 for an hour
-    const thresholdMs = 60 * 1000;
+    const thresholdMs = 60 * 60 * 1000;
     const nowMillis = Date.now();
 
     try {
@@ -122,7 +122,7 @@ export const notifyUnreadMessagesReminder = onSchedule(
             html: `
             
               <p>You have an unread message from ${oldestMessageTimeString} in conversation.</p>
-              <a href="http://localhost:5176/messages?conversationId=${convId}">
+              <a href="http://localhost:5173/messages?conversationId=${convId}">
                 ${convId}
               </a>.
               <p>Please log in to read it.</p>
