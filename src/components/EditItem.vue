@@ -350,7 +350,7 @@ export default {
     background-color: white;
     /* right: 500px; */
     border: 0.07rem;
-    width: auto;
+    width: 100%;
     margin: 0.44rem;
     background-color: #fff;
     /* padding-right: 5rem;
