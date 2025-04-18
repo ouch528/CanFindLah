@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, addDoc, doc, getDoc , updateDoc} from 'firebase/firestore'
+import { collection, getDocs, query, where, addDoc, doc, getDoc, updateDoc } from 'firebase/firestore'
 import { app } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
 import 'primeicons/primeicons.css'
@@ -151,9 +151,6 @@ export async function findMatchingItems(formData) {
         // const filteredResults = results.filter(item => item.reporter_id != user_id);
         // return filteredResults
 
-
-
-
         return results
     } catch (error) {
         console.error('Error finding matching items:', error)
@@ -304,28 +301,27 @@ export async function findMatchingLostItems(formData) {
         // const filtered = results.filter(item => item.reporter_id != user_id);
         // const arrayResult = filtered.map(item => item.lost_item_id)
 
-        const arrayResult = results.map(item => item.lost_item_id)
+        const arrayResult = results.map((item) => item.lost_item_id)
 
         console.log(arrayResult)
         for (let i = 0; i < arrayResult.length; i++) {
-            if (arrayResult[i] == "empty for now") {
+            if (arrayResult[i] == 'empty for now') {
                 continue
             }
             const lostItemRef = doc(db, 'Lost Item', arrayResult[i])
             const lostItemSnap = await getDoc(lostItemRef)
-                if (lostItemSnap.exists()) {
-                    const lostItemData = lostItemSnap.data()
-                    const email = lostItemData.email
-                    sendEmail(email, lostItemData)
-                }
-            console.log(arrayResult[i]) 
+            if (lostItemSnap.exists()) {
+                const lostItemData = lostItemSnap.data()
+                const email = lostItemData.email
+                sendEmail(email, lostItemData)
+            }
+            console.log(arrayResult[i])
             await updateDoc(lostItemRef, {
-                found_afterwards : true
+                found_afterwards: true,
             })
         }
 
         return arrayResult
-
     } catch (error) {
         console.error('Error finding matching items:', error)
         throw new Error('Unable to retrieve matching items. Please try again later.')
@@ -336,18 +332,18 @@ async function sendEmail(userEmail, data) {
     try {
         // Add a mail document to the "mail" collection so that your email service can process it
         const emailDate = data.date_time_lost.replace('T', ' ')
-        console.log("ahh")
+        console.log('ahh')
         console.log(data.lost_item_id)
 
-        await addDoc(collection(db, 'mail'),{
+        await addDoc(collection(db, 'mail'), {
             to: userEmail,
             message: {
-            subject: "Your lost item has been matched!",
-            html: `Congratulations, we have found you a potential match for your lost item ${data.name} that lost in ${data.location} on ${emailDate}!`,
+                subject: 'Your lost item has found a potential match!',
+                html: `Congratulations, we have found you a potential match for your lost item ${data.name} that was lost in ${data.location} on ${emailDate}!`,
             },
-        });
-        console.log(`Email queued for user: ${userEmail}`);
-        } catch (error) {
-        console.error('Error queuing email:', error);
+        })
+        console.log(`Email queued for user: ${userEmail}`)
+    } catch (error) {
+        console.error('Error queuing email:', error)
     }
 }
