@@ -134,7 +134,8 @@ import {
   getDocs,
   serverTimestamp,
   deleteField,
-  arrayUnion
+  arrayUnion,
+  arrayRemove
 } from 'firebase/firestore';
 import {
   ref as storageRef,
@@ -344,7 +345,12 @@ export default {
             const foundItemData = foundItemSnap.data();
 
             // Step 2: Delete the old found item
+            const userRef = doc(db, 'History', foundItemData.reporter_id)
+            await updateDoc(userRef, {
+              found_item_id_list: arrayRemove(foundItemId.value), // Remove the item ID from the array
+            })
             await deleteDoc(foundItemRef);
+            
             const form = {
                         category: foundItemData.category,
                         color: foundItemData.colour,
@@ -366,7 +372,7 @@ export default {
 
 
             const docRef = await addDoc(collection(db, 'Found Item'), newFoundItemData);
-            const userRef = doc(db, 'History', foundItemData.reporter_id)
+            
             await updateDoc(userRef, {
                 found_item_id_list: arrayUnion(docRef.id),
             })
