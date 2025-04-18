@@ -524,11 +524,23 @@ export default {
     const handleFileUpload = (e) => {
       if (e.target.files.length > 0) {
         const selectedFile = e.target.files[0];
+        
+        // Check file size
         if (selectedFile.size > 5242880) {
           alert('File must be less than 5MB');
           clearFile();
           return;
         }
+        
+        // Check for HEIC format
+        const fileType = selectedFile.type.toLowerCase();
+        const fileName = selectedFile.name.toLowerCase();
+        if (fileType.includes('heic') || fileName.endsWith('.heic')) {
+          alert('HEIC file format is not supported. Please convert to JPEG or PNG before uploading.');
+          clearFile();
+          return;
+        }
+        
         file.value = selectedFile;
         fileName.value = selectedFile.name;
         isImageFile.value = selectedFile.type.startsWith('image/');
@@ -649,8 +661,8 @@ export default {
 .chat-panel {
   display: flex;
   flex-direction: column;
-  max-height: 30rem;
-  min-height: 30rem;
+  max-height: 35rem;
+  min-height: 35rem;
   overflow: hidden;
 }
 

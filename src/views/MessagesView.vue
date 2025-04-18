@@ -95,7 +95,7 @@ export default {
 <style scoped>
 /* Styles remain unchanged */
 .home-view {
-  height: 37.5rem;
+  height: 44rem;
   display: flex;
   flex-direction: column;
   /* background: linear-gradient(to bottom, white, #F1C39C); */
@@ -114,13 +114,14 @@ h1 {
 .main-content {
   flex: 1;
   display: flex;
-  width: 90%;
+  width: 80%;
   max-width: 82rem;
   margin: 0 auto;
   background-color: #F2FAFF;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   overflow: hidden;
+  margin-bottom: 1rem;
 }
 .sidebar {
   width: 28rem;
