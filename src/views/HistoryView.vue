@@ -167,7 +167,8 @@ body {
     font-family: 'Inter';
     /* background-color: rgba(251, 240, 230, 1); */
     box-sizing: border-box;
-    margin-left: 15.5rem;
+    /* margin-left: 15.5rem; */
+    
     display: flex;
     flex-wrap: wrap;
 }
@@ -181,8 +182,8 @@ body {
 }
 
 #select-bar {
-    /* justify-content: center; */
-    margin-left: 7.5rem;
+    justify-content: center;
+    /* margin-left: 7.5rem; */
     display: flex;
     flex-wrap: wrap;
 }
