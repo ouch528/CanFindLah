@@ -8,11 +8,13 @@
             <img v-if="imageUrl" :src="imageUrl" alt="Item Image" id="item-image" @load="onImageLoad" @error="handleImageError" />
             <img v-else src="@/assets/NotFoundYet.png" />
 
-            <!-- Alert icon for items that have been found but not claimed -->
-            <div class="alert-icon" @click="matchPage" v-if="status == 'searcher' && item.found_afterwards == true && item.claimed_status == 'Not Found Yet'">!</div>
+            
+                <div class="alert-icon" @click = "matchPage" v-if = "status == 'searcher' && item.found_afterwards == true  && item.claimed_status == 'Not Found Yet'">!</div>
+
         </div>
         <h3>{{ item.name }}</h3>
-        <div id="scroll">
+        <div id = "scroll">
+            
             <p><strong>Category: </strong>{{ item.category }}</p>
             <p><strong>Colour: </strong>{{ item.colour }}</p>
             <p><strong>Brand: </strong>{{ item.brand }}</p>
@@ -20,8 +22,10 @@
             <p v-if="status == 'founder'"><strong>Date & Time: </strong>{{ item.date_time_found.replace('T', ' ') }}</p>
             <p v-if="status == 'searcher'"><strong>Date & Time: </strong>{{ item.date_time_lost.replace('T', ' ') }}</p>
             <p><strong>Description: </strong>{{ item.description }}</p>
+            
         </div>
         <br>
+        <!-- <p>{{ itemId }}</p> -->
         <div class="boxes">
             <div class="status" :class="{ 'not-found': item.claimed_status === 'Not Found Yet', matched: item.claimed_status === 'Matched', returned: item.claimed_status === 'Returned' }">
                 {{ item.claimed_status }}
@@ -32,7 +36,7 @@
                 <i class="pi pi-pencil" id="pencil" @click="toggleMenu"></i>
 
                 <div v-if="showMenu" class="action-menu">
-                    <button @click="updateItem" v-if="status == 'searcher'">Edit</button>
+                    <button @click="updateItem" v-if = "status == 'searcher'">Edit</button>
                     <button @click="deleteItem">Delete</button>
                 </div>
             </div>
@@ -50,124 +54,115 @@ import { useUserStore } from '@/stores/user-store'
 
 const db = getFirestore(app)
 
-/**
- * HistoryItem Component
- * 
- * This component displays an individual lost or found item in the user's history.
- * It provides functionality to view item details, update status, edit, and delete items.
- * 
- * Features:
- * - Display item details including image, category, color, location, and description
- * - Show item status (Not Found Yet, Matched, Returned)
- * - Allow editing of items for searchers
- * - Allow deletion of items with confirmation
- * - Notification indicator for matched items
- * - Navigate to matching page for lost items that have been found
- */
 export default {
     props: {
-        found_item_Id: String,  // ID of found item (if applicable)
-        lost_item_Id: String,   // ID of lost item (if applicable)
-        user_id: String,        // Current user ID
+        found_item_Id: String,
+        lost_item_Id: String,
+        user_id: String,
     },
 
     data() {
         return {
-            item: 1,             // Item details
-            status: '',          // 'founder' or 'searcher'
-            imageUrl: '',        // URL of item image
-            showMenu: false,     // Controls action menu visibility
-            item_id: '',         // Item ID based on status
-            failed_image: '',    // Fallback image URL
-            isLoading: true,     // Image loading state
+            item: 1,
+            status: '',
+            imageUrl: '',
+            showMenu: false,
+            item_id: '',
+            failed_image: '',
+            isLoading: true,
+
+            // lost_item: 1,// Will store item details, set as 1 if null will wrong idk why
         }
     },
 
     mounted() {
-        this.fetchImage() // Fetch fallback image on component mount
+        this.fetchImage()
     },
 
     async created() {
         await this.fetchItemDetails()
-        await this.fetchItemDetails_lost()
+        await this.fetchItemDetails_lost() // Fetch item details when component is created
+        // const storage = getStorage();
+        //             console.log(this.found_item_Id)
+
+        //             const docRef = doc(db, 'Found Item', "zY5xtPpDQFuEvQds4UVw")
+        //             const docSnap = await getDoc(docRef);
+        //             const data = docSnap.data()
+        //             const desertRef = ref(storage, "found_items/1743705909082");
+        //             console.log(desertRef)
+        //             deleteObject(desertRef).then(() => {
+        //             // File deleted successfully
+        //             }).catch((error) => {
+        //             console.log(error)
+        //             });
     },
 
     watch: {
-        found_item_Id: 'fetchItemDetails',     // Watch for changes to props
+        found_item_Id: 'fetchItemDetails', // Fetch new data when itemId changes
         lost_item_Id: 'fetchItemDetails_lost',
     },
 
     methods: {
-        /**
-         * Handle image load completion
-         */
         onImageLoad() {
             this.isLoading = false
         },
-
-        /**
-         * Handle image loading error
-         */
+        // Called if the image fails to load
         onImageError() {
             this.isLoading = false
         },
 
-        /**
-         * Fetch details for a found item from Firestore
-         */
         async fetchItemDetails() {
-            if (!this.found_item_Id) return
+            console.log('hmm')
+            if (!this.found_item_Id) return // Ensure itemId is valid
 
             try {
-                const itemRef = doc(db, 'Found Item', String(this.found_item_Id))
+                const itemRef = doc(db, 'Found Item', String(this.found_item_Id)) // Reference to Firestore document
                 const docSnap = await getDoc(itemRef)
 
                 if (docSnap.exists()) {
-                    this.item = docSnap.data()
+                    this.item = docSnap.data() // Update item details
                     this.status = 'founder'
                     this.item_id = this.item.found_item_id
+
                     this.imageUrl = this.item.photo
                     console.log('Fetched Item Details:', this.item)
                 } else {
-                    console.log('No item found for ID:', this.found_item_Id)
+                    console.log('No item found for ID:', this.itemId)
                 }
             } catch (error) {
                 console.error('Error fetching item details:', error)
             }
         },
 
-        /**
-         * Fetch details for a lost item from Firestore
-         */
         async fetchItemDetails_lost() {
-            if (!this.lost_item_Id) return
+            if (!this.lost_item_Id) return // Ensure itemId is valid
 
             try {
-                const itemRef = doc(db, 'Lost Item', String(this.lost_item_Id))
+                const itemRef = doc(db, 'Lost Item', String(this.lost_item_Id)) // Reference to Firestore document
                 const docSnap = await getDoc(itemRef)
 
                 if (docSnap.exists()) {
-                    this.item = docSnap.data()
-                    const storageRef = ref(storage, 'still_finding_yet.jpg')
+                    this.item = docSnap.data() // Update item details
+                    const storageRef = ref(storage, 'still_finding_yet.jpg') // Replace with your image path
                     const url = await getDownloadURL(storageRef)
                     this.status = 'searcher'
                     this.item_id = this.item.lost_item_id
-                    this.imageUrl = this.item.photo
+                    
+                        this.imageUrl = this.item.photo
+                    
+
                     console.log('Fetched Item Details:', this.item)
                 } else {
-                    console.log('No item found for ID:', this.lost_item_Id)
+                    console.log('No item found for ID:', this.itemId)
                 }
             } catch (error) {
                 console.error('Error fetching item details:', error)
             }
         },
 
-        /**
-         * Fetch the fallback image for when item images fail to load
-         */
         async fetchImage() {
             try {
-                const storageRef = ref(storage, 'image_not_found.jpg')
+                const storageRef = ref(storage, 'image_not_found.jpg') // Replace with your image path
                 const url = await getDownloadURL(storageRef)
                 this.failed_image = url
             } catch (error) {
@@ -175,11 +170,9 @@ export default {
             }
         },
 
-        /**
-         * Navigate to edit item page
-         * Prevents editing of matched or returned items
-         */
         updateItem() {
+            // Implement your update logic here
+
             this.showMenu = false // Close menu after action
 
             if (this.item.claimed_status == 'Returned') {
@@ -211,13 +204,9 @@ export default {
                     },
                 })
             }
+            console.log(this.found_item_Id)
         },
 
-        /**
-         * Delete an item with confirmation
-         * Prevents deletion of matched items
-         * Removes item from database and user's history
-         */
         async deleteItem() {
             if (this.item.claimed_status == 'Matched') {
                 alert('You cannot delete a Matched Item')
@@ -228,24 +217,24 @@ export default {
                     alert('Item Deleted')
                     const userStore = useUserStore()
                     const user_id = userStore.userId
-                    
                     if (this.status == 'searcher') {
-                        // Handle lost item deletion
+                        // console.log(this.item)
                         const docRef = doc(db, 'Lost Item', this.lost_item_Id)
                         const userRef = doc(db, 'History', user_id)
 
                         await updateDoc(userRef, {
-                            lost_item_id_list: arrayRemove(this.lost_item_Id),
+                            lost_item_id_list: arrayRemove(this.lost_item_Id), // Remove the item ID from the array
                         })
                         await deleteDoc(docRef)
                     } else {
-                        // Handle found item deletion (including image)
                         const storage = getStorage()
+                        console.log(this.found_item_Id)
+
                         const docRef = doc(db, 'Found Item', this.found_item_Id)
                         const docSnap = await getDoc(docRef)
                         const data = docSnap.data()
                         const desertRef = ref(storage, `${data.photo_directory}`)
-                        
+                        console.log(desertRef)
                         deleteObject(desertRef)
                             .then(() => {
                                 // File deleted successfully
@@ -253,11 +242,11 @@ export default {
                             .catch((error) => {
                                 console.log(error)
                             })
-                            
                         const userRef = doc(db, 'History', user_id)
                         await updateDoc(userRef, {
-                            found_item_id_list: arrayRemove(this.found_item_Id),
+                            found_item_id_list: arrayRemove(this.found_item_Id), // Remove the item ID from the array
                         })
+                        console.log('yes')
                         await deleteDoc(docRef)
                     }
                     this.$emit('item-deleted')
@@ -269,39 +258,69 @@ export default {
             this.showMenu = false // Close menu after action
         },
 
-        /**
-         * Toggle action menu visibility
-         */
         toggleMenu() {
             this.showMenu = !this.showMenu
         },
 
-        /**
-         * Handle image loading errors by displaying fallback image
-         */
         handleImageError(event) {
-            this.imageUrl = this.failed_image
+            this.imageUrl = this.failed_image // Fallback image
         },
 
-        /**
-         * Navigate to matching page with item details
-         * Used when alert icon is clicked
-         */
         matchPage() {
             const formDataCopy = {
-                category: this.item.category,
+                category:   this.item.category,
                 color: this.item.colour,
                 brand: this.item.brand,
                 location: this.item.location,
                 datetime: this.item.date_time_lost,
                 description: this.item.description,
-            }
+                }
+            console.log(this.item_id)
             this.$router.push({
                 name: 'matching',
                 query: { lostItem: JSON.stringify(formDataCopy), id: this.lost_item_Id },
             })
         }
     },
+
+    // methods : {
+    //     async fetchItemDetails() {
+    //         try {
+    //             const docRef = doc(db, 'LostItem', this.itemId);
+    //         }
+    //     }
+    // }
+
+    // display() {
+    //    // Create a reference to 'mountains.jpg'
+    //     const mountainsRef = ref(storage, 'mountains.jpg');
+
+    //     // Create a reference to 'images/mountains.jpg'
+    //     const mountainImagesRef = ref(storage, 'images/mountains.jpg');
+
+    //     // While the file names are the same, the references point to different files
+    //     mountainsRef.name === mountainImagesRef.name;           // true
+    //     mountainsRef.fullPath === mountainImagesRef.fullPath;   // false
+    // },
+
+    // uploadImage(){
+    //     let storageRef = firebaseApp.storage().ref("images/" + filename)
+
+    //     uploadTask.on("state_changed" , (snapshot) => {
+    //         console.log(snapshot);
+    //         percentVal = Math.floor((snapshot.bytesTransferred/snapshot.totalBytes) * 100);
+    //         console.log(percentVal);
+
+    //     }, (error) => {
+    //         console.log("Error is", error)
+    //     },  () => {
+    //         uploadTask.snapshot.ref.getDownloadURL().then((url) => {
+    //             console.log("URL" , url);
+
+    //         })
+    //     })
+
+    // }
 }
 </script>
 
@@ -309,11 +328,14 @@ export default {
 .history-item {
     position: relative;
     background-color: white;
+    /* right: 500px; */
     border: 0.0625rem;
+    /* max-width: 15.625rem; */
     margin: 0.44rem;
     background-color: #fff;
     padding: 1rem;
     border: 0.0625rem solid #ccc;
+    /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1); */
     border-radius: 0.5rem;
     flex-direction: column;
     height: 30.625rem;
@@ -322,10 +344,11 @@ export default {
 
 .you-are {
     display: inline;
-    padding: 0.5rem 0.5rem;
-    border-radius: 0.57rem;
+    padding: 0.5rem 0.5rem; /* Padding inside the boxes */
+    border-radius: 0.57rem; /* Rounded corners */
     color: white;
-    font-family: sans-serif;
+    /* Text color */
+    font-family: sans-serif; /* Example font */
     font-size: 1rem;
 }
 
@@ -337,25 +360,28 @@ h3 {
 
 p {
     font-family: Arial;
-    margin-top: 0.25rem;
+    margin-top: 0.25rem; /* Adjust the top margin */
     margin-bottom: 0.25rem;
     color: grey;
+    /* display: inline; */
     font-size: 1rem;
 }
 
 .boxes {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.625rem;
+    display: inline-flex; /* Arrange boxes horizontally */
+    align-items: center; /* Vertically align items */
+    gap: 0.625rem; /* Space between boxes */
     width: 19rem;
     margin-top: auto;
 }
 
 .status {
-    padding: 0.5rem 0.57rem;
-    border-radius: 0.57rem;
+    padding: 0.5rem 0.57rem; /* Padding inside the boxes */
+    border-radius: 0.57rem; /* Rounded corners */
     color: black;
-    font-family: sans-serif;
+    /* Text color */
+    font-family: sans-serif; /* Example font */
+    /* cursor: pointer; */
     transition: all 0.3s ease-in-out;
 }
 
@@ -364,7 +390,8 @@ p {
 }
 
 .searcher {
-    background-color: #ff8844;
+    background-color: #ff8844; /* Red background */
+    /* cursor: pointer; */
     transition: all 0.3s ease-in-out;
 }
 
@@ -373,7 +400,8 @@ p {
 }
 
 .founder {
-    background-color: #4a95df;
+    background-color: #4a95df; /* Blue background */
+    /* cursor: pointer; */
     transition: all 0.3s ease-in-out;
 }
 
@@ -394,12 +422,17 @@ p {
 }
 
 .image-container {
-    width: 100%;
-    margin-bottom: 0.63rem;
+    width: 100%; /* Image takes full width of the container */
+    margin-bottom: 0.63rem; /* Space between image and boxes */
     text-align: center;
 }
 
 .image-container img {
+    /* max-width: 100%;
+    height: auto;
+    object-fit: contain; */
+    /* width: 9.4rem;
+    height: 9.4rem; */
     min-height: 13rem;
     max-height: 13rem;
     width: 100%;
@@ -418,19 +451,19 @@ p {
 }
 
 #pencil:hover {
-    background-color: #e0e0e0;
+    background-color: #e0e0e0; /* Slightly darker on hover */
 }
 
 .action-menu {
     position: absolute;
-    top: 100%;
-    right: 0;
+    top: 100%; /* Position below the icon */
+    right: 0; /* Align to the right */
     background-color: white;
     border: 0.07rem solid #ccc;
     border-radius: 0.32rem;
     padding: 0.5rem;
     z-index: 10;
-    box-shadow: 0 0.13rem 0.32rem rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0.13rem 0.32rem rgba(0, 0, 0, 0.2); /* Add shadow for depth */
 }
 
 .action-menu button {
@@ -446,7 +479,21 @@ p {
 }
 
 .action-menu button:hover {
-    background-color: #e0e0e0;
+    background-color: #e0e0e0; /* Slightly darker on hover */
+}
+
+.similar {
+    text-align: center;
+}
+
+button.update {
+    border: none;
+}
+
+.row-wrap {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .alert-icon {
@@ -482,13 +529,13 @@ p {
     top: 25%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 3rem;
+    width: 3rem; /* Size of the spinner */
     height: 3rem;
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #3498db;
+    border: 4px solid #f3f3f3; /* Light grey border */
+    border-top: 4px solid #3498db; /* Blue color for the spinner */
     border-radius: 50%;
-    animation: spin 1s linear infinite;
-    z-index: 2;
+    animation: spin 1s linear infinite; /* Animation for spinning */
+    z-index: 2; /* Ensure the spinner is on top */
 }
 
 /* Keyframes for spinning animation */
@@ -502,7 +549,8 @@ p {
 }
 
 #scroll {
-    max-height: 10.625rem;
-    overflow-y: auto;
+   
+    max-height: 10.625rem; /* Set a fixed height for the scrollable content */
+    overflow-y: auto;  /* Enable vertical scrolling when content overflows */
 }
 </style>

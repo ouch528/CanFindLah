@@ -157,8 +157,6 @@ export default {
   emits: ['conversationDeleted'],
   setup(props, { emit }) {
     const router = useRouter();
-    
-    // State variables for chat interface and functionality
     const partnerDisplayName = ref('');
     const messages = ref([]);
     const newMessage = ref('');
@@ -179,28 +177,18 @@ export default {
     let unsubscribeMessages = null;
     let unsubscribeConversation = null;
 
-    /**
-     * Toggles the dropdown menu visibility
-     */
     const toggleDropdown = () => {
       dropdownOpen.value = !dropdownOpen.value;
     };
 
     const dropdownContainer = ref(null);
 
-    /**
-     * Event handler to close dropdown when clicking outside
-     * @param {Event} event - Click event
-     */
     const handleClickOutside = (event) => {
       if (dropdownOpen.value && dropdownContainer.value && !dropdownContainer.value.contains(event.target)) {
         dropdownOpen.value = false;
       }
     };
 
-    /**
-     * Lifecycle hook: Set up event listeners and initialize data when component mounts
-     */
     onMounted(() => {
       document.addEventListener('click', handleClickOutside);
       fetchConversationData();
@@ -209,19 +197,12 @@ export default {
       fetchFoundItemName();
     });
 
-    /**
-     * Lifecycle hook: Clean up event listeners and subscriptions when component unmounts
-     */
     onBeforeUnmount(() => {
       document.removeEventListener('click', handleClickOutside);
       if (unsubscribeMessages) unsubscribeMessages();
       if (unsubscribeConversation) unsubscribeConversation();
     });
 
-    /**
-     * Fetches conversation data from Firestore and sets up a real-time listener
-     * Includes item status, role information, and related item IDs
-     */
     const fetchConversationData = () => {
       const conversationRef = doc(db, 'conversations', props.conversationId);
       unsubscribeConversation = onSnapshot(conversationRef, (docSnap) => {
@@ -254,10 +235,6 @@ export default {
       });
     };
 
-    /**
-     * Fetches the name of the found item associated with this conversation
-     * Displays 'Unknown Item' if the item cannot be found
-     */
     const fetchFoundItemName = async () => {
       try {
         const conversationRef = doc(db, 'conversations', props.conversationId);
@@ -282,10 +259,6 @@ export default {
       }
     };
 
-    /**
-     * Watches for changes to item status and updates related documents accordingly
-     * Updates the claimed_status field in both Lost Item and Found Item documents
-     */
     watch(itemStatus, async (newStatus) => {
       if (!lostItemId.value || !foundItemId.value) {
         console.warn('lostItemId or foundItemId not found in conversation document.');
@@ -307,10 +280,6 @@ export default {
       }
     });
 
-    /**
-     * Deletes a conversation and all its associated messages
-     * Used when permanently removing a conversation from the system
-     */
     const deleteConversation = async () => {
       try {
         const messagesRef = collection(db, 'conversations', props.conversationId, 'messages');
@@ -327,10 +296,6 @@ export default {
       }
     };
 
-    /**
-     * Handler for the delete conversation action from the dropdown menu
-     * Confirms with user before permanently deleting the conversation
-     */
     const onDeleteConversation = async () => {
       const confirmed = window.confirm(
         'Are you sure you want to delete this conversation? This action is permanent and cannot be undone.'
@@ -347,10 +312,6 @@ export default {
       dropdownOpen.value = false;
     };
 
-    /**
-     * Handler for toggling item returned status
-     * Allows founder to mark item as returned or undo that action
-     */
     const onItemReturned = async () => {
       const isReturning = itemStatus.value === 'Matched';
       const message = isReturning
@@ -371,15 +332,6 @@ export default {
       dropdownOpen.value = false;
     };
 
-    /**
-     * Handler for undoing a match
-     * Complex workflow that:
-     * 1. Retrieves found item data
-     * 2. Deletes the original found item
-     * 3. Creates a new found item with 'Not Found Yet' status
-     * 4. Updates the lost item status
-     * 5. Deletes the conversation
-     */
     const onItemNotMine = async () => {
       const confirmed = window.confirm(
         'Undoing this match will delete the current conversation and recreate the found item. This action is permanent and cannot be undone. Are you sure you want to proceed?'
@@ -417,6 +369,8 @@ export default {
 
             };
             
+
+
             const docRef = await addDoc(collection(db, 'Found Item'), newFoundItemData);
             
             await updateDoc(userRef, {
@@ -434,6 +388,7 @@ export default {
             photo: deleteField()
           })
 
+
           // Step 5: Delete the conversation
           await deleteConversation();
 
@@ -448,21 +403,11 @@ export default {
       dropdownOpen.value = false;
     };
 
-    // Set to track message IDs that have already been marked as read
     const updatedMessageIds = new Set();
-    
-    // Watch for changes to partner ID and update display name
     watch(() => props.partnerID, () => {
       fetchPartnerName();
     });
 
-    /**
-     * Computed property that groups messages by date
-     * Creates a structured hierarchy for display in the UI:
-     * - Groups messages by date
-     * - Sorts messages within each date chronologically
-     * - Orders date groups chronologically
-     */
     const groupedMessages = computed(() => {
       if (!messages.value.length) return [];
       const dateMap = new Map();
@@ -496,11 +441,6 @@ export default {
       return result;
     });
 
-    /**
-     * Sets up a real-time listener for messages in the conversation
-     * Automatically marks incoming messages as read
-     * Scrolls to the bottom of the message container when new messages arrive
-     */
     const loadMessages = () => {
       if (unsubscribeMessages) unsubscribeMessages();
       const messagesRef = collection(db, 'conversations', props.conversationId, 'messages');
@@ -534,10 +474,6 @@ export default {
       });
     };
 
-    /**
-     * Fetches the display name of the chat partner
-     * Sets a fallback of 'Unknown User' if the user document doesn't exist
-     */
     const fetchPartnerName = async () => {
       try {
         const userDoc = await getDoc(doc(db, 'users', props.partnerID));
@@ -553,10 +489,6 @@ export default {
       }
     };
 
-    /**
-     * Watches for changes to the conversation ID and reloads data accordingly
-     * Resets message array and fetches new conversation and item data
-     */
     watch(() => props.conversationId, () => {
       messages.value = [];
       fetchConversationData();
@@ -564,10 +496,6 @@ export default {
       fetchFoundItemName();
     });
 
-    /**
-     * Scrolls to the bottom of the message container when messages change
-     * Uses smooth scrolling behavior for better UX
-     */
     watch(messages, () => {
       nextTick(() => {
         if (messageContainer.value) {
@@ -579,11 +507,6 @@ export default {
       });
     });
 
-    /**
-     * Prompts user to confirm message deletion and handles the delete process
-     * Deletes both the message document and any associated file attachment
-     * @param {Object} message - The message to be deleted
-     */
     const confirmDeleteMessage = async (message) => {
       const userConfirmed = window.confirm('Are you sure you want to delete this message?');
       if (!userConfirmed) return;
@@ -598,11 +521,6 @@ export default {
       }
     };
 
-    /**
-     * Handles file upload process for attaching files to messages
-     * Validates file size and type, creates preview for images
-     * @param {Event} e - The file input change event
-     */
     const handleFileUpload = (e) => {
       if (e.target.files.length > 0) {
         const selectedFile = e.target.files[0];
@@ -631,9 +549,6 @@ export default {
       }
     };
 
-    /**
-     * Clears the selected file and resets file-related state variables
-     */
     const clearFile = () => {
       file.value = null;
       filePreview.value = null;
@@ -643,11 +558,6 @@ export default {
       if (input) input.value = '';
     };
 
-    /**
-     * Handles the message sending process, including file uploads
-     * Creates message document with or without attachment
-     * Updates message status after file upload completes
-     */
     const sendMessage = async () => {
       if (isSending.value) return;
       if (newMessage.value.trim() === '' && !file.value) return;
@@ -699,12 +609,6 @@ export default {
       }
     };
 
-    /**
-     * Formats timestamp for display in the UI
-     * Shows time only for today's messages, date and time for older messages
-     * @param {Object|Date} timestamp - Firebase timestamp or JavaScript Date object
-     * @returns {String} Formatted timestamp string
-     */
     const formatTimestamp = (timestamp) => {
       if (!timestamp) return '';
       const dateObj = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
