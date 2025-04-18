@@ -33,12 +33,12 @@
         <div class="stats">
             <div id="claimed">
                 <h1>{{ claimed }}</h1>
-                <h3>Items Claimed</h3>
+                <h3>Items Returned</h3>
             </div>
 
             <div id="found">
                 <h1>{{ found }}</h1>
-                <h3>Items Found</h3>
+                <h3>Items Matched</h3>
             </div>
 
             <div id="yet">
@@ -47,12 +47,10 @@
             </div>
         </div>
     </div>
-    <br><br>
-    
+    <br /><br />
 </template>
 
 <script>
-import { getFirestore } from 'firebase/firestore'
 import { collection, query, where, onSnapshot, doc, getDoc } from 'firebase/firestore'
 import { auth } from '../firebase.js'
 import { db } from '../firebase.js'
@@ -80,7 +78,7 @@ export default {
             this.claimed = snapshot.size
         })
 
-        const foundQuery = query(collection(db, 'Lost Item'), where('claimed_status', '==', 'Returned'))
+        const foundQuery = query(collection(db, 'Found Item'), where('claimed_status', '==', 'Matched'))
         onSnapshot(foundQuery, (snapshot) => {
             this.found = snapshot.size
         })
@@ -97,7 +95,7 @@ export default {
             try {
                 const userDocRef = doc(db, 'users', userId)
                 const userDoc = await getDoc(userDocRef)
-                
+
                 if (userDoc.exists()) {
                     // Use the name field from the users collection
                     this.userName = userDoc.data().name || 'there'
@@ -105,11 +103,11 @@ export default {
                     // Fallback if user document doesn't exist
                     this.userName = 'there'
                 }
-                
+
                 // Start the typing animation after we have the user name
                 this.startWelcomeAnimation()
             } catch (error) {
-                console.error("Error fetching user data:", error)
+                console.error('Error fetching user data:', error)
                 this.userName = 'there'
                 this.startWelcomeAnimation()
             }
@@ -118,12 +116,12 @@ export default {
             this.$nextTick(() => {
                 const fullText = `Welcome, ${this.userName}.`
                 let i = 0
-                
+
                 // Clear any existing text first
                 if (this.$refs.welcomeText) {
                     this.$refs.welcomeText.textContent = ''
                 }
-                
+
                 const interval = setInterval(() => {
                     // Always check if the element exists before modifying it
                     if (this.$refs.welcomeText) {
@@ -136,7 +134,7 @@ export default {
                     }
                 }, 30)
             })
-        }
+        },
     },
 }
 </script>
