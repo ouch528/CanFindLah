@@ -146,12 +146,12 @@ export async function findMatchingItems(formData) {
         }
 
         console.log('Matching found items:', results)
-        // const userStore = useUserStore()
-        // const user_id = userStore.userId
-        // const filteredResults = results.filter(item => item.reporter_id != user_id);
-        // return filteredResults
+        const userStore = useUserStore()
+        const user_id = userStore.userId
+        const filteredResults = results.filter(item => item.reporter_id != user_id);
+        return filteredResults
 
-        return results
+        // return results
     } catch (error) {
         console.error('Error finding matching items:', error)
         throw new Error('Unable to retrieve matching items. Please try again later.')
@@ -296,12 +296,12 @@ export async function findMatchingLostItems(formData) {
         }
 
         console.log('Matching found items:', results)
-        // const userStore = useUserStore()
-        // const user_id = userStore.userId
-        // const filtered = results.filter(item => item.reporter_id != user_id);
-        // const arrayResult = filtered.map(item => item.lost_item_id)
+        const userStore = useUserStore()
+        const user_id = userStore.userId
+        const filtered = results.filter(item => item.reporter_id != user_id);
+        const arrayResult = filtered.map(item => item.lost_item_id)
 
-        const arrayResult = results.map((item) => item.lost_item_id)
+        // const arrayResult = results.map((item) => item.lost_item_id)
 
         console.log(arrayResult)
         for (let i = 0; i < arrayResult.length; i++) {
