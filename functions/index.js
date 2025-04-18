@@ -6,35 +6,35 @@ import { onDocumentCreated } from "firebase-functions/v2/firestore";
 
 admin.initializeApp();
 
-export const sendAlertEmail = onDocumentUpdated('Lost Item/{lost_item_id}', async (event) => {
-  // Get the before and after snapshots of the document
-  const beforeData = event.data.before.data();
-  const afterData = event.data.after.data();
+// export const sendAlertEmail = onDocumentUpdated('Lost Item/{lost_item_id}', async (event) => {
+//   // Get the before and after snapshots of the document
+//   const beforeData = event.data.before.data();
+//   const afterData = event.data.after.data();
 
-  // Check if claimed_status changed from "Not Found Yet" to "Matched"
-  if (beforeData.claimed_status === 'Not Found Yet' && afterData.claimed_status === 'Matched') {
-    // Use the userEmail field directly from the Lost Item document
-    const userEmail = afterData.email;
-    if (!userEmail) {
-      console.log('No userEmail found in Lost Item document.');
-      return;
-    }
+//   // Check if claimed_status changed from "Not Found Yet" to "Matched"
+//   if (beforeData.claimed_status === 'Not Found Yet' && afterData.claimed_status === 'Matched') {
+//     // Use the userEmail field directly from the Lost Item document
+//     const userEmail = afterData.email;
+//     if (!userEmail) {
+//       console.log('No userEmail found in Lost Item document.');
+//       return;
+//     }
 
-    try {
-      // Add a mail document to the "mail" collection so that your email service can process it
-      await admin.firestore().collection('mail').add({
-        to: userEmail,
-        message: {
-          subject: "Your lost item has been matched!",
-          html: "Congratulations, we have found you a match!",
-        },
-      });
-      console.log(`Email queued for user: ${userEmail}`);
-    } catch (error) {
-      console.error('Error queuing email:', error);
-    }
-  }
-});
+//     try {
+//       // Add a mail document to the "mail" collection so that your email service can process it
+//       await admin.firestore().collection('mail').add({
+//         to: userEmail,
+//         message: {
+//           subject: "Your lost item has been matched!",
+//           html: "Congratulations, we have found you a match!",
+//         },
+//       });
+//       console.log(`Email queued for user: ${userEmail}`);
+//     } catch (error) {
+//       console.error('Error queuing email:', error);
+//     }
+//   }
+// });
 
 
 export const notifyUnreadMessagesReminder = onSchedule(
