@@ -1,11 +1,3 @@
-<script setup>
-import { RouterLink, RouterView, useRoute } from 'vue-router'
-import { computed } from 'vue'
-import NavBar from './components/NavBar.vue'
-
-const route = useRoute()
-const isAuthPage = computed(() => route.path === '/login' || route.path === '/signup')
-</script>
 <!-- 
 <template>
     <NavBar v-if="!isAuthPage" />
@@ -26,21 +18,41 @@ const isAuthPage = computed(() => route.path === '/login' || route.path === '/si
 </template>
 
 <script>
+import NavBar from './components/NavBar.vue'
 import { signOut } from 'firebase/auth'
 import { auth } from './firebase'
 
 export default {
+    components: {
+        NavBar
+    },
     data() {
         return {
             inactivityTimer: null,
             timeOutDuration: 15 * 60 * 1000 // 15 minutes
         }
     },
+    computed: {
+        isAuthPage() {
+            return this.$route.path === '/login' || this.$route.path === '/signup'
+        }
+    },
     mounted() {
-        this.startInactivityTracking()
+        if (!this.isAuthPage) {
+            this.startInactivityTracking()
+        }
     },
     beforeUnmount() {
         this.stopInactivityTracking()
+    },
+    watch: {
+        '$route.path'(newPath) {
+            if (newPath === '/login' || newPath === '/signup') {
+                this.stopInactivityTracking()
+            } else {
+                this.startInactivityTracking()
+            }
+        }
     },
     methods: {
         startInactivityTracking() {

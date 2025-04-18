@@ -4,8 +4,8 @@
             <h2 id="header">Report Lost Item</h2>
 
             <div class="formli">
-                <RouterLink to="/">
-                    <img id="backward_img" src="@/assets/arrow_back.png" alt="Back to Home" />
+                <RouterLink to="/" id="backward">
+                    <i class="pi pi-arrow-left" id="backward_icon"></i>
                 </RouterLink>
                 <br />
 
@@ -55,7 +55,6 @@
 
                 <label for="desc">Description </label> <br />
                 <textarea name="desc" v-model="formData.description" rows="5" cols="20" :placeholder="formData.category === 'Student Card' ? 'Enter name and student number on the card ' : 'Enter Description'"></textarea>
-                <br /><br />
 
                 <div class="save">
                     <button id="savebutton" type="button" @click="saveLostItem()">Submit</button>
@@ -182,6 +181,14 @@ export default {
 </script>
 
 <style scoped>
+* {
+    font-family: 'Inter';
+}
+
+.container {
+    margin-bottom: 2rem;
+}
+
 #header {
     font-size: 3rem;
     color: #684545;
@@ -198,9 +205,9 @@ form {
     text-align: left;
     border-radius: 1rem;
     background-color: #fffdfb;
-    font-family: Arial;
     width: 36.375rem;
-    height: 42rem;
+    height: auto;
+    padding-bottom: 1rem;
 }
 
 .formli label {
@@ -231,7 +238,6 @@ form {
     height: 6.0625rem;
     min-width: 24.8125rem;
     max-width: 24.8125rem;
-    font-family: Arial;
     padding-left: 0.75rem;
     resize: none;
     font-size: 0.875rem;
@@ -241,7 +247,6 @@ select,
 input {
     color: #888;
     font-size: 0.875rem;
-    font-family: Arial;
     text-align: left;
     padding-left: 0.75rem;
 }
@@ -249,7 +254,6 @@ input {
 textarea::placeholder {
     color: #888;
     font-size: 0.875rem;
-    font-family: Arial;
     text-align: left;
 }
 
@@ -269,20 +273,30 @@ textarea::placeholder {
     border: none;
     font-size: 1rem;
     cursor: pointer;
+    margin: 0.5rem 0;
 }
 
 #savebutton:hover {
     transform: scale(1.1); /* Slight zoom in */
 }
 
-#backward_img {
-    width: 2.125rem;
+#backward {
     height: 2.125rem;
+    width: 2.125rem;
+    display: inline-block;
     margin-left: 1rem;
     margin-top: 1rem;
+    text-align: center;
 }
 
-#backward-img:hover {
+#backward_icon {
+    width: 2.125rem;
+    height: 2.125rem;
+    color: black;
+    font-size: 1.5rem;
+}
+
+#backward_icon:hover {
     transform: scale(1.1); /* Slight zoom in */
     opacity: 0.8; /* Slight transparency */
 }

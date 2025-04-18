@@ -4,8 +4,8 @@
             <h2 id="header">Report Found Item</h2>
 
             <div class="formli">
-                <RouterLink to="/">
-                    <img id="backward_img" src="@/assets/arrow_back.png" alt="Back to Home" />
+                <RouterLink to="/" id="backward">
+                    <i class="pi pi-arrow-left" id="backward-icon"></i>
                 </RouterLink>
                 <br />
 
@@ -62,7 +62,7 @@
                 <div class="upload-container">
                     <input type="file" @change="handleFileUpload" id="default-upload" accept="image/*" />
                     <label for="default-upload">
-                        <img src="@/assets/upload.png" alt="Upload Icon" id="upload-icon" />
+                        <i class="pi pi-upload" id="upload-icon"></i>
                         <span id="instruction">{{ instruction }}</span>
                     </label>
                     <br /><br />
@@ -251,6 +251,14 @@ export default {
 </script>
 
 <style scoped>
+* {
+    font-family: 'Inter';
+}
+
+.container {
+    margin-bottom: 2rem;
+}
+
 .remove-image-btn {
     background: none;
     border: none;
@@ -289,11 +297,12 @@ form {
     text-align: left;
     border-radius: 1rem;
     background-color: #fffdfb;
-    font-family: Arial;
     width: 36.375rem;
     /* height: 45.5625rem; */
-    height: 42rem;
-    overflow: scroll;
+    /* height: 42rem; */
+    height: auto;
+    padding-bottom: 1rem;
+    /* overflow: scroll; */
 }
 
 .formli label {
@@ -324,7 +333,6 @@ form {
     height: 6.0625rem;
     min-width: 24.8125rem;
     max-width: 24.8125rem;
-    font-family: Arial;
     font-size: 0.875rem;
     padding-left: 0.75rem;
     resize: none;
@@ -334,7 +342,6 @@ select,
 input {
     color: #888;
     font-size: 0.875rem;
-    font-family: Arial;
     text-align: left;
     padding-left: 0.75rem;
 }
@@ -342,7 +349,6 @@ input {
 textarea::placeholder {
     color: #888;
     font-size: 0.875rem;
-    font-family: Arial;
     text-align: left;
 }
 
@@ -360,20 +366,13 @@ textarea::placeholder {
     color: black;
     font-weight: 600;
     border: none;
-    margin-bottom: 1rem;
+    margin: 0.5rem 0;
     font-size: 1rem;
     cursor: pointer;
 }
 
 #savebutton:hover {
     transform: scale(1.1); /* Slight zoom in */
-}
-
-#backward_img {
-    width: 2.125rem;
-    height: 2.125rem;
-    margin-left: 1rem;
-    margin-top: 1rem;
 }
 
 .upload-container {
@@ -403,15 +402,32 @@ textarea::placeholder {
     height: 1rem;
     margin-left: 0.5rem;
     margin-right: 0.5rem;
+    font-size: 1rem;
 }
 
 #instruction {
     color: #888;
     font-size: 0.875rem;
-    font-weight: 200;
+    padding-left: 0;
 }
 
-#backward_img:hover {
+#backward {
+    height: 2.125rem;
+    width: 2.125rem;
+    display: inline-block;
+    margin-left: 1rem;
+    margin-top: 1rem;
+    text-align: center;
+}
+
+#backward-icon {
+    width: 2.125rem;
+    height: 2.125rem;
+    color: black;
+    font-size: 1.5rem;
+}
+
+#backward-icon:hover {
     transform: scale(1.1); /* Slight zoom in */
     opacity: 0.8; /* Slight transparency */
 }
