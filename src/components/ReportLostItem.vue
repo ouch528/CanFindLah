@@ -5,9 +5,10 @@
   
         <div class="form-content">
           <!-- Back button navigation -->
-          <RouterLink to="/" id="backward" aria-label="Go back to home page">
-            <i class="pi pi-arrow-left" id="backward-icon"></i>
-          </RouterLink>
+            <div class = "back-link">
+                <i class="pi pi-arrow-left" id="backward-icon" @click = goBack></i>
+            </div>
+
           <br />
   
           <!-- Category selection -->
@@ -280,7 +281,7 @@
             this.$router.push({
             name: 'matching',
             query: { lostItem: lostItemRef.id,
-                    id: docRef.id 
+                    id: docRef.id,
                     
             }
             });
@@ -310,7 +311,13 @@
           datetime: '',
           description: '',
         };
-      }
+      },
+
+      goBack() {
+        this.$router.push('/');
+    }
+
+
     }
   };
   </script>
@@ -424,6 +431,8 @@
     margin-bottom: 1rem;
     text-align: center;
   }
+
+
   
   #backward-icon {
     width: 2.125rem;
@@ -444,4 +453,27 @@
     background-color: rgba(251, 240, 230, 0.5);
     cursor: not-available;
   }
+
+  .back-link {
+  height: 2.125rem;
+  width: 2.125rem;
+  display: inline-block;
+  margin-left: 1rem;
+  margin-top: 1rem;
+  text-align: center;
+  
+}
+
+.back-link i {
+  width: 2.125rem;
+  height: 2.125rem;
+  color: black;
+  font-size: 1.5rem;
+}
+
+.back-link i:hover {
+  transform: scale(1.1);
+  opacity: 0.8;
+  cursor: pointer;
+}
   </style>

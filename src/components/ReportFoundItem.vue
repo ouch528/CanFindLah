@@ -5,9 +5,11 @@
 
       <div class="form-content">
         <!-- Navigation link back to home -->
-        <RouterLink to="/" class="back-link">
-          <i class="pi pi-arrow-left" aria-label="Go back"></i>
-        </RouterLink>
+        <!-- <RouterLink to="/" class="back-link"> -->
+        <div class = "back-link">
+          <i class="pi pi-arrow-left" aria-label="Go back" @click = goBack ></i>
+        </div>
+        <!-- </RouterLink> -->
         <br />
 
         <!-- Category selection dropdown -->
@@ -326,6 +328,12 @@ export default {
       this.imagePreview = null;
       this.uploadInstructionText = 'Please attach photo of the item';
     },
+
+    goBack() {
+        this.$router.push('/');
+    }
+
+
   },
 };
 </script>
@@ -430,6 +438,7 @@ textarea::placeholder {
 .back-link i:hover {
   transform: scale(1.1);
   opacity: 0.8;
+  cursor: pointer;
 }
 
 /* Image upload styling */
@@ -525,4 +534,18 @@ input[type='file'] {
 .submit-button span {
   font-size: 0.75rem;
 }
+
+#backward-icon {
+    width: 2.125rem;
+    height: 2.125rem;
+    color: black;
+    font-size: 1.5rem;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+  }
+  
+  #backward-icon:hover {
+    transform: scale(1.1);
+    opacity: 0.8;
+    
+  }
 </style>

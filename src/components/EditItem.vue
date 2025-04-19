@@ -5,7 +5,10 @@
         <div class="back-button" @click="goBack" :disabled="uploadingImage">
           <i class="pi pi-arrow-left" aria-label="Go back"></i>
         </div>
+        <div class = "undo-button">
         <i class="pi pi-undo" id="undo-button" @click="refresh" title="Click this to revert all your changes"></i>
+        </div>
+
       </div>
   
       <!-- Item image display -->
@@ -569,6 +572,8 @@
   }
   
   /* Remove image button styling */
+
+
   .remove-image-btn {
     background: none;
     border: none;
