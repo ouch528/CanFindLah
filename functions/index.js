@@ -36,7 +36,7 @@ admin.initializeApp();
 // });
 
 
-export const notifyUnreadMessagesReminder = onSchedule(
+const notifyUnreadMessagesReminder = onSchedule(
   {
     schedule: "every 5 minutes",
     timeZone: "Asia/Singapore"
@@ -142,7 +142,7 @@ export const notifyUnreadMessagesReminder = onSchedule(
   }
 );
 
-export const resetNotifiedOnNewMessage = onDocumentCreated(
+const somethingElse = onDocumentCreated(
   "conversations/{convId}/messages/{msgId}",
   async (event) => {
     // Each new message (always unread by default) should re-open reminders
@@ -165,6 +165,11 @@ export const resetNotifiedOnNewMessage = onDocumentCreated(
     }
   }
 );
+
+module.exports = {
+  notifyUnreadMessagesReminder,
+  somethingElse
+};
 
 
 
