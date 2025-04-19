@@ -7,7 +7,7 @@
         <!-- Navigation link back to home -->
         <!-- <RouterLink to="/" class="back-link"> -->
         <div class = "back-link">
-          <i class="pi pi-arrow-left" aria-label="Go back" @click = goBack ></i>
+          <i class="pi pi-arrow-left" aria-label="Go back" @click = goBack >←</i>
         </div>
         <!-- </RouterLink> -->
         <br />
@@ -122,6 +122,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useUserStore } from '@/stores/user-store';
 import { storage, db } from '../firebase.js';
 import { findMatchingLostItems } from '@/components/matchingService.js';
+import "primeicons/primeicons.css"
 
 /**
  * @component ReportFoundItem

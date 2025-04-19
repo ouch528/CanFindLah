@@ -121,6 +121,7 @@
   import { collection, addDoc, doc, setDoc, arrayUnion, getDoc, updateDoc } from 'firebase/firestore';
   import { db } from '../firebase.js';
   import { useUserStore } from '@/stores/user-store';
+  import "primeicons/primeicons.css"
   
   /**
    * LostItemForm Component
