@@ -142,7 +142,7 @@ const notifyUnreadMessagesReminder = onSchedule(
   }
 );
 
-const somethingElse = onDocumentCreated(
+const resetNotifiedOnNewMessage = onDocumentCreated(
   "conversations/{convId}/messages/{msgId}",
   async (event) => {
     // Each new message (always unread by default) should re-open reminders
@@ -168,7 +168,7 @@ const somethingElse = onDocumentCreated(
 
 module.exports = {
   notifyUnreadMessagesReminder,
-  somethingElse
+  resetNotifiedOnNewMessage
 };
 
 
