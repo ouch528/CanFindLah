@@ -1,66 +1,121 @@
 <template>
     <div class="card" @click="goToClaimPage">
-        <!-- Show loading spinner if both isLoading is true and imageUrl exists -->
-        <div v-if="isLoading && imageUrl" class="loading-spinner"></div>
-
-        <!-- Display the image or fallback image -->
-        <img v-if="imageUrl" :src="imageUrl" :alt="item.name" class="item-image" @load="onImageLoad" @error="onImageError" />
-        <img v-else src="@/assets/image_not_found.png" :alt="item.name" class="item-image" />
-
-        <div class="card-content">
-            <h3>{{ item.name }}</h3>
-            <p><strong>Category:</strong> {{ item.category }}</p>
-            <p><strong>Colour:</strong> {{ item.colour }}</p>
-            <p><strong>Brand:</strong> {{ item.brand }}</p>
-            <p><strong>Location:</strong> {{ item.location }}</p>
-            <p><strong>Date & Time Found:</strong> {{ item.date_time_found.replace('T', ' ') }}</p>
-            <p><strong>Description:</strong> {{ item.description }}</p>
-        </div>
+      <!-- Loading spinner overlay that appears only when image is loading -->
+      <div v-if="isLoading && imageUrl" class="loading-spinner"></div>
+      
+      <!-- Display item image or fallback image -->
+      <img 
+        v-if="imageUrl" 
+        :src="imageUrl" 
+        :alt="item.name" 
+        class="item-image" 
+        @load="onImageLoad" 
+        @error="onImageError" 
+      />
+      <img 
+        v-else 
+        src="@/assets/image_not_found.png" 
+        :alt="item.name" 
+        class="item-image" 
+      />
+      
+      <!-- Item details -->
+      <div class="card-content">
+        <h3>{{ item.name }}</h3>
+        <p><strong>Category:</strong> {{ item.category }}</p>
+        <p><strong>Colour:</strong> {{ item.colour }}</p>
+        <p><strong>Brand:</strong> {{ item.brand }}</p>
+        <p><strong>Location:</strong> {{ item.location }}</p>
+        <p><strong>Date & Time Found:</strong> {{ formatDateTime(item.date_time_found) }}</p>
+        <p><strong>Description:</strong> {{ item.description }}</p>
+      </div>
     </div>
-</template>
-
-<script>
-export default {
+  </template>
+  
+  <script>
+  /**
+   * LostItemCard Component
+   * 
+   * A card component that displays information about a lost item including:
+   * - Item image with loading state
+   * - Item details (name, category, color, etc.)
+   * 
+   * Clicking the card navigates to the claim verification page
+   * with the item data passed as route query parameters.
+   */
+  export default {
+    name: 'LostItemCard',
+    
     props: {
-        item: {
-            type: Object,
-            required: true,
-        },
+      /**
+       * The lost item object containing all item details
+       * @type {Object}
+       * @required
+       */
+      item: {
+        type: Object,
+        required: true,
+      },
     },
+    
     data() {
-        return {
-            imageUrl: null,
-            isLoading: true, // State to track image loading
-        }
+      return {
+        imageUrl: null,
+        isLoading: true, // State to track image loading status
+      }
     },
+    
     mounted() {
-        this.imageUrl = this.item.photo || ''
+      // Initialize the image URL from the item data
+      this.imageUrl = this.item.photo || ''
     },
+    
     methods: {
-        // Called when image is successfully loaded
-        onImageLoad() {
-            this.isLoading = false
-        },
-        // Called if the image fails to load
-        onImageError() {
-            this.isLoading = false
-        },
-        goToClaimPage() {
-            const formDataCopy = { ...this.item }
-            const lostItemID = this.$route.query.id
-            console.log(lostItemID)
-
-            this.$router.push({
-                name: 'verify',
-                query: { lostItem: JSON.stringify(formDataCopy), id: lostItemID },
-            })
-        },
+      /**
+       * Formats the ISO date string to a more readable format
+       * @param {string} dateTimeString - ISO format date-time string
+       * @return {string} Formatted date-time string
+       */
+      formatDateTime(dateTimeString) {
+        return dateTimeString.replace('T', ' ')
+      },
+      
+      /**
+       * Handler for successful image load
+       */
+      onImageLoad() {
+        this.isLoading = false
+      },
+      
+      /**
+       * Handler for image load failure
+       */
+      onImageError() {
+        this.isLoading = false
+      },
+      
+      /**
+       * Navigates to the claim verification page with item data
+       */
+      goToClaimPage() {
+        const formDataCopy = { ...this.item }
+        const lostItemID = this.$route.query.id
+        
+        this.$router.push({
+          name: 'verify',
+          query: { 
+            lostItem: JSON.stringify(formDataCopy), 
+            id: lostItemID 
+          },
+        })
+      },
     },
-}
-</script>
-
-<style scoped>
-.card {
+  }
+  </script>
+  
+  <style scoped>
+  /* Card container */
+  .card {
     display: flex;
     flex-direction: column;
     background: white;
@@ -71,58 +126,63 @@ export default {
     margin: 1rem;
     cursor: pointer;
     transition:
-        transform 0.3s ease,
-        box-shadow 0.3s ease;
+      transform 0.3s ease,
+      box-shadow 0.3s ease;
     will-change: transform;
-}
-
-.card:hover {
+  }
+  
+  /* Hover effect for the card */
+  .card:hover {
     transform: scale(1.05);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
     z-index: 1;
-}
-
-.item-image {
+  }
+  
+  /* Item image styling */
+  .item-image {
     min-height: 13rem;
     max-height: 13rem;
     width: 100%;
     object-fit: contain;
     display: block;
-}
-
-h3 {
+  }
+  
+  /* Title styling */
+  h3 {
     font-size: 1.5rem;
     margin-bottom: 0.5rem;
     color: black;
-}
-
-p {
+  }
+  
+  /* Text content styling */
+  p {
     font-size: 1rem;
     color: #757575;
     line-height: 1.2rem;
-}
-
-.loading-spinner {
+  }
+  
+  /* Loading spinner animation */
+  .loading-spinner {
     position: absolute;
     top: 25%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 3rem; /* Size of the spinner */
+    width: 3rem;
     height: 3rem;
-    border: 4px solid #f3f3f3; /* Light grey border */
-    border-top: 4px solid #3498db; /* Blue color for the spinner */
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
     border-radius: 50%;
-    animation: spin 1s linear infinite; /* Animation for spinning */
-    z-index: 2; /* Ensure the spinner is on top */
-}
-
-/* Keyframes for spinning animation */
-@keyframes spin {
+    animation: spin 1s linear infinite;
+    z-index: 2;
+  }
+  
+  /* Spinner animation keyframes */
+  @keyframes spin {
     0% {
-        transform: translate(-50%, -50%) rotate(0deg);
+      transform: translate(-50%, -50%) rotate(0deg);
     }
     100% {
-        transform: translate(-50%, -50%) rotate(360deg);
+      transform: translate(-50%, -50%) rotate(360deg);
     }
-}
-</style>
+  }
+  </style>

@@ -754,12 +754,11 @@ export default {
 </script>
 
 <style scoped>
-/* Styles remain unchanged */
 .chat-panel {
   display: flex;
   flex-direction: column;
-  max-height: 35rem;
-  min-height: 35rem;
+  max-height: 36rem;
+  min-height: 36rem;
   overflow: hidden;
 }
 
@@ -911,7 +910,7 @@ export default {
 .message-form {
   display: flex;
   align-items: center;
-  padding: 1rem;
+  padding: 0.5rem;
   background: #F2FAFF;
   border-top: none;
 }

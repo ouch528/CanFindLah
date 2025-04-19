@@ -26,10 +26,6 @@ import { ref, computed, watch } from 'vue';
 import {
   doc,
   getDoc,
-  setDoc,
-  deleteDoc,
-  getDocs,
-  serverTimestamp,
   collection,
   query,
   orderBy,
@@ -38,25 +34,48 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
+/**
+ * UserList Component
+ * 
+ * Displays a list of users with active conversations for the current user.
+ * Each list item shows:
+ * - User name with associated found item
+ * - Last message preview
+ * - User role (Founder/Searcher)
+ * - Last message timestamp
+ * 
+ * Clicking on a user starts or continues a conversation.
+ */
 export default {
   name: 'UserList',
+  
   props: {
+    /**
+     * ID of the currently logged-in user
+     * @type {String}
+     * @required
+     */
     currentUserID: {
       type: String,
       required: true
     }
   },
-  emits: ['conversationStarted', 'conversationDeleted'], // Add conversationDeleted to emits
+  
+  emits: ['conversationStarted', 'conversationDeleted'],
+  
   setup(props, { emit }) {
-    const users = ref([]);
-    const lastMessages = ref({});
-    const userRoles = ref({});
-    const foundItemNames = ref({}); // To store found item names for each conversation
-    const conversations = ref([]); // To store all conversations for the current user
+    // Reactive data
+    const users = ref([]);                // All users in the system
+    const lastMessages = ref({});         // Last message for each conversation
+    const userRoles = ref({});            // Role of each user in conversation
+    const foundItemNames = ref({});       // Found item names by conversation ID
+    const conversations = ref([]);        // All conversations for current user
 
     const usersCollection = collection(db, 'users');
 
-    // Fetch all users
+    /**
+     * Fetch all users from Firestore and listen for changes
+     */
     onSnapshot(usersCollection, (snapshot) => {
       users.value = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -65,7 +84,9 @@ export default {
       loadConversations();
     });
 
-    // Fetch all conversations for the current user
+    /**
+     * Loads all conversations where the current user is a participant
+     */
     const loadConversations = () => {
       const conversationsRef = collection(db, 'conversations');
       onSnapshot(conversationsRef, (snapshot) => {
@@ -85,7 +106,9 @@ export default {
       });
     };
 
-    // Load the last message for each conversation
+    /**
+     * Loads the last message for each conversation
+     */
     const loadLastMessages = () => {
       for (const conv of conversations.value) {
         const messagesRef = collection(db, 'conversations', conv.id, 'messages');
@@ -118,7 +141,9 @@ export default {
       }
     };
 
-    // Load the role of each user relative to the current user
+    /**
+     * Determines each user's role (Founder/Searcher) relative to current user
+     */
     const loadUserRoles = async () => {
       for (const conv of conversations.value) {
         const data = conv;
@@ -128,7 +153,9 @@ export default {
       }
     };
 
-    // Load the Found Item name for each conversation
+    /**
+     * Loads the found item name for each conversation from Firestore
+     */
     const loadFoundItemNames = async () => {
       for (const conv of conversations.value) {
         const foundItemId = conv.foundItemId;
@@ -146,9 +173,14 @@ export default {
       }
     };
 
+    /**
+     * Creates a processed list of users with their latest conversation details
+     * @return {Array} List of users with conversation details
+     */
     const filteredUsers = computed(() => {
       const userMap = new Map();
 
+      // Group conversations by user
       for (const conv of conversations.value) {
         const [user1, user2] = conv.id.split('-').slice(0, 2);
         const otherUserId = user1 === props.currentUserID ? user2 : user1;
@@ -170,11 +202,13 @@ export default {
         });
       }
 
+      // Build and sort the result array
       const result = [];
       for (const [userId, convs] of userMap.entries()) {
         const user = users.value.find(u => u.id === userId);
         if (!user) continue;
 
+        // Sort conversations by timestamp (newest first)
         convs.sort((a, b) => {
           if (!a.rawTimestamp) return 1;
           if (!b.rawTimestamp) return -1;
@@ -183,7 +217,7 @@ export default {
 
         convs.forEach(conv => {
           result.push({
-            id: conv.conversationId, // Use conversationId as the unique key
+            id: conv.conversationId,
             userId: userId,
             name: user.name,
             lastMessage: conv.lastMessage,
@@ -195,6 +229,7 @@ export default {
         });
       }
 
+      // Sort all entries by timestamp (newest first)
       return result.sort((a, b) => {
         if (!a.rawTimestamp) return 1;
         if (!b.rawTimestamp) return -1;
@@ -202,15 +237,23 @@ export default {
       });
     });
 
+    /**
+     * Handler for starting a chat with selected user
+     * @param {Object} user - User to chat with
+     */
     const startChat = async (user) => {
       emit('conversationStarted', user.id, user.userId);
     };
 
-    // Handle conversation deletion event from ChatPanel
+    /**
+     * Handler for conversation deletion event
+     * @param {String} conversationId - ID of the deleted conversation
+     */
     const handleConversationDeleted = (conversationId) => {
       emit('conversationDeleted', conversationId);
     };
 
+    // Watch for changes in current user ID
     watch(() => props.currentUserID, () => {
       loadConversations();
     });
@@ -218,25 +261,29 @@ export default {
     return {
       filteredUsers,
       startChat,
-      handleConversationDeleted // Expose the handler to the template (if needed) or directly use in ChatPanel
+      handleConversationDeleted
     };
   }
 };
 </script>
 
 <style scoped>
-/* Styles remain unchanged */
+/* Container for the entire user list */
 .chat-partners-container {
   height: 100%;
   overflow-y: auto;
   background: #FFFAEF;
   font-family: "Inter";
 }
+
+/* Base list styling */
 .chat-list {
   list-style: none;
   padding: 0;
   margin: 0;
 }
+
+/* Individual chat list item */
 .chat-item {
   position: relative;
   display: flex;
@@ -249,37 +296,51 @@ export default {
   transition: background-color 0.2s ease;
   height: 4.5rem;
 }
+
+/* Hover effect for list items */
 .chat-item:hover {
   background-color: #F2FAFF;
 }
+
+/* Layout for chat item content */
 .chat-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
 }
+
+/* Left column for username and message preview */
 .chat-left-col {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
+
+/* Right column for role badge and timestamp */
 .chat-right-col {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
 }
+
+/* Username styling */
 .chat-username {
   font-weight: bold;
   font-size: 1.375rem;
   color: #333;
   margin: 0;
 }
+
+/* Message preview styling */
 .chat-preview {
   font-size: 1.125rem;
   color: #888;
   margin: 2px 0 0;
 }
+
+/* Base styling for role badge */
 .chat-role {
   font-size: 0.875rem;
   color: white;
@@ -287,12 +348,18 @@ export default {
   border-radius: 8px;
   font-weight: bold;
 }
+
+/* Orange background for Searcher role */
 .chat-role[data-role="Searcher"] {
-  background-color: #FF8844; /* Orange for Founder */
+  background-color: #FF8844;
 }
+
+/* Blue background for Founder role */
 .chat-role[data-role="Founder"] {
-  background-color: #4A95DF; /* Blue for Searcher */
+  background-color: #4A95DF;
 }
+
+/* Time stamp styling */
 .chat-time {
   color: #aaa;
   font-size: 0.8125rem;

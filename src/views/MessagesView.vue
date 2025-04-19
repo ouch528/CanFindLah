@@ -4,7 +4,7 @@
     <div class="messages-header">
       <h1>Messages</h1>
     </div>
-
+    
     <!-- Main content area: two columns (sidebar + chat) -->
     <div class="main-content">
       <!-- Sidebar with list of conversation partners -->
@@ -15,7 +15,7 @@
           @conversationDeleted="handleConversationDeleted"
         />
       </div>
-
+      
       <!-- Chat panel area -->
       <div class="chat-container">
         <div v-if="currentConversationId">
@@ -38,42 +38,82 @@
 
 <script>
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth, db } from '../firebase';
 import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../firebase';
 import UserList from '@/components/UserList.vue';
 import ChatPanel from '@/components/ChatPanel.vue';
 
+/**
+ * MessagesView Component
+ * 
+ * Displays the main messaging interface with a sidebar showing conversation partners
+ * and a main area for chat messages. Handles user authentication, conversation selection,
+ * and conversation deletion.
+ */
 export default {
+  name: 'MessagesView',
+  
   components: {
     UserList,
     ChatPanel,
   },
+  
   data() {
     return {
-      currentUserID: '',
-      currentConversationId: '',
-      partnerID: '',
+      currentUserID: '',       // ID of the authenticated user
+      currentConversationId: '', // ID of the selected conversation
+      partnerID: '',           // ID of the user's conversation partner
     };
   },
+  
   created() {
-    // Get the current user's ID
-    onAuthStateChanged(auth, async (user) => {
-      if (user) {
-        const userRef = doc(db, 'users', user.uid);
-        const userSnap = await getDoc(userRef);
-        if (userSnap.exists()) {
-          this.currentUserID = userSnap.data().userID || user.uid;
-          // After getting the current user ID, check for query parameters
-          this.checkQueryParams();
-        }
-      }
-    });
+    // Initialize component with user authentication
+    this.initializeAuthState();
   },
+  
   methods: {
+    /**
+     * Sets up authentication state monitoring and loads user data
+     */
+    initializeAuthState() {
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          await this.loadUserData(user.uid);
+        }
+      });
+    },
+    
+    /**
+     * Loads user data from Firestore and initializes conversation if needed
+     * @param {string} uid - The user's Firebase UID
+     */
+    async loadUserData(uid) {
+      const userRef = doc(db, 'users', uid);
+      const userSnap = await getDoc(userRef);
+      
+      if (userSnap.exists()) {
+        // Use the custom userID if available, otherwise use Firebase UID
+        this.currentUserID = userSnap.data().userID || uid;
+        
+        // Check if there's a conversation ID in URL params
+        this.checkQueryParams();
+      }
+    },
+    
+    /**
+     * Updates the active conversation when a user selects one from the sidebar
+     * @param {string} conversationId - The ID of the selected conversation
+     * @param {string} partnerID - The ID of the conversation partner
+     */
     handleConversationStarted(conversationId, partnerID) {
       this.currentConversationId = conversationId;
       this.partnerID = partnerID;
     },
+    
+    /**
+     * Checks URL query parameters for conversation data
+     * Used for direct linking to specific conversations
+     */
     checkQueryParams() {
       const { conversationId, partnerID } = this.$route.query;
       if (conversationId && partnerID) {
@@ -81,6 +121,11 @@ export default {
         this.partnerID = partnerID;
       }
     },
+    
+    /**
+     * Handles conversation deletion by resetting the current conversation if needed
+     * @param {string} conversationId - The ID of the deleted conversation
+     */
     handleConversationDeleted(conversationId) {
       // If the deleted conversation is the currently displayed one, reset the state
       if (this.currentConversationId === conversationId) {
@@ -93,24 +138,28 @@ export default {
 </script>
 
 <style scoped>
-/* Styles remain unchanged */
+/* Main container */
 .home-view {
   height: 44rem;
   display: flex;
   flex-direction: column;
-  /* background: linear-gradient(to bottom, white, #F1C39C); */
   overflow: hidden;
 }
+
+/* Header styling */
 .messages-header {
   text-align: center;
-  /* margin-top: 1rem; */
-  font-family: 'Inter';
+  font-family: 'Inter', sans-serif;
 }
+
 h1 {
-    color: #685545;
-    text-align: center;
-    font-size: 3rem;
+  color: #685545;
+  text-align: center;
+  font-size: 3rem;
+  margin-bottom: 1rem;
 }
+
+/* Two-column layout */
 .main-content {
   flex: 1;
   display: flex;
@@ -123,18 +172,24 @@ h1 {
   overflow: hidden;
   margin-bottom: 1rem;
 }
+
+/* Sidebar styling */
 .sidebar {
   width: 28rem;
   background-color: #FFFAEF;
   border-right: 1px solid #ddd;
   overflow-y: auto;
 }
+
+/* Chat area styling */
 .chat-container {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
+
+/* Empty state styling */
 .no-chat-selected {
   flex: 1;
   display: flex;
@@ -142,6 +197,7 @@ h1 {
   align-items: center;
   background: #F2FAFF;
 }
+
 .no-chat-message {
   background-color: rgba(0, 0, 0, 0.4);
   padding: 0.5rem 0.5rem;
