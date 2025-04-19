@@ -1,8 +1,7 @@
 const admin = require("firebase-admin");
-import { onSchedule } from "firebase-functions/v2/scheduler";
-import { logger } from "firebase-functions";
-import { onDocumentUpdated } from "firebase-functions/v2/firestore";
-import { onDocumentCreated } from "firebase-functions/v2/firestore";
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { logger } = require("firebase-functions");
+const { onDocumentUpdated, onDocumentCreated } = require("firebase-functions/v2/firestore");
 
 admin.initializeApp();
 
