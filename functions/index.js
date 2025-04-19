@@ -1,171 +1,171 @@
-// import admin from "firebase-admin";
-// import { onSchedule } from "firebase-functions/v2/scheduler";
-// import { logger } from "firebase-functions";
-// import { onDocumentUpdated } from "firebase-functions/v2/firestore";
-// import { onDocumentCreated } from "firebase-functions/v2/firestore";
+import admin from "firebase-admin";
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import { logger } from "firebase-functions";
+import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { onDocumentCreated } from "firebase-functions/v2/firestore";
 
-// admin.initializeApp();
+admin.initializeApp();
 
-// // export const sendAlertEmail = onDocumentUpdated('Lost Item/{lost_item_id}', async (event) => {
-// //   // Get the before and after snapshots of the document
-// //   const beforeData = event.data.before.data();
-// //   const afterData = event.data.after.data();
+// export const sendAlertEmail = onDocumentUpdated('Lost Item/{lost_item_id}', async (event) => {
+//   // Get the before and after snapshots of the document
+//   const beforeData = event.data.before.data();
+//   const afterData = event.data.after.data();
 
-// //   // Check if claimed_status changed from "Not Found Yet" to "Matched"
-// //   if (beforeData.claimed_status === 'Not Found Yet' && afterData.claimed_status === 'Matched') {
-// //     // Use the userEmail field directly from the Lost Item document
-// //     const userEmail = afterData.email;
-// //     if (!userEmail) {
-// //       console.log('No userEmail found in Lost Item document.');
-// //       return;
-// //     }
-
-// //     try {
-// //       // Add a mail document to the "mail" collection so that your email service can process it
-// //       await admin.firestore().collection('mail').add({
-// //         to: userEmail,
-// //         message: {
-// //           subject: "Your lost item has been matched!",
-// //           html: "Congratulations, we have found you a match!",
-// //         },
-// //       });
-// //       console.log(`Email queued for user: ${userEmail}`);
-// //     } catch (error) {
-// //       console.error('Error queuing email:', error);
-// //     }
-// //   }
-// // });
-
-
-// export const notifyUnreadMessagesReminder = onSchedule(
-//   {
-//     schedule: "every 5 minutes",
-//     timeZone: "Asia/Singapore"
-//   },
-//   async (event) => {
-//     const db = admin.firestore();
-//     // For testing, we only require the message to be older than 1 minute
-//     // In production, you'd probably use 60 * 60 * 1000 for an hour
-//     const thresholdMs = 60 * 60 * 1000;
-//     const nowMillis = Date.now();
-
-//     try {
-//       // 1. Query conversation docs with Notified == false
-//       const convSnapshot = await db
-//         .collection("conversations")
-//         .where("Notified", "==", false)
-//         .get();
-
-//       if (convSnapshot.empty) {
-//         logger.info("No conversations require notification.");
-//         return;
-//       }
-
-//       let totalProcessed = 0;
-
-//       // 2. Check each conversation's messages subcollection
-//       for (const convDoc of convSnapshot.docs) {
-//         const convId = convDoc.id;
-
-//         // Get all unread messages (readAt == null) in this conversation
-//         const messagesSnapshot = await convDoc.ref
-//           .collection("messages")
-//           .where("readAt", "==", null)
-//           .get();
-
-//         if (messagesSnapshot.empty) {
-//           logger.info(`No unread messages in conversation ${convId}`);
-//           continue;
-//         }
-
-//         // We'll see if there's at least one message older than threshold
-//         let hasOldUnread = false;
-//         let oldestMessageTimeString = null;
-//         let receiverId = null;
-
-//         for (const msgDoc of messagesSnapshot.docs) {
-//           const msgData = msgDoc.data();
-//           if (!msgData.timestamp) {
-//             continue; // skip if no timestamp
-//           }
-//           const messageAgeMs = nowMillis - msgData.timestamp.toMillis();
-//           if (messageAgeMs >= thresholdMs) {
-//             hasOldUnread = true;
-//             oldestMessageTimeString = msgData.timestamp.toDate().toLocaleString('en-US', { timeZone: 'Asia/Singapore'});
-//             receiverId = msgData.receiver;
-//             break; 
-//           }
-//         }
-
-//         // If no message qualified, skip
-//         if (!hasOldUnread || !receiverId) {
-//           continue;
-//         }
-
-//         // 3. Look up the user's email (receiverId) from the "users" collection
-//         const userDoc = await db.collection("users").doc(receiverId).get();
-//         if (!userDoc.exists) {
-//           logger.warn(`User doc not found for receiver: ${receiverId}`);
-//           continue;
-//         }
-//         const userEmail = userDoc.data().email;
-//         if (!userEmail) {
-//           logger.warn(`No email for user: ${receiverId}`);
-//           continue;
-//         }
-
-//         // 4. Send an email by adding to the "mail" collection
-//         await db.collection("mail").add({
-//           to: userEmail,
-//           message: {
-//             subject: "Reminder: You Have Unread Messages!",
-//             html: `
-            
-//               <p>You have an unread message from ${oldestMessageTimeString} in conversation.</p>
-//               <a href="http://localhost:5173/messages?conversationId=${convId}">
-//                 ${convId}
-//               </a>.
-//               <p>Please log in to read it.</p>
-//             `,
-//           },
-//         });
-//         logger.info(`Queued reminder email for conversation ${convId} to ${userEmail}`);
-
-//         // 5. Mark the entire conversation as Notified
-//         await convDoc.ref.update({ Notified: true });
-//         totalProcessed++;
-//       }
-
-//       logger.info(`Processed ${totalProcessed} conversation(s) for reminders.`);
-//     } catch (error) {
-//       logger.error("Error processing unread message reminders:", error);
-//     }
-//   }
-// );
-
-// export const resetNotifiedOnNewMessage = onDocumentCreated(
-//   "conversations/{convId}/messages/{msgId}",
-//   async (event) => {
-//     // Each new message (always unread by default) should re-open reminders
-//     const msgData = event.data.data();
-//     // Only reset if the message truly is unread (readAt not set)
-//     if (msgData.readAt != null) return;
-
-//     // Parent conversation reference
-//     const convRef = event.data.ref.parent.parent;
-//     if (!convRef) {
-//       logger.error("Can't locate parent conversation for new message");
+//   // Check if claimed_status changed from "Not Found Yet" to "Matched"
+//   if (beforeData.claimed_status === 'Not Found Yet' && afterData.claimed_status === 'Matched') {
+//     // Use the userEmail field directly from the Lost Item document
+//     const userEmail = afterData.email;
+//     if (!userEmail) {
+//       console.log('No userEmail found in Lost Item document.');
 //       return;
 //     }
 
 //     try {
-//       await convRef.update({ Notified: false });
-//       logger.info(`Reset Notified for conversation ${convRef.id}`);
-//     } catch (err) {
-//       logger.error("Error resetting Notified:", err);
+//       // Add a mail document to the "mail" collection so that your email service can process it
+//       await admin.firestore().collection('mail').add({
+//         to: userEmail,
+//         message: {
+//           subject: "Your lost item has been matched!",
+//           html: "Congratulations, we have found you a match!",
+//         },
+//       });
+//       console.log(`Email queued for user: ${userEmail}`);
+//     } catch (error) {
+//       console.error('Error queuing email:', error);
 //     }
 //   }
-// );
+// });
+
+
+export const notifyUnreadMessagesReminder = onSchedule(
+  {
+    schedule: "every 5 minutes",
+    timeZone: "Asia/Singapore"
+  },
+  async (event) => {
+    const db = admin.firestore();
+    // For testing, we only require the message to be older than 1 minute
+    // In production, you'd probably use 60 * 60 * 1000 for an hour
+    const thresholdMs = 60 * 60 * 1000;
+    const nowMillis = Date.now();
+
+    try {
+      // 1. Query conversation docs with Notified == false
+      const convSnapshot = await db
+        .collection("conversations")
+        .where("Notified", "==", false)
+        .get();
+
+      if (convSnapshot.empty) {
+        logger.info("No conversations require notification.");
+        return;
+      }
+
+      let totalProcessed = 0;
+
+      // 2. Check each conversation's messages subcollection
+      for (const convDoc of convSnapshot.docs) {
+        const convId = convDoc.id;
+
+        // Get all unread messages (readAt == null) in this conversation
+        const messagesSnapshot = await convDoc.ref
+          .collection("messages")
+          .where("readAt", "==", null)
+          .get();
+
+        if (messagesSnapshot.empty) {
+          logger.info(`No unread messages in conversation ${convId}`);
+          continue;
+        }
+
+        // We'll see if there's at least one message older than threshold
+        let hasOldUnread = false;
+        let oldestMessageTimeString = null;
+        let receiverId = null;
+
+        for (const msgDoc of messagesSnapshot.docs) {
+          const msgData = msgDoc.data();
+          if (!msgData.timestamp) {
+            continue; // skip if no timestamp
+          }
+          const messageAgeMs = nowMillis - msgData.timestamp.toMillis();
+          if (messageAgeMs >= thresholdMs) {
+            hasOldUnread = true;
+            oldestMessageTimeString = msgData.timestamp.toDate().toLocaleString('en-US', { timeZone: 'Asia/Singapore'});
+            receiverId = msgData.receiver;
+            break; 
+          }
+        }
+
+        // If no message qualified, skip
+        if (!hasOldUnread || !receiverId) {
+          continue;
+        }
+
+        // 3. Look up the user's email (receiverId) from the "users" collection
+        const userDoc = await db.collection("users").doc(receiverId).get();
+        if (!userDoc.exists) {
+          logger.warn(`User doc not found for receiver: ${receiverId}`);
+          continue;
+        }
+        const userEmail = userDoc.data().email;
+        if (!userEmail) {
+          logger.warn(`No email for user: ${receiverId}`);
+          continue;
+        }
+
+        // 4. Send an email by adding to the "mail" collection
+        await db.collection("mail").add({
+          to: userEmail,
+          message: {
+            subject: "Reminder: You Have Unread Messages!",
+            html: `
+            
+              <p>You have an unread message from ${oldestMessageTimeString} in conversation.</p>
+              <a href="http://localhost:5173/messages?conversationId=${convId}">
+                ${convId}
+              </a>.
+              <p>Please log in to read it.</p>
+            `,
+          },
+        });
+        logger.info(`Queued reminder email for conversation ${convId} to ${userEmail}`);
+
+        // 5. Mark the entire conversation as Notified
+        await convDoc.ref.update({ Notified: true });
+        totalProcessed++;
+      }
+
+      logger.info(`Processed ${totalProcessed} conversation(s) for reminders.`);
+    } catch (error) {
+      logger.error("Error processing unread message reminders:", error);
+    }
+  }
+);
+
+export const resetNotifiedOnNewMessage = onDocumentCreated(
+  "conversations/{convId}/messages/{msgId}",
+  async (event) => {
+    // Each new message (always unread by default) should re-open reminders
+    const msgData = event.data.data();
+    // Only reset if the message truly is unread (readAt not set)
+    if (msgData.readAt != null) return;
+
+    // Parent conversation reference
+    const convRef = event.data.ref.parent.parent;
+    if (!convRef) {
+      logger.error("Can't locate parent conversation for new message");
+      return;
+    }
+
+    try {
+      await convRef.update({ Notified: false });
+      logger.info(`Reset Notified for conversation ${convRef.id}`);
+    } catch (err) {
+      logger.error("Error resetting Notified:", err);
+    }
+  }
+);
 
 
 
