@@ -88,9 +88,12 @@
         this.errorMessage = '' // Clear any previous error messages
         
         try {
-          console.log('Query Parameters:', this.$route.query)
+            const requestId = this.$route.query.lostItem;
+            const docSnap = await getDoc(doc(db, 'tempMatchingRequests', requestId));
+            const lostItem = docSnap.data().lostItem;
+            console.log('Query Parameters:', this.$route.query)
   
-          const lostItem = this.$route.query.lostItem
+        //   const lostItem = this.$route.query.lostItem
           const lostItemID = this.$route.query.id
   
           console.log('Lost Item ID:', lostItemID)

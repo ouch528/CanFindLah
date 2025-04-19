@@ -45,7 +45,7 @@
   import { app, storage } from '../firebase.js';
   import { getFirestore } from 'firebase/firestore';
   import { ref, getDownloadURL, getStorage, deleteObject } from 'firebase/storage';
-  import { collection, getDoc, doc, deleteDoc, setDoc, updateDoc } from 'firebase/firestore';
+  import { collection, getDoc, doc, deleteDoc, setDoc, updateDoc, addDoc } from 'firebase/firestore';
   import { findMatchingLostItems } from '@/components/matchingService.js';
   import 'primeicons/primeicons.css';
   import EditItem from '@/components/EditItem.vue';
@@ -121,11 +121,23 @@
               this.editedData = null;
               alert('Item edited successfully!');
               
-              // Navigate to matching page with the updated item
-              this.$router.push({
+              const lostItemRef = await addDoc(collection(db, 'tempMatchingRequests'), {
+                lostItem: JSON.stringify(form), 
+                timestamp: new Date()
+                });
+
+                this.$router.push({
                 name: 'matching',
-                query: { lostItem: JSON.stringify(form), id: this.lost_item_Id },
-              });
+                query: { lostItem: lostItemRef.id,
+                        id: this.lost_item_Id,
+                        
+                }
+                });
+              // Navigate to matching page with the updated item
+            //   this.$router.push({
+            //     name: 'matching',
+            //     query: { lostItem: JSON.stringify(form), id: this.lost_item_Id },
+            //   });
             } catch (error) {
               console.error('Error uploading data:', error);
             }

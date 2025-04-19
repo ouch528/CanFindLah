@@ -23,7 +23,8 @@
       <!-- Form inputs section -->
       <div class="inputs">
         <div class="edit-item"> 
-          <h2 class="item-name">{{ item.name }}</h2>
+          <h2 class="item-name" v-if = "item.category != 'Student Card'">{{ item.name }}</h2>
+          <h2 class="item-name" v-else>Student Card</h2>
           
           <!-- Color selection -->
           <p class="field-label">Colour</p> 
@@ -291,8 +292,11 @@
        * Updates item data and emits event to parent when changes are made
        */
       markAsChanged() {
+
         // Update item name based on color and category
-        this.item.name = `${this.item.colour} ${this.item.category}`;
+        if (this.item.category != "Student Card") {
+            this.item.name = `${this.item.colour} ${this.item.category}`;
+        }
         
         // Check if item has changed from initial state
         this.changed = JSON.stringify(this.item) !== JSON.stringify(this.initialItem);

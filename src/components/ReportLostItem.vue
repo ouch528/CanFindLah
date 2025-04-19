@@ -272,13 +272,26 @@
           // Notify user and redirect
           alert('Item reported successfully! Redirecting to check for similar items found');
           
-          this.$router.push({
+          const lostItemRef = await addDoc(collection(db, 'tempMatchingRequests'), {
+            lostItem: JSON.stringify(formDataCopy), 
+            timestamp: new Date()
+            });
+
+            this.$router.push({
             name: 'matching',
-            query: { 
-              lostItem: JSON.stringify(formDataCopy), 
-              id: docRef.id 
-            },
-          });
+            query: { lostItem: lostItemRef.id,
+                    id: docRef.id 
+                    
+            }
+            });
+
+        //   this.$router.push({
+        //     name: 'matching',
+        //     query: { 
+        //       lostItem: JSON.stringify(formDataCopy), 
+        //       id: docRef.id 
+        //     },
+        //   });
         } catch (error) {
           console.error('Error saving item:', error);
           alert(`Failed to report item: ${error.message}`);
