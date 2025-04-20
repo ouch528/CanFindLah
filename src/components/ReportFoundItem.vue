@@ -27,32 +27,57 @@
         </select>
         <br /><br />
 
-        <!-- Color selection dropdown -->
+        <!-- Color selection -->
         <label for="color">Colour</label><br />
-        <select v-model="formData.color" id="color" :disabled="formData.category === 'Student Card'" required>
-          <option value="" disabled>
-            {{ formData.category === 'Student Card' ? 'Colour not required for Student Cards' : '--Please choose the colour--' }}
-          </option>
-          <option value="Red">Red</option>
-          <option value="Green">Green</option>
-          <option value="Blue">Blue</option>
-          <option value="Yellow">Yellow</option>
-          <option value="Black">Black</option>
-          <option value="White">White</option>
-          <option value=" ">Others</option>
-        </select>
+        <template v-if="formData.category === 'Student Card'">
+          <input 
+            type="text" 
+            id="color" 
+            value="Colour not required for Student Cards" 
+            disabled 
+            class="placeholder-input"
+            tabindex="-1"
+          />
+        </template>
+        <template v-else>
+          <select 
+            v-model="formData.color" 
+            id="color" 
+            required
+          >
+            <option value="" disabled>--Please choose the colour--</option>
+            <option value="Red">Red</option>
+            <option value="Green">Green</option>
+            <option value="Blue">Blue</option>
+            <option value="Yellow">Yellow</option>
+            <option value="Black">Black</option>
+            <option value="White">White</option>
+            <option value=" ">Others</option>
+          </select>
+        </template>
         <br /><br />
 
         <!-- Brand input field -->
         <label for="brand">Brand</label><br />
-        <input 
-          type="text" 
-          id="brand" 
-          v-model="formData.brand" 
-          required 
-          :placeholder="formData.category === 'Student Card' ? 'Not required for student cards' : 'Enter Brand'" 
-          :disabled="formData.category === 'Student Card'" 
-        />
+        <template v-if="formData.category === 'Student Card'">
+          <input 
+            type="text" 
+            id="brand" 
+            value="Not required for student cards" 
+            disabled 
+            class="placeholder-input"
+            tabindex="-1"
+          />
+        </template>
+        <template v-else>
+          <input 
+            type="text" 
+            id="brand" 
+            v-model="formData.brand" 
+            required 
+            placeholder="Enter Brand"
+          />
+        </template>
         <br /><br />
 
         <!-- Location input field -->
@@ -385,7 +410,7 @@ form {
   font-weight: 600;
 }
 
-.form-content input,
+.form-content input:not(:disabled),
 .form-content select,
 .form-content textarea {
   margin-left: 5.8125rem;
@@ -410,16 +435,20 @@ form {
 }
 
 /* Placeholder text styling */
-select,
-input {
-  color: #888;
-  text-align: left;
-}
-
-textarea::placeholder {
+.form-content input::placeholder,
+.form-content textarea::placeholder {
   color: #888;
   font-size: 0.875rem;
   text-align: left;
+}
+
+/* Disabled state */
+select:disabled,
+input:disabled {
+  background-color: rgba(251, 240, 230, 0.5);
+  color: #888;
+  text-align: left;
+  cursor: not-allowed;
 }
 
 /* Back button styling */
@@ -540,16 +569,32 @@ input[type='file'] {
 }
 
 #backward-icon {
-    width: 2.125rem;
-    height: 2.125rem;
-    color: black;
-    font-size: 1.5rem;
-    transition: transform 0.2s ease, opacity 0.2s ease;
-  }
-  
-  #backward-icon:hover {
-    transform: scale(1.1);
-    opacity: 0.8;
-    
-  }
+  width: 2.125rem;
+  height: 2.125rem;
+  color: black;
+  font-size: 1.5rem;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+#backward-icon:hover {
+  transform: scale(1.1);
+  opacity: 0.8;
+}
+
+/* Placeholder input for disabled fields */
+.placeholder-input {
+  margin-left: 5.8125rem;
+  width: 24.8125rem;
+  height: 2rem;
+  background-color: rgba(251, 240, 230, 0.5);
+  letter-spacing: 0.42px;
+  border-radius: 0.625rem;
+  line-height: 2;
+  border: none;
+  box-sizing: border-box;
+  color: #888;
+  padding-left: 0.75rem;
+  font-size: 0.875rem;
+  cursor: not-allowed;
+}
 </style>
