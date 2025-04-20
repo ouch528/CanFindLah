@@ -195,7 +195,7 @@
   }
   
   #no-match {
-    color: #5bc0de;
+    color: #777;
   }
   
   #end {
