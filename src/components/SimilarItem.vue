@@ -43,6 +43,8 @@
    * Clicking the card navigates to the claim verification page
    * with the item data passed as route query parameters.
    */
+   import { collection, addDoc} from 'firebase/firestore';
+   import { db } from '../firebase.js';
   export default {
     name: 'LostItemCard',
     
@@ -97,17 +99,30 @@
       /**
        * Navigates to the claim verification page with item data
        */
-      goToClaimPage() {
+      async goToClaimPage() {
         const formDataCopy = { ...this.item }
         const lostItemID = this.$route.query.id
+
         
+        console.log(formDataCopy)
+
         this.$router.push({
           name: 'verify',
           query: { 
-            lostItem: JSON.stringify(formDataCopy), 
-            id: lostItemID 
-          },
-        })
+                lostItem: formDataCopy.found_item_id, 
+                id:lostItemID
+          }
+        });
+
+
+        
+        // this.$router.push({
+        //   name: 'verify',
+        //   query: { 
+        //     lostItem: JSON.stringify(formDataCopy), 
+        //     id: lostItemID 
+        //   },
+        // })
       },
     },
   }

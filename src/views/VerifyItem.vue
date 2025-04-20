@@ -56,26 +56,34 @@
     
     data() {
       return {
-        item: null,         // Stores the found item details
+        item: 1,         // Stores the found item details
         currentUserID: '',  // Current user's ID (searcher)
       }
     },
     
-    created() {
+    async created() {
       // Initialize the component by extracting data from route and setting up user authentication
-      this.initializeComponent();
+      await this.initializeComponent();
     },
     
     methods: {
       /**
        * Initialize component by extracting route data and authenticating user
        */
-      initializeComponent() {
+      async initializeComponent() {
         // Parse the found item data from URL query parameters
-        const lostItemData = this.$route.query.lostItem;
-        if (lostItemData) {
-          this.item = JSON.parse(lostItemData);
+        const requestId = this.$route.query.lostItem
+        console.log(requestId)
+        const itemRef = doc(db, 'Found Item', requestId)
+        const docSnap = await getDoc(itemRef)
+        
+
+        if (docSnap.exists()) {
+            console.log(docSnap.data())
+            this.item = docSnap.data()
+            console.log(this.item)
         }
+        
   
         // Get the current authenticated user's ID
         onAuthStateChanged(auth, async (user) => {
@@ -110,7 +118,7 @@
        * Links lost and found items and initiates conversation between finder and searcher
        */
       async verifyItem() {
-        const foundItemId = this.item.id;
+        const foundItemId = this.item.found_item_id;
         const lostItemId = this.$route.query.id;
   
         console.log('Found Item ID:', foundItemId);
