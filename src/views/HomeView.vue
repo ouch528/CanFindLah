@@ -50,6 +50,7 @@
             </div>
         </div>
     </div>
+    <br /><br />
 </template>
 
 <script>
@@ -63,20 +64,20 @@ import { auth, db } from '../firebase.js'
  */
 export default {
     name: 'HomeView',
-    
+
     data() {
         return {
-            claimed: 0,       // Count of returned items
-            found: 0,         // Count of matched items
+            claimed: 0, // Count of returned items
+            found: 0, // Count of matched items
             yetToBeClaimed: 0, // Count of items not yet claimed
-            userName: '',     // User's name for personalized greeting
+            userName: '', // User's name for personalized greeting
         }
     },
-    
+
     mounted() {
         this.initializeUserAndStats()
     },
-    
+
     methods: {
         /**
          * Initializes the component by fetching user data and setting up real-time stats
@@ -173,8 +174,8 @@ export default {
                     }
                 }, 30) // 30ms delay between characters
             })
-        }
-    }
+        },
+    },
 }
 </script>
 
