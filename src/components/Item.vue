@@ -44,7 +44,7 @@
 import { app, storage } from '../firebase.js'
 import { getFirestore } from 'firebase/firestore'
 import { ref, getDownloadURL, getStorage, deleteObject } from 'firebase/storage'
-import { collection, getDoc, doc, deleteDoc, updateDoc, arrayRemove } from 'firebase/firestore'
+import { collection, getDoc, doc, deleteDoc, updateDoc, arrayRemove, addDoc } from 'firebase/firestore'
 import 'primeicons/primeicons.css'
 import { useUserStore } from '@/stores/user-store'
 
@@ -287,7 +287,7 @@ export default {
          * Navigate to matching page with item details
          * Used when alert icon is clicked
          */
-        matchPage() {
+        async matchPage() {
             const formDataCopy = {
                 category: this.item.category,
                 color: this.item.colour,
@@ -296,10 +296,19 @@ export default {
                 datetime: this.item.date_time_lost,
                 description: this.item.description,
             }
+            const docRef = doc(db, 'Lost Item', this.lost_item_Id)
+            const lostItemRef = await addDoc(collection(db, 'tempMatchingRequests'), {
+            lostItem: JSON.stringify(formDataCopy), 
+            timestamp: new Date()
+            });
+
             this.$router.push({
-                name: 'matching',
-                query: { lostItem: JSON.stringify(formDataCopy), id: this.lost_item_Id },
-            })
+            name: 'matching',
+            query: { lostItem: lostItemRef.id,
+                    id: docRef.id,
+                    
+            }
+            });
         }
     },
 }
