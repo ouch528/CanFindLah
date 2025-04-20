@@ -611,6 +611,7 @@
   .back-button i:hover {
     transform: scale(1.1);
     opacity: 0.8;
+    cursor: pointer;
   }
   
   /* Image container styling */

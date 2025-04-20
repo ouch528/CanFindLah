@@ -7,7 +7,7 @@
         <!-- Navigation link back to home -->
         <!-- <RouterLink to="/" class="back-link"> -->
         <div class = "back-link">
-          <i class="pi pi-arrow-left" aria-label="Go back" @click = goBack >←</i>
+          <i class="pi pi-arrow-left" aria-label="Go back" @click = goBack ></i>
         </div>
         <!-- </RouterLink> -->
         <br />
