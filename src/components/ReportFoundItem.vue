@@ -340,6 +340,9 @@ export default {
 </script>
 
 <style scoped>
+.pi {
+  font-family: 'primeicons';
+}
 /* Base styling */
 * {
   font-family: 'Inter', sans-serif;
