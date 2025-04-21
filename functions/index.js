@@ -121,7 +121,7 @@ const notifyUnreadMessagesReminder = onSchedule(
             html: `
             
               <p>You have an unread message from ${oldestMessageTimeString} in conversation.</p>
-              <a href="http://localhost:5173/messages?conversationId=${convId}">
+              <a href="https://canfindlah-29ea7.web.app/messages?conversationId=${convId}">
                 ${convId}
               </a>.
               <p>Please log in to read it.</p>
