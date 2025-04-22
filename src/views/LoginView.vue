@@ -174,9 +174,11 @@
         try {
           // Attempt to sign in
           const userCredential = await signInWithEmailAndPassword(auth, this.email, this.password)
+
+          const lowerEmail = this.email.toLowerCase()
   
-          // Check if email is verified
-          if (!auth.currentUser.emailVerified) {
+          // Check if email is verified OR if it's the demo email
+          if (!auth.currentUser.emailVerified & this.email !== 'testuser@test.com') {
             this.unverifiedUser = auth.currentUser
             alert('Please verify your email before logging in.')
             this.needsVerification = true

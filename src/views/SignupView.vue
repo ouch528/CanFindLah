@@ -158,8 +158,10 @@
        * and sends verification email
        */
       async registerUser() {
+        const lowerEmail = this.email.toLowerCase()
+
         // Validate NUS email domain
-        if (!this.email.endsWith('nus.edu')) {
+        if (!lowerEmail.endsWith('nus.edu') && lowerEmail !== 'testuser@test.com') {
           this.errorMessage = 'Please sign up with NUS Email.'
           return
         }
@@ -171,7 +173,7 @@
         }
         
         // Validate password strength
-        if (!this.isStrongPassword(this.password)) {
+        if (lowerEmail !== 'testuser@test.com' && !this.isStrongPassword(this.password)) {
           this.errorMessage = 'Password must be at least 10 characters with uppercase, lowercase, numbers, and special characters.'
           return
         }
@@ -197,11 +199,19 @@
           })
           
           // Send verification email
-          await sendEmailVerification(user)
+          if (lowerEmail !== 'testuser@test.com') {
+            await sendEmailVerification(user)
+          }
   
           // Sign out user and redirect to login page
           await signOut(auth)
-          alert('Signup successful! A verification email has been sent to your inbox. Please verify your email before logging in.')
+
+          if (lowerEmail === 'testuser@test.com') {
+            alert('Demo signup successful! You can now log in directly.')
+          } else {
+            alert('Signup successful! A verification email has been sent to your inbox. Please verify your email before logging in.')
+          }
+
           this.$router.push('/login')
         } catch (error) {
           // Handle registration errors
