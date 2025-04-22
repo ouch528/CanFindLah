@@ -160,8 +160,13 @@
       async registerUser() {
         const lowerEmail = this.email.toLowerCase()
 
+        // Set exception
+        if (lowerEmail == 'testuser@test.com') {
+          return
+        }
+
         // Validate NUS email domain
-        if (!lowerEmail.endsWith('nus.edu') && lowerEmail !== 'testuser@test.com') {
+        if (!lowerEmail.endsWith('nus.edu')) {
           this.errorMessage = 'Please sign up with NUS Email.'
           return
         }
