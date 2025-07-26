@@ -16,9 +16,6 @@ To do so, CanFindLah has a range of features. This includes dedicated pages for 
 For the final report, our team rephrased the 17 Functional and 16 Non-Functional Requirements from the mid-term report into user stories. We then refined and created user stories by updating the acceptance criteria. We have successfully implemented 22 user stories (20 functional, 2 non-functional) in our web application. All functional requirements were fully implemented.
 
 
-## 
-
-
 ## 1.2 Problem Statement
 
 University students lead hectic and dynamic lifestyles, juggling academics, internships, social commitments, and personal interests (Aslam, 2024). Unlike in traditional classrooms, students must constantly move across a large campus, attending lectures, tutorials, and co-curricular activities in different locations. This frequent movement, and lack of a fixed base, increases the likelihood of misplacing personal belongings.
@@ -105,7 +102,7 @@ We have rephrased the requirements from the mid-term report in the form of user 
 
 <table>
   <tr>
-   <td>S/N
+   <td>S/N&nbsp;&nbsp;&nbsp;&nbsp;
    </td>
    <td>User Stories
    </td>
@@ -422,15 +419,12 @@ We have rephrased the requirements from the mid-term report in the form of user 
 
 
 
-## 
-
-
-## 2.3 User Stories** **& Non-Functional Requirements
+## 2.3 User Stories & Non-Functional Requirements
 
 
 <table>
   <tr>
-   <td>S/N
+   <td>S/N&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
    </td>
    <td>User Stories
    </td>
@@ -689,7 +683,6 @@ The app’s effectiveness is highly dependent on the accuracy and completeness o
 
 A key challenge at launch is the small user base, which may reduce the platform’s effectiveness. With fewer reported lost and found items, the chances of successful matches decrease, making it harder to gain traction. To overcome this, we can implement a targeted outreach strategy, including collaborations with NUS departments and active promotions through the existing Lost and Found Telegram channel, encouraging students and staff to adopt the app.
 
-.
 
 
 # 3. System Design
