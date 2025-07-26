@@ -95,7 +95,7 @@ NUS Students & Staff
     5. These users can view potential matches and contact the owner via the chat feature to verify ownership before handing over the item.
 
 
-## 2.2 User Stories** **& Functional Requirements
+## 2.2 User Stories & Functional Requirements
 
 We have rephrased the requirements from the mid-term report in the form of user stories. However, these are not our finalized product backlogs. We have further selected and refined the user stories that have been developed. Please refer to them in the Product Backlog section, as well as in our SCRUM Artifact.
 
