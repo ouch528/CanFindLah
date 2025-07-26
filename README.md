@@ -28,22 +28,20 @@ Factors such as stress, inattention, disorganization, and forgetfulness further 
 For instance, students at the National University of Singapore (NUS) currently rely on a Lost and Found Telegram channel and an Online Lost & Found System. However, these solutions are not the most efficient and could be improved.
 
 
-```
+<p align="center">
+    <img src="/readme_images/figure1.png" width="300"/> <br>
+    Figure 1: Current implementation of the NUS Lost and Found Telegram group
+</p>
 
-```
-
-
-*Figure 1: Current implementation of the NUS Lost and Found Telegram group*
 
 Messages in the Telegram group as shown in Figure 1 get buried quickly, making it difficult to track updates. Users must also manually scan through posts instead of receiving notifications when they find an item that matches their lost one. Additionally, lost and found item reports are mixed and confusing.
 
 
-```
+<p align="center">
+    <img src="/readme_images/figure2.png" width="300"/> <br>
+    Figure 2: Current implementation of the NUS Lost & Found System (RepoApp)
+</p>
 
-```
-
-
-*Figure 2: Current implementation of the NUS Lost & Found System (RepoApp)*
 
 The list of items in the online system in Figure 2 does not allow users to easily search or filter lost items by location, date, or category, making the retrieval process time-consuming. The process of matching the found item and the lost item is also done manually only during working hours, which does not allow for real-time updates.
 
@@ -700,12 +698,11 @@ A key challenge at launch is the small user base, which may reduce the platform�
 ## 3.1 Firestore Data Diagram
 
 
-```
+<p align="center">
+    <img src="/readme_images/figure3.png" width="500"/> <br>
+    Figure 3: Firestore Data Diagram
+</p>
 
-```
-
-
-*Figure 3: Firestore Data Diagram*
 
 The diagram in Figure 3 illustrates how data is structured in Firebase for CanFindLah.
 
@@ -723,13 +720,11 @@ The Messages Page stores a user_id along with a collection of chat_id, enabling 
 ## 3.2 Data Flow Diagram
 
 
-```
+<p align="center">
+    <img src="/readme_images/figure4.png" width="500"/> <br>
+    Figure 4: Data Flow Diagram
+</p>
 
-```
-
-
-
-            *Figure 4: Data Flow Diagram*
 
 The data flow diagram in Figure 4 shows the movement of data in the CanFindLah application.
 
@@ -747,12 +742,11 @@ The Conversation Panel enables users to chat with other users in real time. All 
 ## 3.3 User Flow Diagram
 
 
-```
+<p align="center">
+    <img src="/readme_images/figure5.png" width="500"/> <br>
+    Figure 5: User Flow Diagram
+</p>
 
-```
-
-
-*Figure 5: User Flow Diagram*
 
 The user flow diagram in Figure 5 maps out users’ journeys through CanFindLah. Authentication through the Login Page will direct users to a home page with access to four main sections: History Page, Report Lost Item Page, Found Lost Item Page, and Chat Page. 
 
@@ -775,25 +769,24 @@ The History Page allows users to access their reported items and check their sta
   <tr>
    <td>
 
-<p id="gdcalert1" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image1.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert2">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-<img src="images/image1.png" width="" alt="alt_text" title="image_tooltip">
+<p align="center">
+    <img src="/readme_images/figure6a.png" width="500"/> <br>
+</p>
 
    </td>
    <td>
 
-<p id="gdcalert2" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image2.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert3">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-<img src="images/image2.png" width="" alt="alt_text" title="image_tooltip">
+<p align="center">
+    <img src="/readme_images/figure6b.png" width="500"/> <br>
+</p>
 
    </td>
   </tr>
 </table>
 
-
-*Figure 6: Login Page (at the left) + Signup Page (at the right)*
+<p align="center">
+    Figure 6: Login Page (at the left) + Signup Page (at the right)
+</p>
 
 The Authentication Page as shown in Figure 6 offers a secure login and signup system (F-01) designed for NUS students and staff. Users can log in using their email and password, with a password visibility toggle for convenience. New users can register through the Sign-Up function (F-02), ensuring that only authenticated and verified users gain access to the platform (F-03), enhancing both security and user experience. Users are prompted to enter a display “username”, which will only be used for chat identification purposes, preserving the app’s anonymous communication feature. Upon signing up, the users will receive an email verification (F-05) and the system should send an email verification link to the user to be validated.
 
@@ -801,12 +794,11 @@ The Authentication Page as shown in Figure 6 offers a secure login and signup sy
 ## 4.2 Home Page
 
 
-```
+<p align="center">
+    <img src="/readme_images/figure7.png" width="500"/> <br>
+    Figure 7: Home Page
+</p>
 
-```
-
-
-*Figure 7: Home Page*
 
 The Home Page as shown in Figure 7 serves as the main navigation hub, allowing users to seamlessly report lost or found items with clearly labeled buttons for quick access. Designed for ease of use, the interface enables users to take immediate action upon logging in. A real-time dashboard at the bottom displays key statistics, including the number of items claimed, found, and yet to be claimed, providing insights into potential matches for lost belongings. Additionally, users have quick access to essential pages such as the History Page, the Messages Page, and have the option to log out (F-04), ensuring smooth navigation and efficient communication within the platform.
 
@@ -814,37 +806,23 @@ The Home Page as shown in Figure 7 serves as the main navigation hub, allowing u
 ## 4.3 Report Lost Item Page
 
 
-```
-
-```
-
-
-*Figure 8: Report Lost Item Page*
+<p align="center">
+    <img src="/readme_images/figure8.png" width="500"/> <br>
+    Figure 8: Report Lost Item Page
+</p>
 
 
-<table>
-  <tr>
-   <td colspan="2" >
-
-<p id="gdcalert3" ><span style="color: red; font-weight: bold">>>>>>  gd2md-html alert: inline image link here (to images/image3.png). Store image on your image server and adjust path/filename/extension if necessary. </span><br>(<a href="#">Back to top</a>)(<a href="#gdcalert4">Next alert</a>)<br><span style="color: red; font-weight: bold">>>>>> </span></p>
-
-
-<img src="images/image3.png" width="" alt="alt_text" title="image_tooltip">
-
-   </td>
-  </tr>
-</table>
+<p align="center">
+    <img src="/readme_images/figure9.png" width="500"/> <br>
+    Figure 9: Display Matching Item
+</p>
 
 
-*Figure 9: Display Matching Item*
+<p align="center">
+    <img src="/readme_images/figure10.png" width="500"/> <br>
+    Figure 10: Verify item
+</p>
 
-
-```
-
-```
-
-
-*Figure 10: Verify item*
 
 The Report Lost Item Page as shown in Figure 8 allows users to input detailed information about their lost item, including its category, colour, brand, location, date, and description. This structured form ensures accurate reporting, increasing the chances of successful recovery. Upon clicking the Submit button (F-06), the system's matching algorithm runs, scanning the database for similar found items. If there are potential matches, the results are displayed alongside photos and descriptions, as shown in Figure 9, allowing users to visually compare and identify potential matches (F-07). As shown in Figure 10, each listed item allows users to confirm if the item belongs to them (F-08). 
 
@@ -852,12 +830,11 @@ The Report Lost Item Page as shown in Figure 8 allows users to input detailed in
 ## 4.4 Report Found Item Page
 
 
-```
+<p align="center">
+    <img src="/readme_images/figure11.png" width="500"/> <br>
+    Figure 11: Report Found Item Page
+</p>
 
-```
-
-
-*Figure 11: Report Found Item Page*
 
 The Report Found Item Page as shown in Figure 11 allows users to provide detailed information about an item they have found, ensuring a smooth and efficient process for matching it with its rightful owner. Users can enter key details such as category, colour, brand, location found, date & time found, and a description of the item (F-09). This structured input helps improve the matching algorithm, increasing the chances of matching the found item with a reported lost item. Once the Submit button is clicked, the system processes the information and cross-checks it with existing or future lost item reports. 
 
@@ -865,12 +842,11 @@ The Report Found Item Page as shown in Figure 11 allows users to provide detaile
 ## 4.5 History Page
 
 
-```
+<p align="center">
+    <img src="/readme_images/figure12.png" width="500"/> <br>
+    Figure 12: History Page
+</p>
 
-```
-
-
-*Figure 12: History Page*
 
 The History Page as shown in Figure 12 provides users with a structured overview of their lost and found reports, categorized by status for easy tracking. Each entry includes essential details such as item category, color, brand, location found, date and time found, description and status updates, with users assigned roles as Searchers or Founders. Status tags such as "Not Found Yet", "Matched" and "Returned" indicate the progress of each report, ensuring clarity in item recovery (F-10). Users can also update or delete their previously reported item details to ensure the accuracy and relevance of item reports (F-11). A status filter allows users to filter entries efficiently, while a completion message at the bottom confirms all reports have been loaded. This streamlined interface enhances navigation, making it easy for users to monitor the progress of their lost and found items in real-time (F-12). 
 
@@ -878,12 +854,11 @@ The History Page as shown in Figure 12 provides users with a structured overview
 ## 4.6 Message Inbox and Conversational Panel
 
 
-```
+<p align="center">
+    <img src="/readme_images/figure13.png" width="500"/> <br>
+    Figure 13: Message Inbox (at the left) + Conversation Panel (at the right)
+</p>
 
-```
-
-
-*Figure 13: Message Inbox (at the left) + Conversation Panel (at the right)*
 
 The Message Inbox as shown in Figure 13 enables direct communication between founders and searchers of lost items, streamlining the retrieval process. Users can view a list of conversations (F-13) with item ownership status, indicating whether the person they are chatting with is a searcher or a founder. Each chat entry includes the user name, user role and a message preview, enabling quick navigation to relevant conversations. Users can also delete chats that are no longer active or in use. (F-14)
 
@@ -897,36 +872,32 @@ Within the conversational panel, users can engage in real-time messaging with th
 **Conditional Rendering**
 
 
-```
+<p align="center">
+    <img src="/readme_images/figure14.png" width="500"/> <br>
+    Figure 14: Example Usage of Conditional Rendering
+</p>
 
-```
-
-
-*Figure 14: Example Usage of Conditional Rendering*
 
 In our web application, we utilize conditional rendering to dynamically control the display of UI elements based on application state and user roles. This approach ensures that only relevant content and actions are shown to users at any given time, enhancing usability and reducing interface clutter. By conditionally displaying components such as buttons, images, and informational text, the application maintains a clean and context-aware user interface. This not only improves user experience but also ensures that the interface remains responsive and adaptable to different scenarios throughout the application.
 
 **Clarity in Documentation & Comments**
 
 
-```
+<p align="center">
+    <img src="/readme_images/figure15.png" width="500"/> <br>
+    Figure 15: Example of Clarity in Documentation & Comments
+</p>
 
-```
-
-
-*Figure 15: Example of Clarity in Documentation & Comments*
 
 Throughout our project, we have maintained clear and consistent documentation within the code to enhance readability and understanding. Comments are thoughtfully placed to explain the purpose and functionality of key logic blocks, input validations, and data handling processes. This practice ensures that both current and future team members can easily comprehend the structure and flow of the code, leading to smoother collaboration, easier debugging, and more efficient development overall.
 
 **Usage of Props**
 
 
-```
-
-```
-
-
-*Figure 16: Example Usage of Props* \
+<p align="center">
+    <img src="/readme_images/figure16.png" width="500"/> <br>
+    Figure 16: Example Usage of Props
+</p>
 
 
 In our web application, we utilize props to pass data objects, such as individual lost or found item entries between components. Each item is passed as a prop containing essential details like images, descriptions, and metadata. This modular approach enhances component reusability and ensures that data is dynamically rendered. 
@@ -934,11 +905,10 @@ In our web application, we utilize props to pass data objects, such as individua
 **Component Abstraction**
 
 
-```
+<p align="center">
+    <img src="/readme_images/figure17.png" width="500"/> <br>
+    Figure 17: Example of Abstracting Components
+</p>
 
-```
-
-
-*Figure 17: Example of Abstracting Components*
 
 To ensure modularity in our web application, we have abstracted key components into reusable units. This approach improves maintainability by separating concerns clearly, allowing easier future development and updates. By isolating functionality, these components enhance maintainability and scalability by enabling the item display logic to be reused across different views without redundancy.
